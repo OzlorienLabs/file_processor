@@ -119,6 +119,35 @@ h2 { margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3.4rem); }
 .selected-files strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .selected-files small { color: var(--muted); }
 .selected-files svg { color: var(--teal); }
+.workflow-controls { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
+.control-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.control-heading p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.85rem; }
+.control-heading > span { flex: 0 0 auto; padding: 0.3rem 0.6rem; border-radius: 99rem; background: var(--teal-soft); color: var(--teal); font-size: 0.75rem; font-weight: 800; }
+.file-order-list { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.file-order-list li { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; padding: 0.75rem; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.file-order-list li > span { min-width: 0; display: grid; gap: 0.15rem; }
+.file-order-list strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-order-list small { color: var(--muted); }
+.icon-actions { display: flex; gap: 0.2rem; }
+.icon-actions button { width: 2rem; height: 2rem; display: grid; place-items: center; border: 0; border-radius: 0.4rem; background: transparent; color: var(--muted); cursor: pointer; }
+.icon-actions button:hover:not(:disabled) { background: var(--blue-soft); color: var(--blue); }
+.icon-actions button:disabled { opacity: 0.3; cursor: not-allowed; }
+.icon-actions svg { width: 1rem; height: 1rem; }
+.field-label { display: grid; gap: 0.5rem; font-size: 0.85rem; font-weight: 800; }
+.field-label input, .field-label select, .field-label textarea { width: 100%; min-height: 2.8rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: white; color: var(--ink); padding: 0.7rem 0.8rem; }
+.input-with-suffix { display: grid; grid-template-columns: 1fr auto; align-items: center; border: 1px solid var(--line); border-radius: var(--radius-sm); background: white; overflow: hidden; }
+.input-with-suffix input { border: 0; border-radius: 0; }
+.input-with-suffix > span { padding-inline: 0.8rem; color: var(--muted); font-size: 0.85rem; font-weight: 500; }
+.workflow-actions, .result-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.choice-group { display: grid; gap: 0.5rem; margin: 0; padding: 0; border: 0; }
+.choice-group legend { margin-bottom: 0.5rem; font-weight: 800; }
+.choice-group label { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.9rem; border: 1px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; }
+.choice-group input { margin-top: 0.25rem; accent-color: var(--blue); }
+.choice-group label > span { display: grid; gap: 0.2rem; }
+.choice-group small { color: var(--muted); }
+.result-panel { display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; padding: 1.5rem; border: 1px solid #b7d7d1; border-radius: var(--radius-md); background: var(--teal-soft); }
+.result-panel h3 { margin-bottom: 0.4rem; font-family: inherit; font-size: 1.1rem; letter-spacing: 0; }
+.result-panel p:last-child { margin: 0; color: #35625e; font-size: 0.85rem; }
 .instructions-section { padding-block: 4rem 6rem; border-top: 1px solid var(--line); }
 .instruction-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 2rem 0 0; padding: 0; list-style: none; }
 .instruction-grid li { padding: 1.25rem; border-top: 2px solid var(--ink); }
@@ -150,6 +179,10 @@ h2 { margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3.4rem); }
   .tool-grid { grid-template-columns: 1fr; }
   .tool-card { min-height: 13rem; }
   .footer-links { flex-direction: column; }
+  .result-panel { grid-template-columns: 1fr; }
+  .result-actions .button { width: 100%; }
+  .file-order-list li { grid-template-columns: auto minmax(0, 1fr); }
+  .icon-actions { grid-column: 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {

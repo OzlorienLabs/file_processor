@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 
 import type { ToolDefinition } from '../app/tool-catalog';
 import { FileDropzone } from '../components/FileDropzone/FileDropzone';
+import { MergeWorkspace } from '../features/merge/MergeWorkspace';
+import { SplitWorkspace } from '../features/split/SplitWorkspace';
 import { formatBytes, type FilePolicy } from '../lib/files';
 
 const MB = 1024 * 1024;
@@ -68,6 +70,7 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
           </p>
         </div>
         <div className="workspace-card">
+          {tool.id === 'merge' ? <MergeWorkspace /> : tool.id === 'split' ? <SplitWorkspace /> : <>
           <FileDropzone
             id={`${tool.id}-files`}
             label={uploadLabel(tool)}
@@ -87,6 +90,7 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
           ) : (
             <p className="empty-workspace">Nothing leaves this page until you start the task.</p>
           )}
+          </>}
         </div>
       </section>
 
