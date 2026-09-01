@@ -6,13 +6,17 @@ import type { ToolDefinition, ToolId } from '../app/tool-catalog';
 import { FileDropzone } from '../components/FileDropzone/FileDropzone';
 import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
 import { MergeWorkspace } from '../features/merge/MergeWorkspace';
+import { PdfToWordWorkspace } from '../features/pdf-to-word/PdfToWordWorkspace';
 import { SplitWorkspace } from '../features/split/SplitWorkspace';
+import { WordToPdfWorkspace } from '../features/word-to-pdf/WordToPdfWorkspace';
 import { formatBytes, type FilePolicy } from '../lib/files';
 
 const workspaces: Partial<Record<ToolId, ComponentType>> = {
   merge: MergeWorkspace,
   split: SplitWorkspace,
   compress: CompressionWorkspace,
+  'word-to-pdf': WordToPdfWorkspace,
+  'pdf-to-word': PdfToWordWorkspace,
 };
 
 const MB = 1024 * 1024;
