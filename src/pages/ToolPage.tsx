@@ -29,6 +29,9 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   markdown: lazy(() => import('../features/markdown/MarkdownWorkspace').then((m) => ({ default: m.MarkdownWorkspace }))),
   notepad: lazy(() => import('../features/notepad/NotepadWorkspace').then((m) => ({ default: m.NotepadWorkspace }))),
   snippets: lazy(() => import('../features/snippets/SnippetsWorkspace').then((m) => ({ default: m.SnippetsWorkspace }))),
+  'snippet-generator': lazy(() =>
+    import('../features/snippet-generator/SnippetGeneratorWorkspace').then((m) => ({ default: m.SnippetGeneratorWorkspace })),
+  ),
 };
 
 function WorkspaceLoading({ name }: { name: string }) {

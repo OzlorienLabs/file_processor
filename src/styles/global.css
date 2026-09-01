@@ -347,3 +347,12 @@ h2 { margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3.4rem); }
 .snippet-form .code-editor { min-height: 20rem; }
 .snippet-detail { display: grid; gap: 1rem; }
 .snippet-detail .control-heading strong { font-size: 1.15rem; }
+
+/* Snippet generator */
+.generator-main { min-width: 0; display: grid; gap: 1.25rem; }
+.generator-description { min-height: 7rem; font-family: inherit; font-size: 0.95rem; }
+.generator-context { min-height: 9rem; }
+.generator-result { display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--subtle); }
+.generator-result .control-heading strong { font-size: 1.05rem; }
+.generator-explanation { white-space: pre-wrap; }
+.engine-choice small { line-height: 1.45; }

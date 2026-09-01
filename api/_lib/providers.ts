@@ -35,7 +35,8 @@ export interface ProviderRequest {
   init: RequestInit;
 }
 
-export function buildSummarizeRequest(
+/** One plain-text completion request against an allowlisted provider endpoint. */
+export function buildTextRequest(
   provider: Provider,
   model: string,
   prompt: string,
@@ -99,7 +100,8 @@ interface GoogleResponse {
   candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
 }
 
-export function parseSummaryResponse(provider: Provider, payload: unknown): string {
+/** Extracts the text of a completion from each provider's response shape. */
+export function parseTextResponse(provider: Provider, payload: unknown): string {
   if (typeof payload !== 'object' || payload === null) return '';
   if (provider === 'openai') {
     const response = payload as OpenAiResponse;
@@ -125,3 +127,6 @@ export function parseSummaryResponse(provider: Provider, payload: unknown): stri
     .join('')
     .trim();
 }
+
+export const buildSummarizeRequest = buildTextRequest;
+export const parseSummaryResponse = parseTextResponse;

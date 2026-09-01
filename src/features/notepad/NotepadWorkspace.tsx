@@ -40,7 +40,7 @@ export function NotepadWorkspace() {
   const isSaved = store.items.some((note) => note.id === current.id);
 
   const change = (patch: Partial<Pick<Note, 'title' | 'body' | 'mode'>>) => {
-    const next = touch(current, patch);
+    const next = touch<Note>(current, patch);
     setCurrent(next);
     if (!isBlankNote(next)) store.upsert(next);
     else if (isSaved) store.remove(next.id);
