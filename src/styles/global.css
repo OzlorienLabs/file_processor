@@ -207,3 +207,4 @@ h2 { margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3.4rem); }
 @media (max-width: 40rem) {
   .ai-settings-grid { grid-template-columns: 1fr; }
 }
+.srt-row { margin: 1rem 0 0; }

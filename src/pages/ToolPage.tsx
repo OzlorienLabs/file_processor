@@ -1,9 +1,9 @@
 import { ArrowLeft, CheckCircle2, HardDrive, Sparkles } from 'lucide-react';
-import { useState, type ComponentType } from 'react';
+import type { ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ToolDefinition, ToolId } from '../app/tool-catalog';
-import { FileDropzone } from '../components/FileDropzone/FileDropzone';
+import { AudioToTextWorkspace } from '../features/audio-to-text/AudioToTextWorkspace';
 import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
 import { ConvertWorkspace } from '../features/convert/ConvertWorkspace';
 import { MergeWorkspace } from '../features/merge/MergeWorkspace';
@@ -12,9 +12,8 @@ import { PdfToWordWorkspace } from '../features/pdf-to-word/PdfToWordWorkspace';
 import { SplitWorkspace } from '../features/split/SplitWorkspace';
 import { SummarizeWorkspace } from '../features/summarize/SummarizeWorkspace';
 import { WordToPdfWorkspace } from '../features/word-to-pdf/WordToPdfWorkspace';
-import { formatBytes, type FilePolicy } from '../lib/files';
 
-const workspaces: Partial<Record<ToolId, ComponentType>> = {
+const workspaces: Record<ToolId, ComponentType> = {
   merge: MergeWorkspace,
   split: SplitWorkspace,
   compress: CompressionWorkspace,
@@ -23,42 +22,10 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   convert: ConvertWorkspace,
   ocr: OcrWorkspace,
   summarize: SummarizeWorkspace,
+  'audio-to-text': AudioToTextWorkspace,
 };
 
-const MB = 1024 * 1024;
-
-function policyFor(tool: ToolDefinition): FilePolicy {
-  const commonImages = ['image/png', 'image/jpeg', 'image/webp'];
-  switch (tool.id) {
-    case 'merge':
-      return { accept: ['application/pdf', ...commonImages], extensions: ['pdf', 'png', 'jpg', 'jpeg', 'webp'], maxBytes: 100 * MB, maxFiles: 20, minFiles: 2, maxTotalBytes: 150 * MB };
-    case 'ocr':
-      return { accept: ['application/pdf', ...commonImages], extensions: ['pdf', 'png', 'jpg', 'jpeg', 'webp'], maxBytes: 25 * MB, maxFiles: 1 };
-    case 'summarize':
-      return { accept: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/markdown'], extensions: ['pdf', 'docx', 'txt', 'md'], maxBytes: 25 * MB, maxFiles: 1 };
-    case 'audio-to-text':
-      return { accept: ['audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/webm', 'audio/ogg', 'audio/flac'], extensions: ['mp3', 'm4a', 'wav', 'webm', 'ogg', 'flac'], maxBytes: 100 * MB, maxFiles: 1 };
-    case 'compress':
-      return { accept: ['application/pdf', ...commonImages], extensions: ['pdf', 'png', 'jpg', 'jpeg', 'webp'], maxBytes: 100 * MB, maxFiles: 1 };
-    case 'word-to-pdf':
-      return { accept: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'], extensions: ['docx'], maxBytes: 25 * MB, maxFiles: 1 };
-    case 'split':
-    case 'pdf-to-word':
-      return { accept: ['application/pdf'], extensions: ['pdf'], maxBytes: tool.id === 'split' ? 100 * MB : 50 * MB, maxFiles: 1 };
-    case 'convert':
-      return { accept: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', ...commonImages, 'audio/mpeg', 'audio/wav', 'audio/webm', 'audio/ogg'], extensions: ['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav', 'webm', 'ogg'], maxBytes: 100 * MB, maxFiles: 1 };
-  }
-}
-
-function uploadLabel(tool: ToolDefinition): string {
-  if (tool.id === 'merge') return 'Choose files to merge';
-  if (tool.id === 'ocr') return 'Choose a file for OCR';
-  if (tool.id === 'audio-to-text') return 'Choose audio to transcribe';
-  return `Choose a file to ${tool.shortName.toLowerCase()}`;
-}
-
 export function ToolPage({ tool }: { tool: ToolDefinition }) {
-  const [files, setFiles] = useState<File[]>([]);
   const isLocal = tool.processing === 'browser';
   const Workspace = workspaces[tool.id];
 
@@ -88,27 +55,7 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
           </p>
         </div>
         <div className="workspace-card">
-          {Workspace ? <Workspace /> : <>
-          <FileDropzone
-            id={`${tool.id}-files`}
-            label={uploadLabel(tool)}
-            hint={`${tool.accept.join(' · ')} — ${tool.maxSize}`}
-            policy={policyFor(tool)}
-            onFiles={setFiles}
-          />
-          {files.length ? (
-            <ul className="selected-files" aria-label="Selected files">
-              {files.map((file) => (
-                <li key={`${file.name}-${file.size}`}>
-                  <span><strong>{file.name}</strong><small>{formatBytes(file.size)}</small></span>
-                  <CheckCircle2 aria-label="Ready" size={20} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="empty-workspace">Nothing leaves this page until you start the task.</p>
-          )}
-          </>}
+          <Workspace />
         </div>
       </section>
 
