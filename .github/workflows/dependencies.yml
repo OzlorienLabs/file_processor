@@ -1,0 +1,69 @@
+name: Dependencies
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Monday 06:00 UTC — catches advisories published after a PR merged.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: deps-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: npm audit (high+)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Resolves against package-lock.json; no install needed.
+      # `overrides` in package.json pin the patched adm-zip / sharp that
+      # @huggingface/transformers' own range holds at vulnerable versions.
+      - run: npm audit --audit-level=high
+
+  outdated:
+    name: Outdated report
+    runs-on: ubuntu-latest
+    # Informational only — never blocks a merge.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: List outdated packages
+        run: |
+          {
+            echo '## Outdated dependencies'
+            echo
+            echo '```'
+            npm outdated || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.repository.visibility == 'public'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      # Flags newly introduced vulnerable or disallowed-license deps in the diff.
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
