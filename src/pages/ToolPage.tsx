@@ -26,6 +26,8 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   summarize: SummarizeWorkspace,
   'audio-to-text': AudioToTextWorkspace,
   diff: lazy(() => import('../features/diff/DiffWorkspace').then((m) => ({ default: m.DiffWorkspace }))),
+  markdown: lazy(() => import('../features/markdown/MarkdownWorkspace').then((m) => ({ default: m.MarkdownWorkspace }))),
+  notepad: lazy(() => import('../features/notepad/NotepadWorkspace').then((m) => ({ default: m.NotepadWorkspace }))),
 };
 
 function WorkspaceLoading({ name }: { name: string }) {
