@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { App, AppRoutes } from './App';
+import { coreTools } from './tool-catalog';
 
 function renderAt(path: string) {
   return render(
@@ -20,7 +21,7 @@ describe('application routes', () => {
     expect(
       screen.getByRole('heading', { name: /useful tools for everyday files/i }),
     ).toBeInTheDocument();
-    expect(screen.getAllByTestId('tool-card')).toHaveLength(9);
+    expect(screen.getAllByTestId('tool-card')).toHaveLength(coreTools.length);
     expect(screen.getByRole('link', { name: /browse every emoji/i })).toHaveAttribute(
       'href',
       '/en/emojis',
@@ -65,6 +66,19 @@ describe('application routes', () => {
     renderAt('/en/summarize');
     expect(screen.getByText(/browser \+ your ai provider/i)).toBeInTheDocument();
     expect(screen.getByText(/the file is read locally/i)).toBeInTheDocument();
+  });
+
+  it('explains local-storage persistence and widens the workspace for editors', async () => {
+    renderAt('/en/diff');
+    expect(screen.getByText(/saved in this browser's local storage/i)).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /diff checker workspace/i })).toHaveClass('wide-page');
+    expect(await screen.findByLabelText(/original text/i)).toBeInTheDocument();
+  });
+
+  it('describes the on-device-or-provider choice for the snippet generator', () => {
+    renderAt('/en/snippet-generator');
+    expect(screen.getByText(/on-device ai or your provider/i)).toBeInTheDocument();
+    expect(screen.getByText(/nothing leaves this device/i)).toBeInTheDocument();
   });
 
   it('opens and closes the mobile navigation menu', async () => {

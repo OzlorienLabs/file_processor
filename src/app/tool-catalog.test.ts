@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { coreTools, getToolByPath } from './tool-catalog';
+import { coreTools, getToolByPath, toolsInCategory } from './tool-catalog';
 
 const requiredPaths = [
   '/en/summarize',
@@ -12,6 +12,13 @@ const requiredPaths = [
   '/en/convert/word/pdf',
   '/en/convert/pdf/word',
   '/en/convert',
+  '/en/diagram',
+  '/en/mermaid',
+  '/en/diff',
+  '/en/notepad',
+  '/en/markdown',
+  '/en/snippets',
+  '/en/snippet-generator',
 ];
 
 describe('tool catalog', () => {
@@ -26,9 +33,20 @@ describe('tool catalog', () => {
       expect(tool.howTo).toMatch(/^How to /);
       expect(tool.steps).toHaveLength(3);
       expect(tool.steps.every((step) => step.length >= 12)).toBe(true);
-      expect(['browser', 'browser-and-provider']).toContain(tool.processing);
+      expect(['browser', 'browser-and-provider', 'browser-or-provider']).toContain(tool.processing);
+      expect(['files', 'create']).toContain(tool.category);
       expect(tool.accept).not.toHaveLength(0);
     }
+  });
+
+  it('groups editors separately from file tools and marks what they store', () => {
+    const editors = toolsInCategory('create');
+    expect(editors.map((tool) => tool.id).sort()).toEqual(
+      ['diagram', 'diff', 'markdown', 'mermaid', 'notepad', 'snippet-generator', 'snippets'],
+    );
+    expect(editors.every((tool) => tool.layout === 'wide' && tool.storage === 'local')).toBe(true);
+    expect(toolsInCategory('files')).toHaveLength(9);
+    expect(toolsInCategory('files').some((tool) => tool.storage)).toBe(false);
   });
 
   it('looks up normalized paths without accepting unrelated routes', () => {
