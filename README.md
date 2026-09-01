@@ -37,6 +37,7 @@ npm install
 npm run dev             # app only
 npm run dev:vercel      # app + api functions
 npm run verify          # lint + typecheck + coverage (≥95% gates) + build
+npm run audit           # dependency audit; must be clean before release
 npm run test:e2e        # Playwright critical flows (desktop + mobile)
 node scripts/generate-emoji.ts   # regenerate public/emoji/catalog.json
 ```

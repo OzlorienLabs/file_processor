@@ -13,6 +13,7 @@ npm run test            # Vitest unit/integration (jsdom)
 npm run test:coverage   # coverage; all four metrics must be ≥95%
 npm run test:e2e        # Playwright against the production preview
 npm run verify          # lint + typecheck + coverage + build (run before any release claim)
+npm run audit           # npm audit --audit-level=high; must be clean before release
 ```
 
 ## Architecture rules
@@ -38,4 +39,4 @@ npm run verify          # lint + typecheck + coverage + build (run before any re
 - `pdfjs-dist` v6: worker via `?url` import; destroy through the loading task; jsdom has no canvas — keep pdf.js behind injectable adapters.
 - Vercel function payload limit ~4.5 MB: audio chunks must stay below 3.75 MB before base64 wrapping.
 - Coverage thresholds (95) fail the build on untested branches — add tests with the code, not after.
-- `npm audit` flags @huggingface/transformers' Node-only transitive deps (onnxruntime-node → adm-zip, sharp). They never reach the browser bundle (it uses onnxruntime-web); re-check on transformers upgrades.
+- `@huggingface/transformers` pins Node-only deps (`onnxruntime-node` → `adm-zip`, `sharp`) that its own semver range holds at vulnerable versions. `overrides` in `package.json` force the patched `adm-zip@^0.6.0` / `sharp@^0.35.4`; keep them until upstream bumps its pins, then re-test `npm run audit`. These never reach the browser bundle (it resolves `transformers.web.js` → onnxruntime-web), but `onnxruntime-node`'s postinstall does unzip archives on dev/CI machines — so treat findings there as real, not as noise.
