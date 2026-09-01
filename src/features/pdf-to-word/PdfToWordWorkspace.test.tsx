@@ -61,6 +61,38 @@ describe('PdfToWordWorkspace', () => {
     expect(await screen.findByRole('link', { name: /download word document/i })).toBeInTheDocument();
   });
 
+  it('starts over after converting and cancels quietly', async () => {
+    vi.mocked(convertPdfToDocx).mockResolvedValueOnce(new Blob(['docx']));
+    const user = userEvent.setup();
+    render(<PdfToWordWorkspace />);
+
+    await user.upload(
+      screen.getByLabelText(/choose a pdf document/i),
+      new File(['pdf'], 'a.pdf', { type: 'application/pdf' }),
+    );
+    await user.click(screen.getByRole('button', { name: /convert to word/i }));
+    await user.click(await screen.findByRole('button', { name: /start over/i }));
+    expect(screen.getByLabelText(/choose a pdf document/i)).toBeInTheDocument();
+
+    vi.mocked(convertPdfToDocx).mockImplementationOnce(
+      (_file, _open, signal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('The operation was cancelled.', 'AbortError')),
+          );
+        }),
+    );
+    await user.upload(
+      screen.getByLabelText(/choose a pdf document/i),
+      new File(['pdf'], 'slow.pdf', { type: 'application/pdf' }),
+    );
+    await user.click(screen.getByRole('button', { name: /convert to word/i }));
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+    expect(await screen.findByRole('button', { name: /convert to word/i })).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('shows an actionable error when conversion fails', async () => {
     vi.mocked(convertPdfToDocx).mockRejectedValue(new Error('encrypted'));
     const user = userEvent.setup();

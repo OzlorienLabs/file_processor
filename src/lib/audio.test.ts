@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   decodeAudioFile,
@@ -18,6 +18,25 @@ function fakeBuffer(channels: Float32Array[], sampleRate = 8000) {
 }
 
 describe('decodeAudioFile', () => {
+  it('decodes through the browser AudioContext by default', async () => {
+    const close = vi.fn(async () => {});
+    const decodeAudioData = vi.fn(async () => fakeBuffer([new Float32Array([0.1])], 44_100));
+    vi.stubGlobal(
+      'AudioContext',
+      class {
+        decodeAudioData = decodeAudioData;
+        close = close;
+      },
+    );
+
+    const decoded = await decodeAudioFile(new Blob(['sound']));
+
+    expect(decoded.sampleRate).toBe(44_100);
+    expect(decodeAudioData).toHaveBeenCalledWith(expect.any(ArrayBuffer));
+    expect(close).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   it('normalizes an AudioBuffer into plain channel data', async () => {
     const left = new Float32Array([0.5, -0.5]);
     const right = new Float32Array([1, -1]);

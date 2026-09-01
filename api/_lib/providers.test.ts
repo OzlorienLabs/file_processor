@@ -94,7 +94,10 @@ describe('parseSummaryResponse', () => {
 
   it('returns an empty string for malformed payloads', () => {
     expect(parseSummaryResponse('openai', {})).toBe('');
+    expect(parseSummaryResponse('openai', { output: [{}] })).toBe('');
     expect(parseSummaryResponse('anthropic', null)).toBe('');
+    expect(parseSummaryResponse('anthropic', {})).toBe('');
     expect(parseSummaryResponse('google', { candidates: [] })).toBe('');
+    expect(parseSummaryResponse('google', { candidates: [{ content: { parts: [{}] } }] })).toBe('');
   });
 });

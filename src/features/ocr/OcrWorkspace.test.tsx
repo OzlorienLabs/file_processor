@@ -68,6 +68,38 @@ describe('OcrWorkspace', () => {
     expect(await screen.findByLabelText('Extracted text')).toHaveValue('done');
   });
 
+  it('starts over after recognition and cancels quietly', async () => {
+    vi.mocked(ocrFile).mockResolvedValueOnce('done words');
+    const user = userEvent.setup();
+    render(<OcrWorkspace />);
+
+    await user.upload(
+      screen.getByLabelText(/choose a file for ocr/i),
+      new File(['img'], 'first.png', { type: 'image/png' }),
+    );
+    await user.click(screen.getByRole('button', { name: /start ocr/i }));
+    await user.click(await screen.findByRole('button', { name: /start over/i }));
+    expect(screen.getByLabelText(/choose a file for ocr/i)).toBeInTheDocument();
+
+    vi.mocked(ocrFile).mockImplementationOnce(
+      (_file, _language, _deps, signal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('The operation was cancelled.', 'AbortError')),
+          );
+        }),
+    );
+    await user.upload(
+      screen.getByLabelText(/choose a file for ocr/i),
+      new File(['img'], 'slow.png', { type: 'image/png' }),
+    );
+    await user.click(screen.getByRole('button', { name: /start ocr/i }));
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+    expect(await screen.findByRole('button', { name: /start ocr/i })).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('surfaces recognition failures with advice', async () => {
     vi.mocked(ocrFile).mockRejectedValue(new Error('bad scan'));
     const user = userEvent.setup();

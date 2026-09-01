@@ -53,6 +53,41 @@ describe('ConvertWorkspace', () => {
     expect(screen.queryByRole('button', { name: /convert file/i })).not.toBeInTheDocument();
   });
 
+  it('starts over after a conversion and cancels quietly', async () => {
+    const run = vi.fn(async () => ({ blob: new Blob(['out']), filename: 'photo.png' }));
+    vi.mocked(conversionsFor).mockReturnValue([
+      { id: 'image-png', label: 'PNG image', hint: 'Lossless', run },
+    ]);
+    const user = userEvent.setup();
+    render(<ConvertWorkspace />);
+
+    await user.upload(
+      screen.getByLabelText(/choose a file to convert/i),
+      new File(['x'], 'photo.jpg', { type: 'image/jpeg' }),
+    );
+    await user.click(screen.getByRole('button', { name: /convert file/i }));
+    await user.click(await screen.findByRole('button', { name: /start over/i }));
+    expect(screen.getByLabelText(/choose a file to convert/i)).toBeInTheDocument();
+
+    run.mockImplementationOnce(
+      (_file: File, signal?: AbortSignal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('The operation was cancelled.', 'AbortError')),
+          );
+        }) as Promise<{ blob: Blob; filename: string }>,
+    );
+    await user.upload(
+      screen.getByLabelText(/choose a file to convert/i),
+      new File(['x'], 'slow.jpg', { type: 'image/jpeg' }),
+    );
+    await user.click(screen.getByRole('button', { name: /convert file/i }));
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+    expect(await screen.findByRole('button', { name: /convert file/i })).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('surfaces conversion failures as actionable errors', async () => {
     vi.mocked(conversionsFor).mockReturnValue([
       { id: 'audio-wav', label: 'WAV audio', hint: 'Uncompressed', run: vi.fn(async () => { throw new Error('decode failed'); }) },

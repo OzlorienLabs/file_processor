@@ -78,4 +78,44 @@ describe('FileDropzone', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/not a supported file/i);
     expect(onFiles).not.toHaveBeenCalled();
   });
+
+  it('tracks drag state, clears it when leaving, and ignores drops while disabled', () => {
+    const onFiles = vi.fn();
+    render(
+      <FileDropzone
+        id="drag-pdf"
+        label="Choose PDF files"
+        hint="PDF only"
+        policy={policy}
+        disabled
+        onFiles={onFiles}
+      />,
+    );
+
+    const dropzone = screen.getByTestId('dropzone');
+    fireEvent.dragEnter(dropzone);
+    expect(dropzone).toHaveAttribute('data-dragging', 'false');
+
+    fireEvent.drop(dropzone, { dataTransfer: { files: [new File(['pdf'], 'a.pdf', { type: 'application/pdf' })] } });
+    expect(onFiles).not.toHaveBeenCalled();
+  });
+
+  it('resets the drag highlight when the pointer leaves the zone', () => {
+    render(
+      <FileDropzone
+        id="leave-pdf"
+        label="Choose PDF files"
+        hint="PDF only"
+        policy={policy}
+        onFiles={vi.fn()}
+      />,
+    );
+
+    const dropzone = screen.getByTestId('dropzone');
+    fireEvent.dragEnter(dropzone);
+    expect(dropzone).toHaveAttribute('data-dragging', 'true');
+    fireEvent.dragOver(dropzone);
+    fireEvent.dragLeave(dropzone, { relatedTarget: document.body });
+    expect(dropzone).toHaveAttribute('data-dragging', 'false');
+  });
 });

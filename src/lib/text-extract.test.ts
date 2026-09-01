@@ -8,6 +8,15 @@ vi.mock('./docx-convert', () => ({
   extractDocxText: vi.fn(async () => 'words from docx'),
 }));
 
+vi.mock('./pdf-raster', () => ({
+  openPdfRasterDocument: vi.fn(async () => ({
+    pageCount: 1,
+    renderPage: vi.fn(),
+    extractPageText: async () => 'default opener text',
+    close: vi.fn(async () => {}),
+  })),
+}));
+
 function fakePdf(pages: string[]): PdfRasterDocument {
   return {
     pageCount: pages.length,
@@ -28,6 +37,13 @@ describe('extractText', () => {
     );
     expect(text).toBe('Page one.\n\nPage two.');
     expect(progress).toHaveBeenCalledWith(2, 2);
+  });
+
+  it('opens PDFs through the default pdf.js opener when none is injected', async () => {
+    const text = await extractText(
+      new File(['pdf'], 'doc.pdf', { type: 'application/pdf' }) as unknown as NamedBlob,
+    );
+    expect(text).toBe('default opener text');
   });
 
   it('extracts DOCX text through mammoth', async () => {

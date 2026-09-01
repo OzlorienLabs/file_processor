@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   FileInputError,
   assertFilesAllowed,
+  fileExtension,
   formatBytes,
   makeOutputName,
+  readBlobBytes,
   safeBaseName,
 } from './files';
 
@@ -54,5 +56,32 @@ describe('file helpers', () => {
     expect(() =>
       assertFilesAllowed([new File(['hello'], 'notes.exe')], pdfPolicy),
     ).toThrow('is not a supported file');
+  });
+
+  it('enforces the combined size budget and minimum file count', () => {
+    expect(() =>
+      assertFilesAllowed(
+        [new File(['123456'], 'a.pdf'), new File(['123456'], 'b.pdf')],
+        { ...pdfPolicy, maxBytes: 100, maxTotalBytes: 10 },
+      ),
+    ).toThrow(/in total/);
+    expect(() =>
+      assertFilesAllowed([new File(['1'], 'a.pdf')], { ...pdfPolicy, minFiles: 2 }),
+    ).toThrow('Choose at least 2 files.');
+  });
+
+  it('extracts lowercase extensions, defaulting to empty', () => {
+    expect(fileExtension('Photo.JPG')).toBe('jpg');
+    expect(fileExtension('archive')).toBe('archive');
+    expect(safeBaseName('!!!.pdf')).toBe('file');
+  });
+
+  it('reads bytes through FileReader when Blob.arrayBuffer is unavailable', async () => {
+    const blob = new Blob(['fallback-bytes']);
+    Object.defineProperty(blob, 'arrayBuffer', { value: undefined });
+
+    const bytes = await readBlobBytes(blob);
+
+    expect(new TextDecoder().decode(bytes)).toBe('fallback-bytes');
   });
 });

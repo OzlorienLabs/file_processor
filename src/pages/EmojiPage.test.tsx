@@ -60,4 +60,43 @@ describe('EmojiPage', () => {
     render(<EmojiPage />);
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not be loaded/i);
   });
+
+  it('ignores fetch results that arrive after unmounting', async () => {
+    let resolveFetch: (response: Response) => void = () => {};
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>((resolve) => {
+        resolveFetch = resolve;
+      })),
+    );
+    const { unmount } = render(<EmojiPage />);
+    unmount();
+    resolveFetch(new Response(JSON.stringify(catalog), { status: 200 }));
+    await Promise.resolve();
+  });
+
+  it('renders large sets incrementally with a show-all control', async () => {
+    const big: EmojiCatalog = {
+      version: '17.0',
+      count: 650,
+      groups: [
+        {
+          name: 'Generated',
+          emojis: Array.from({ length: 650 }, (_, index) => ({
+            e: String.fromCodePoint(0x1f000 + index),
+            n: `generated emoji ${index}`,
+          })),
+        },
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(big), { status: 200 })));
+    const user = userEvent.setup();
+    render(<EmojiPage />);
+
+    await screen.findByText('650 emoji shown.');
+    expect(screen.getAllByRole('listitem')).toHaveLength(600);
+
+    await user.click(screen.getByRole('button', { name: /show all 650 matches/i }));
+    expect(screen.getAllByRole('listitem')).toHaveLength(650);
+  });
 });

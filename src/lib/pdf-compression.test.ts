@@ -42,6 +42,30 @@ describe('compressPdf', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
+  it('stops between pages when cancelled mid-run', async () => {
+    const close = vi.fn();
+    const controller = new AbortController();
+    const renderPage = vi.fn().mockResolvedValue({
+      blob: new Blob([tinyJpeg], { type: 'image/jpeg' }),
+      width: 100,
+      height: 100,
+    });
+    const openDocument: OpenPdfRasterDocument = vi.fn().mockResolvedValue({
+      pageCount: 3,
+      renderPage,
+      extractPageText: vi.fn(),
+      close,
+    });
+
+    await expect(
+      compressPdf(inputFile(), 'balanced', openDocument, controller.signal, () =>
+        controller.abort(),
+      ),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+    expect(renderPage).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledOnce();
+  });
+
   it('closes the document when rendering fails', async () => {
     const close = vi.fn();
     const openDocument: OpenPdfRasterDocument = vi.fn().mockResolvedValue({

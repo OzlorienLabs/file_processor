@@ -103,4 +103,17 @@ describe('summarize handler', () => {
     expect(res.statusCode).toBe(502);
     expect(JSON.parse(res.body).error.code).toBe('empty_response');
   });
+
+  it('treats an unparseable upstream body as an empty response', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>oops</html>', { status: 200 })));
+    const res = fakeResponse();
+    await handler(request(), res);
+    expect(res.statusCode).toBe(502);
+  });
+
+  it('rejects oversized keys', async () => {
+    const res = fakeResponse();
+    await handler(request({ headers: { 'x-provider-key': 'k'.repeat(500) } }), res);
+    expect(res.statusCode).toBe(401);
+  });
 });

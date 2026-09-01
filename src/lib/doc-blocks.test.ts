@@ -31,6 +31,21 @@ describe('htmlToBlocks', () => {
     expect(blocks[0].text).toContain('Safe');
     expect(blocks[0].text).not.toContain('<script>');
   });
+
+  it('recurses through wrappers and handles list items without own text', () => {
+    const blocks = htmlToBlocks(`
+      <div><section><h2>  </h2><p>Wrapped</p></section></div>
+      <ul><li><ul><li>Only nested</li></ul></li></ul>
+      <table><tr><th>Header cell</th><th> </th></tr></table>
+      <ol><li>Item<ul><li>  </li></ul></li></ol>
+    `);
+    expect(blocks).toEqual([
+      { kind: 'paragraph', level: 0, text: 'Wrapped' },
+      { kind: 'list-item', level: 1, text: 'Only nested' },
+      { kind: 'paragraph', level: 0, text: 'Header cell' },
+      { kind: 'list-item', level: 0, text: 'Item' },
+    ]);
+  });
 });
 
 describe('textToBlocks', () => {

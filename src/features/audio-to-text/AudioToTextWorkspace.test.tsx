@@ -95,6 +95,50 @@ describe('AudioToTextWorkspace', () => {
     expect(screen.getByLabelText(/^openai api key$/i)).toHaveValue('sk-saved');
   });
 
+  it('forgets the stored key on demand', async () => {
+    const user = userEvent.setup();
+    render(<AudioToTextWorkspace />);
+
+    await uploadRecording(user);
+    await user.click(screen.getByRole('radio', { name: /with my openai api key/i }));
+    await user.type(screen.getByLabelText(/^openai api key$/i), 'sk-secret');
+    expect(localStorage.getItem('filekit.transcribe.v1')).toContain('sk-secret');
+
+    await user.click(screen.getByRole('button', { name: /show api key/i }));
+    expect(screen.getByLabelText(/^openai api key$/i)).toHaveAttribute('type', 'text');
+
+    await user.click(screen.getByRole('button', { name: /forget key on this device/i }));
+    expect(localStorage.getItem('filekit.transcribe.v1')).toBeNull();
+    expect(screen.getByLabelText(/^openai api key$/i)).toHaveValue('');
+    expect(screen.getByRole('checkbox', { name: /remember/i })).not.toBeChecked();
+  });
+
+  it('starts over after a transcript and cancels quietly', async () => {
+    vi.mocked(transcribeLocally).mockResolvedValueOnce({ text: 'quick', segments: [] });
+    const user = userEvent.setup();
+    render(<AudioToTextWorkspace />);
+
+    await uploadRecording(user);
+    await user.click(screen.getByRole('button', { name: /transcribe audio/i }));
+    await user.click(await screen.findByRole('button', { name: /start over/i }));
+    expect(screen.getByLabelText(/choose audio to transcribe/i)).toBeInTheDocument();
+
+    vi.mocked(transcribeLocally).mockImplementationOnce(
+      (_file, _options, signal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('The operation was cancelled.', 'AbortError')),
+          );
+        }),
+    );
+    await uploadRecording(user);
+    await user.click(screen.getByRole('button', { name: /transcribe audio/i }));
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+    expect(await screen.findByRole('button', { name: /transcribe audio/i })).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('surfaces transcription failures', async () => {
     vi.mocked(transcribeLocally).mockRejectedValue(new Error('decode failed'));
     const user = userEvent.setup();

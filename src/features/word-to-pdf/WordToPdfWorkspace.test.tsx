@@ -36,6 +36,38 @@ describe('WordToPdfWorkspace', () => {
     );
   });
 
+  it('starts over after converting and cancels quietly', async () => {
+    vi.mocked(convertDocxToPdf).mockResolvedValueOnce(new Uint8Array([1]));
+    const user = userEvent.setup();
+    render(<WordToPdfWorkspace />);
+
+    await user.upload(
+      screen.getByLabelText(/choose a word document/i),
+      new File(['docx'], 'a.docx', { type: docxType }),
+    );
+    await user.click(screen.getByRole('button', { name: /convert to pdf/i }));
+    await user.click(await screen.findByRole('button', { name: /start over/i }));
+    expect(screen.getByLabelText(/choose a word document/i)).toBeInTheDocument();
+
+    vi.mocked(convertDocxToPdf).mockImplementationOnce(
+      (_file, _extract, signal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('The operation was cancelled.', 'AbortError')),
+          );
+        }),
+    );
+    await user.upload(
+      screen.getByLabelText(/choose a word document/i),
+      new File(['docx'], 'slow.docx', { type: docxType }),
+    );
+    await user.click(screen.getByRole('button', { name: /convert to pdf/i }));
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+    expect(await screen.findByRole('button', { name: /convert to pdf/i })).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('shows an actionable error when conversion fails', async () => {
     vi.mocked(convertDocxToPdf).mockRejectedValue(new Error('broken zip'));
     const user = userEvent.setup();

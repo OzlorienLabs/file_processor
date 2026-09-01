@@ -38,7 +38,7 @@ describe('validateTranscribeBody', () => {
 });
 
 describe('transcribe handler', () => {
-  it('rejects non-POST and missing keys', async () => {
+  it('rejects non-POST, missing keys, and oversized keys', async () => {
     const methodRes = fakeResponse();
     await handler(request({ method: 'DELETE' }), methodRes);
     expect(methodRes.statusCode).toBe(405);
@@ -46,6 +46,21 @@ describe('transcribe handler', () => {
     const keyRes = fakeResponse();
     await handler(request({ headers: {} }), keyRes);
     expect(keyRes.statusCode).toBe(401);
+
+    const longKeyRes = fakeResponse();
+    await handler(request({ headers: { 'x-provider-key': 'k'.repeat(500) } }), longKeyRes);
+    expect(longKeyRes.statusCode).toBe(401);
+
+    const badBodyRes = fakeResponse();
+    await handler(request({ body: { model: 'whisper-1', audio: 42 } }), badBodyRes);
+    expect(badBodyRes.statusCode).toBe(400);
+  });
+
+  it('rejects audio that decodes to nothing', async () => {
+    const res = fakeResponse();
+    await handler(request({ body: { model: 'whisper-1', audio: '!!!!' } }), res);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error.code).toBe('invalid_audio');
   });
 
   it('sends the chunk to OpenAI as multipart WAV and returns the text', async () => {

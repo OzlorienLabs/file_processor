@@ -32,6 +32,14 @@ describe('renderBlocksToPdf', () => {
     expect(pageCount).toBeGreaterThan(1);
   });
 
+  it('adds breathing room before headings that follow other content', async () => {
+    const bytes = await renderBlocksToPdf([
+      { kind: 'paragraph', level: 0, text: 'Introduction paragraph.' },
+      { kind: 'heading', level: 2, text: 'Later Heading' },
+    ]);
+    expect(pdfText(bytes)).toContain('Later Heading');
+  });
+
   it('produces a placeholder page for an empty document', async () => {
     const bytes = await renderBlocksToPdf([]);
     expect(pdfText(bytes)).toContain('no extractable text');

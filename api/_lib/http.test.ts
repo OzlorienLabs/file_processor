@@ -3,6 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { headerValue, sendError, sendJson, upstreamError } from './http';
 import { fakeResponse } from './test-helpers';
 
+describe('fakeResponse', () => {
+  it('records an empty body when end is called without a chunk', () => {
+    const res = fakeResponse();
+    res.end();
+    expect(res.body).toBe('');
+  });
+});
+
 describe('sendJson / sendError', () => {
   it('serializes with no-store caching', () => {
     const res = fakeResponse();

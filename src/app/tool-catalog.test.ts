@@ -33,5 +33,6 @@ describe('tool catalog', () => {
   it('looks up normalized paths without accepting unrelated routes', () => {
     expect(getToolByPath('/en/merge/')?.id).toBe('merge');
     expect(getToolByPath('/en/not-a-tool')).toBeUndefined();
+    expect(getToolByPath('/')).toBeUndefined();
   });
 });

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -68,5 +68,69 @@ describe('CompressionWorkspace', () => {
       'download',
       'slides-compressed.pdf',
     );
+  });
+
+  it('reports savings, admits when nothing shrank, and starts over', async () => {
+    vi.mocked(compressImage).mockResolvedValue({
+      blob: new Blob(['x'.repeat(500)], { type: 'image/webp' }),
+      extension: 'webp',
+      width: 10,
+      height: 10,
+    });
+    const user = userEvent.setup();
+    render(<CompressionWorkspace />);
+
+    await user.upload(
+      screen.getByLabelText(/choose a file to compress/i),
+      new File(['tiny'], 'tiny.png', { type: 'image/png' }),
+    );
+    await user.click(screen.getByRole('button', { name: /compress file/i }));
+
+    expect(await screen.findByText(/already efficiently compressed/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /start over/i }));
+    expect(screen.getByLabelText(/choose a file to compress/i)).toBeInTheDocument();
+  });
+
+  it('detects PDFs by extension, reports progress, and can be cancelled', async () => {
+    let sendProgress: (completed: number, total: number) => void = () => {};
+    vi.mocked(compressPdf).mockImplementation(
+      (_file, _level, _open, signal, onProgress) =>
+        new Promise((_resolve, reject) => {
+          sendProgress = onProgress!;
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('The operation was cancelled.', 'AbortError')),
+          );
+        }),
+    );
+    const user = userEvent.setup();
+    render(<CompressionWorkspace />);
+
+    await user.upload(
+      screen.getByLabelText(/choose a file to compress/i),
+      new File(['pdf'], 'typed-extension.PDF', { type: '' }),
+    );
+    await user.click(screen.getByRole('checkbox', { name: /flatten text and links/i }));
+    await user.click(screen.getByRole('button', { name: /compress file/i }));
+
+    act(() => sendProgress(1, 4));
+    expect(await screen.findByRole('status')).toHaveTextContent('Compressing page 1 of 4');
+
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+    expect(await screen.findByRole('button', { name: /compress file/i })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('surfaces compression failures', async () => {
+    vi.mocked(compressImage).mockRejectedValue(new Error('decode exploded'));
+    const user = userEvent.setup();
+    render(<CompressionWorkspace />);
+
+    await user.upload(
+      screen.getByLabelText(/choose a file to compress/i),
+      new File(['img'], 'broken.png', { type: 'image/png' }),
+    );
+    await user.click(screen.getByRole('button', { name: /compress file/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('decode exploded');
   });
 });

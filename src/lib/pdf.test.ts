@@ -20,6 +20,13 @@ const tinyPng = Uint8Array.from(
   (character) => character.charCodeAt(0),
 );
 
+const tinyJpg = Uint8Array.from(
+  atob(
+    '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AVN//2Q==',
+  ),
+  (character) => character.charCodeAt(0),
+);
+
 describe('mergeToPdf', () => {
   it('keeps PDF order and adds images as fitted pages', async () => {
     const first = namedBlob(await pdfWithWidths(200, 300), 'first.pdf');
@@ -34,6 +41,12 @@ describe('mergeToPdf', () => {
       200, 300,
     ]);
     expect(merged.getPage(3).getWidth()).toBe(400);
+  });
+
+  it('embeds JPEG photos as their own pages', async () => {
+    const photo = namedBlob(tinyJpg, 'photo.jpg', 'image/jpeg');
+    const merged = await PDFDocument.load(await mergeToPdf([photo]));
+    expect(merged.getPageCount()).toBe(1);
   });
 
   it('rejects unsupported inputs and respects pre-aborted work', async () => {

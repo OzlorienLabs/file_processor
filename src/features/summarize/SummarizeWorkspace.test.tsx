@@ -82,6 +82,42 @@ describe('SummarizeWorkspace', () => {
     expect(screen.getByLabelText(/^api key$/i)).toHaveValue('sk-persisted');
   });
 
+  it('prompts for a key and starts over after a summary', async () => {
+    vi.mocked(extractText).mockResolvedValue('text');
+    vi.mocked(summarizeText).mockResolvedValue('done');
+    const user = userEvent.setup();
+    render(<SummarizeWorkspace />);
+    await uploadReport(user);
+
+    expect(screen.getByText(/add your provider api key above/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/^api key$/i), 'sk-x');
+    await user.click(screen.getByRole('button', { name: /summarize file/i }));
+    await user.click(await screen.findByRole('button', { name: /start over/i }));
+    expect(screen.getByLabelText(/choose a file to summarize/i)).toBeInTheDocument();
+  });
+
+  it('lets a slow summary be cancelled quietly', async () => {
+    vi.mocked(extractText).mockImplementation(
+      (_file, _open, signal) =>
+        new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('The operation was cancelled.', 'AbortError')),
+          );
+        }),
+    );
+    const user = userEvent.setup();
+    render(<SummarizeWorkspace />);
+    await uploadReport(user);
+
+    await user.type(screen.getByLabelText(/^api key$/i), 'sk-x');
+    await user.click(screen.getByRole('button', { name: /summarize file/i }));
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+
+    expect(await screen.findByRole('button', { name: /summarize file/i })).toBeEnabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('surfaces provider errors from the summarize call', async () => {
     vi.mocked(extractText).mockResolvedValue('text');
     vi.mocked(summarizeText).mockRejectedValue(new Error('The provider rejected this API key.'));

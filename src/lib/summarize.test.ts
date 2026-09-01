@@ -69,4 +69,32 @@ describe('summarizeText', () => {
     await expect(summarizeText('   ', options(fetchImpl))).rejects.toThrow(/no text/i);
     expect(fetchImpl).not.toHaveBeenCalled();
   });
+
+  it('rejects a successful response that carries no summary', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(200, { unexpected: true }));
+    await expect(summarizeText('text', options(fetchImpl))).rejects.toThrow(/no summary text/i);
+  });
+
+  it('uses the global fetch when no implementation is injected', async () => {
+    const fetchSpy = vi.fn(async () => jsonResponse(200, { summary: 'global fetch summary' }));
+    vi.stubGlobal('fetch', fetchSpy);
+    const { fetchImpl: _unused, ...bare } = options(fetchSpy);
+    void _unused;
+
+    await expect(summarizeText('text', bare)).resolves.toBe('global fetch summary');
+    expect(fetchSpy).toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it('stops between chunks when cancelled', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const fetchImpl = vi.fn();
+    const longText = `${'a'.repeat(SUMMARY_CHUNK_CHARS)}\n\n${'b'.repeat(1000)}`;
+
+    await expect(
+      summarizeText(longText, { ...options(fetchImpl), signal: controller.signal }),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
 });

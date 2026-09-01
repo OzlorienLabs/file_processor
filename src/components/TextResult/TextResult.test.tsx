@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -52,5 +52,29 @@ describe('TextResult', () => {
     const onReset = renderResult();
     await user.click(screen.getByRole('button', { name: /start over/i }));
     expect(onReset).toHaveBeenCalled();
+  });
+
+  it('reverts the copied confirmation after a moment', async () => {
+    vi.useFakeTimers();
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn(async () => {}) },
+      configurable: true,
+    });
+    try {
+      renderResult();
+
+      fireEvent.click(screen.getByRole('button', { name: /copy text/i }));
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(screen.getByRole('button', { name: /copied/i })).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(2100);
+      });
+      expect(screen.getByRole('button', { name: /copy text/i })).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
