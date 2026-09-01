@@ -28,6 +28,7 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   diff: lazy(() => import('../features/diff/DiffWorkspace').then((m) => ({ default: m.DiffWorkspace }))),
   markdown: lazy(() => import('../features/markdown/MarkdownWorkspace').then((m) => ({ default: m.MarkdownWorkspace }))),
   notepad: lazy(() => import('../features/notepad/NotepadWorkspace').then((m) => ({ default: m.NotepadWorkspace }))),
+  snippets: lazy(() => import('../features/snippets/SnippetsWorkspace').then((m) => ({ default: m.SnippetsWorkspace }))),
 };
 
 function WorkspaceLoading({ name }: { name: string }) {

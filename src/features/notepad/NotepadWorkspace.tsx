@@ -5,6 +5,7 @@ import { HtmlPreview } from '../../components/HtmlPreview/HtmlPreview';
 import { MarkdownPreview } from '../../components/MarkdownPreview/MarkdownPreview';
 import { useLocalCollection } from '../../hooks/useLocalCollection';
 import { copyText, downloadBlob, downloadText, formatWhen } from '../../lib/download';
+import { touch } from '../../lib/local-store';
 import { countText } from '../../lib/markdown';
 import {
   createNote,
@@ -39,7 +40,7 @@ export function NotepadWorkspace() {
   const isSaved = store.items.some((note) => note.id === current.id);
 
   const change = (patch: Partial<Pick<Note, 'title' | 'body' | 'mode'>>) => {
-    const next = { ...current, ...patch, updatedAt: Date.now() };
+    const next = touch(current, patch);
     setCurrent(next);
     if (!isBlankNote(next)) store.upsert(next);
     else if (isSaved) store.remove(next.id);

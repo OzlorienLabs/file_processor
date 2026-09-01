@@ -322,3 +322,28 @@ h2 { margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3.4rem); }
 .note-title { flex: 1 1 14rem; min-width: 0; min-height: 2.4rem; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); padding: 0.4rem 0.7rem; font-weight: 800; }
 .note-body { min-height: 26rem; font-family: inherit; font-size: 0.95rem; }
 .notepad .side-list .button { width: 100%; }
+
+/* Code blocks + highlight.js light theme in Clay/Ivory colours */
+.code-block { margin: 0; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fbfaf7; padding: 1rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; line-height: 1.6; tab-size: 2; }
+.code-block code { white-space: pre; }
+.hljs-comment, .hljs-quote { color: #87867f; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-doctag, .hljs-meta .hljs-keyword { color: #b85c3e; font-weight: 700; }
+.hljs-string, .hljs-regexp, .hljs-addition, .hljs-template-tag { color: #5f7340; }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-link { color: #9c7a2d; }
+.hljs-title, .hljs-title.function_, .hljs-title.class_, .hljs-section, .hljs-name { color: #2d5f8a; }
+.hljs-attr, .hljs-attribute, .hljs-variable, .hljs-template-variable, .hljs-property { color: #6b4a9a; }
+.hljs-built_in, .hljs-type, .hljs-class { color: #a85a1e; }
+.hljs-tag { color: #4a4a45; }
+.hljs-meta, .hljs-selector-id, .hljs-selector-class, .hljs-selector-attr, .hljs-selector-pseudo { color: #7a6e5a; }
+.hljs-deletion { color: var(--danger); background: #fbe9e4; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+.hljs-params, .hljs-punctuation, .hljs-operator { color: var(--ink); }
+
+/* Snippets */
+.snippet-filters { display: grid; gap: 0.5rem; }
+.snippet-main { min-width: 0; }
+.snippet-form { display: grid; gap: 1rem; }
+.snippet-form .code-editor { min-height: 20rem; }
+.snippet-detail { display: grid; gap: 1rem; }
+.snippet-detail .control-heading strong { font-size: 1.15rem; }

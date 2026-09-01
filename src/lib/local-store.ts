@@ -34,6 +34,11 @@ export function stampNew(): StoredRecord {
   return { id: newId(), createdAt: now, updatedAt: now };
 }
 
+/** Returns a copy of the record with `updatedAt` set to now. */
+export function touch<T extends StoredRecord>(record: T, patch: Partial<T> = {}): T {
+  return { ...record, ...patch, updatedAt: Date.now() };
+}
+
 function writeRaw(storage: StorageLike, key: string, value: string): void {
   try {
     storage.setItem(key, value);

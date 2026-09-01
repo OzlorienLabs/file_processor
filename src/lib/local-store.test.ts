@@ -8,6 +8,7 @@ import {
   newId,
   stampNew,
   storedRecordSchema,
+  touch,
 } from './local-store';
 
 const noteSchema = storedRecordSchema.extend({ title: z.string() });
@@ -147,5 +148,13 @@ describe('record helpers', () => {
     const stamp = stampNew();
     expect(stamp.createdAt).toBe(stamp.updatedAt);
     expect(storedRecordSchema.safeParse(stamp).success).toBe(true);
+  });
+
+  it('touches records with a fresh updatedAt and optional patch', () => {
+    const before = { id: 'a', createdAt: 1, updatedAt: 1, title: 'old' };
+    const after = touch(before, { title: 'new' });
+    expect(after.title).toBe('new');
+    expect(after.updatedAt).toBeGreaterThan(1);
+    expect(touch(before).title).toBe('old');
   });
 });
