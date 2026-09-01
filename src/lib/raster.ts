@@ -13,7 +13,7 @@ export interface RasterAdapter {
     source: unknown,
     width: number,
     height: number,
-    type: 'image/jpeg' | 'image/webp',
+    type: 'image/jpeg' | 'image/webp' | 'image/png',
     quality: number,
   ) => Promise<Blob>;
 }
@@ -51,7 +51,7 @@ const browserRasterAdapter: RasterAdapter = {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    const context = canvas.getContext('2d', { alpha: type === 'image/webp' });
+    const context = canvas.getContext('2d', { alpha: type !== 'image/jpeg' });
     if (!context) throw new Error('This browser cannot create an image canvas.');
     context.drawImage(source as CanvasImageSource, 0, 0, width, height);
     const blob = await new Promise<Blob>((resolve, reject) => {
@@ -66,6 +66,30 @@ const browserRasterAdapter: RasterAdapter = {
     return blob;
   },
 };
+
+export type ImageTarget = 'png' | 'jpg' | 'webp';
+
+const targetTypes: Record<ImageTarget, 'image/png' | 'image/jpeg' | 'image/webp'> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  webp: 'image/webp',
+};
+
+export async function convertImage(
+  file: Blob,
+  target: ImageTarget,
+  adapter: RasterAdapter = browserRasterAdapter,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  abortIfNeeded(signal);
+  const decoded = await adapter.decode(file);
+  try {
+    abortIfNeeded(signal);
+    return await adapter.encode(decoded.source, decoded.width, decoded.height, targetTypes[target], 0.92);
+  } finally {
+    decoded.close();
+  }
+}
 
 export async function compressImage(
   file: File,

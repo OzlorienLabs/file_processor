@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import type { ToolDefinition, ToolId } from '../app/tool-catalog';
 import { FileDropzone } from '../components/FileDropzone/FileDropzone';
 import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
+import { ConvertWorkspace } from '../features/convert/ConvertWorkspace';
 import { MergeWorkspace } from '../features/merge/MergeWorkspace';
 import { PdfToWordWorkspace } from '../features/pdf-to-word/PdfToWordWorkspace';
 import { SplitWorkspace } from '../features/split/SplitWorkspace';
@@ -17,6 +18,7 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   compress: CompressionWorkspace,
   'word-to-pdf': WordToPdfWorkspace,
   'pdf-to-word': PdfToWordWorkspace,
+  convert: ConvertWorkspace,
 };
 
 const MB = 1024 * 1024;
