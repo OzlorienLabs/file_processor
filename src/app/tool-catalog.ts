@@ -22,6 +22,7 @@ export interface ToolDefinition {
   processing: ProcessingLocation;
   accept: string[];
   maxSize: string;
+  howTo: string;
   steps: [string, string, string];
 }
 
@@ -37,6 +38,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser',
     accept: ['Images', 'PDF', 'DOCX', 'TXT', 'Audio'],
     maxSize: 'Up to 100 MB',
+    howTo: 'How to convert any file',
     steps: [
       'Choose a file from your device.',
       'Pick one of the compatible output formats.',
@@ -54,6 +56,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser',
     accept: ['PDF', 'PNG', 'JPG', 'WebP'],
     maxSize: 'Up to 100 MB',
+    howTo: 'How to compress a file',
     steps: [
       'Add a PDF or supported image.',
       'Choose the balance between size and clarity.',
@@ -71,6 +74,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser-and-provider',
     accept: ['PDF', 'DOCX', 'TXT', 'Markdown'],
     maxSize: 'Up to 25 MB',
+    howTo: 'How to summarize a file',
     steps: [
       'Add a PDF, Word, text, or Markdown file.',
       'Select a model, detail level, and provide your API key.',
@@ -88,6 +92,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser',
     accept: ['PDF', 'PNG', 'JPG', 'WebP'],
     maxSize: '20 files · 150 MB',
+    howTo: 'How to merge PDFs',
     steps: [
       'Add two or more PDFs or images.',
       'Reorder the files into the sequence you want.',
@@ -105,6 +110,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser',
     accept: ['PDF', 'PNG', 'JPG', 'WebP'],
     maxSize: '25 MB · 50 pages',
+    howTo: 'How to extract text with OCR',
     steps: [
       'Choose an image or scanned PDF.',
       'Select the document language and start OCR.',
@@ -122,6 +128,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser-and-provider',
     accept: ['MP3', 'M4A', 'WAV', 'WebM', 'OGG', 'FLAC'],
     maxSize: 'Up to 100 MB',
+    howTo: 'How to convert audio to text',
     steps: [
       'Choose a supported recording from your device.',
       'Select a transcription model and language.',
@@ -139,6 +146,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser',
     accept: ['PDF'],
     maxSize: '100 MB · 500 pages',
+    howTo: 'How to split a PDF',
     steps: [
       'Add the PDF you want to separate.',
       'Choose every page, a range, or selected pages.',
@@ -156,6 +164,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser',
     accept: ['DOCX'],
     maxSize: 'Up to 25 MB',
+    howTo: 'How to convert Word to PDF',
     steps: [
       'Choose a Microsoft Word DOCX file.',
       'Review the browser-rendered document preview.',
@@ -173,6 +182,7 @@ export const coreTools: ToolDefinition[] = [
     processing: 'browser',
     accept: ['PDF'],
     maxSize: '50 MB · 300 pages',
+    howTo: 'How to convert PDF to Word',
     steps: [
       'Choose a text-based PDF document.',
       'Extract its pages into editable paragraphs.',

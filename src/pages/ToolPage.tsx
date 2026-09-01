@@ -61,7 +61,7 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
 
       <section className="shell narrow-page instructions-section" aria-labelledby="instructions-title">
         <p className="eyebrow">Quick instructions</p>
-        <h2 id="instructions-title">How to {tool.shortName.toLowerCase()}</h2>
+        <h2 id="instructions-title">{tool.howTo}</h2>
         <ol className="instruction-grid">
           {tool.steps.map((step, index) => (
             <li data-testid="instruction-step" key={step}>

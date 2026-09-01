@@ -23,6 +23,7 @@ describe('tool catalog', () => {
 
   it('gives every tool three concise instructions and processing disclosure', () => {
     for (const tool of coreTools) {
+      expect(tool.howTo).toMatch(/^How to /);
       expect(tool.steps).toHaveLength(3);
       expect(tool.steps.every((step) => step.length >= 12)).toBe(true);
       expect(['browser', 'browser-and-provider']).toContain(tool.processing);
