@@ -7,6 +7,7 @@ import { FileDropzone } from '../components/FileDropzone/FileDropzone';
 import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
 import { ConvertWorkspace } from '../features/convert/ConvertWorkspace';
 import { MergeWorkspace } from '../features/merge/MergeWorkspace';
+import { OcrWorkspace } from '../features/ocr/OcrWorkspace';
 import { PdfToWordWorkspace } from '../features/pdf-to-word/PdfToWordWorkspace';
 import { SplitWorkspace } from '../features/split/SplitWorkspace';
 import { WordToPdfWorkspace } from '../features/word-to-pdf/WordToPdfWorkspace';
@@ -19,6 +20,7 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   'word-to-pdf': WordToPdfWorkspace,
   'pdf-to-word': PdfToWordWorkspace,
   convert: ConvertWorkspace,
+  ocr: OcrWorkspace,
 };
 
 const MB = 1024 * 1024;
