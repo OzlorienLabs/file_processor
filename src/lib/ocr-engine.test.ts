@@ -5,7 +5,7 @@ import type { NamedBlob } from './pdf';
 
 const recognize = vi.fn(async () => ({ data: { text: '  tesseract text  ' } }));
 const terminate = vi.fn(async () => {});
-const createWorker = vi.fn(async () => ({ recognize, terminate }));
+const createWorker = vi.fn(async (..._args: unknown[]) => ({ recognize, terminate }));
 
 vi.mock('tesseract.js', () => ({
   createWorker: (...args: unknown[]) => createWorker(...args),

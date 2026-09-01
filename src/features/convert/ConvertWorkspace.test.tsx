@@ -54,7 +54,10 @@ describe('ConvertWorkspace', () => {
   });
 
   it('starts over after a conversion and cancels quietly', async () => {
-    const run = vi.fn(async () => ({ blob: new Blob(['out']), filename: 'photo.png' }));
+    const run = vi.fn(async (_file: File, _signal?: AbortSignal) => ({
+      blob: new Blob(['out']),
+      filename: 'photo.png',
+    }));
     vi.mocked(conversionsFor).mockReturnValue([
       { id: 'image-png', label: 'PNG image', hint: 'Lossless', run },
     ]);
@@ -71,11 +74,11 @@ describe('ConvertWorkspace', () => {
 
     run.mockImplementationOnce(
       (_file: File, signal?: AbortSignal) =>
-        new Promise((_resolve, reject) => {
+        new Promise<{ blob: Blob; filename: string }>((_resolve, reject) => {
           signal?.addEventListener('abort', () =>
             reject(new DOMException('The operation was cancelled.', 'AbortError')),
           );
-        }) as Promise<{ blob: Blob; filename: string }>,
+        }),
     );
     await user.upload(
       screen.getByLabelText(/choose a file to convert/i),

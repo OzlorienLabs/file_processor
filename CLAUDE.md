@@ -29,7 +29,7 @@ npm run verify          # lint + typecheck + coverage + build (run before any re
 
 - Named exports, one responsibility per file, colocated `*.test.ts(x)`.
 - Task flow state in workspaces: `idle → working (progress, cancellable via AbortController) → success | error`. Always release object URLs, canvases, and workers.
-- New tools: add to `coreTools` in `tool-catalog.ts` (routes/cards/steps derive from it), add a `FilePolicy` in `ToolPage`, keep exactly one short "How to" section per page.
+- New tools: add to `coreTools` in `tool-catalog.ts` (routes/cards/steps derive from it), register the workspace in `ToolPage`'s map, define its `FilePolicy` inside the workspace, keep exactly one short "How to" section per page.
 - UI theme: light Clay/Ivory tokens in `src/styles/global.css` (`--paper #FAF9F5`, `--ink #141413`, clay accent `#D97757`). Light theme only — no dark default.
 - Tests mock the heavy engines at the module boundary (`vi.mock` on `src/lib/*`), and lib tests inject adapters (see `RasterAdapter`, `OpenPdfRasterDocument`) instead of touching canvas/workers.
 
@@ -38,3 +38,4 @@ npm run verify          # lint + typecheck + coverage + build (run before any re
 - `pdfjs-dist` v6: worker via `?url` import; destroy through the loading task; jsdom has no canvas — keep pdf.js behind injectable adapters.
 - Vercel function payload limit ~4.5 MB: audio chunks must stay below 3.75 MB before base64 wrapping.
 - Coverage thresholds (95) fail the build on untested branches — add tests with the code, not after.
+- `npm audit` flags @huggingface/transformers' Node-only transitive deps (onnxruntime-node → adm-zip, sharp). They never reach the browser bundle (it uses onnxruntime-web); re-check on transformers upgrades.

@@ -9,7 +9,7 @@ const transcriber = vi.fn(async () => ({
     { timestamp: [1.5, null] as [number, number | null], text: ' open ended ' },
   ],
 }));
-const pipeline = vi.fn(async () => transcriber);
+const pipeline = vi.fn(async (..._args: unknown[]) => transcriber);
 
 vi.mock('@huggingface/transformers', () => ({
   pipeline: (...args: unknown[]) => pipeline(...args),

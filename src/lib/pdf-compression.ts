@@ -1,5 +1,3 @@
-import { PDFDocument } from 'pdf-lib';
-
 import { readBlobBytes } from './files';
 import type { NamedBlob } from './pdf';
 import {
@@ -21,6 +19,7 @@ export async function compressPdf(
 ): Promise<Uint8Array> {
   const activeSignal = signal ?? new AbortController().signal;
   const settings = getCompressionSettings(level);
+  const { PDFDocument } = await import('pdf-lib');
   const source = await openDocument(file);
   const output = await PDFDocument.create();
 
