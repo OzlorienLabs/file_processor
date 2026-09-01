@@ -1,4 +1,4 @@
-import { fileExtension } from './files';
+import { fileExtension, readBlobBytes } from './files';
 
 export interface NamedBlob extends Blob {
   readonly name: string;
@@ -8,16 +8,6 @@ const IMAGE_PAGE = { width: 595.28, height: 841.89, margin: 28 };
 
 function assertNotAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('The operation was cancelled.', 'AbortError');
-}
-
-async function readBlob(blob: Blob): Promise<ArrayBuffer> {
-  if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error ?? new Error('Could not read the file.'));
-    reader.onload = () => resolve(reader.result as ArrayBuffer);
-    reader.readAsArrayBuffer(blob);
-  });
 }
 
 function kindOf(file: NamedBlob): 'pdf' | 'png' | 'jpg' | undefined {
@@ -40,7 +30,7 @@ export async function mergeToPdf(
     assertNotAborted(signal);
     const kind = kindOf(file);
     if (!kind) throw new Error(`${file.name} is an unsupported merge input.`);
-    const bytes = await readBlob(file);
+    const bytes = await readBlobBytes(file);
 
     if (kind === 'pdf') {
       const source = await PDFDocument.load(bytes);
@@ -79,7 +69,7 @@ export async function splitPdf(
   }
   assertNotAborted(signal);
   const { PDFDocument } = await import('pdf-lib');
-  const source = await PDFDocument.load(await readBlob(file));
+  const source = await PDFDocument.load(await readBlobBytes(file));
   const pageCount = source.getPageCount();
 
   for (const group of groups) {
@@ -104,6 +94,6 @@ export async function splitPdf(
 
 export async function getPdfPageCount(file: NamedBlob): Promise<number> {
   const { PDFDocument } = await import('pdf-lib');
-  const document = await PDFDocument.load(await readBlob(file));
+  const document = await PDFDocument.load(await readBlobBytes(file));
   return document.getPageCount();
 }

@@ -11,3 +11,4 @@ test-results/
 *.key
 .DS_Store
 *.log
+.serena/

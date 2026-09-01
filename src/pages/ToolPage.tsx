@@ -1,12 +1,19 @@
 import { ArrowLeft, CheckCircle2, HardDrive, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 
-import type { ToolDefinition } from '../app/tool-catalog';
+import type { ToolDefinition, ToolId } from '../app/tool-catalog';
 import { FileDropzone } from '../components/FileDropzone/FileDropzone';
+import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
 import { MergeWorkspace } from '../features/merge/MergeWorkspace';
 import { SplitWorkspace } from '../features/split/SplitWorkspace';
 import { formatBytes, type FilePolicy } from '../lib/files';
+
+const workspaces: Partial<Record<ToolId, ComponentType>> = {
+  merge: MergeWorkspace,
+  split: SplitWorkspace,
+  compress: CompressionWorkspace,
+};
 
 const MB = 1024 * 1024;
 
@@ -43,6 +50,7 @@ function uploadLabel(tool: ToolDefinition): string {
 export function ToolPage({ tool }: { tool: ToolDefinition }) {
   const [files, setFiles] = useState<File[]>([]);
   const isLocal = tool.processing === 'browser';
+  const Workspace = workspaces[tool.id];
 
   return (
     <main id="main-content" className="tool-page">
@@ -70,7 +78,7 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
           </p>
         </div>
         <div className="workspace-card">
-          {tool.id === 'merge' ? <MergeWorkspace /> : tool.id === 'split' ? <SplitWorkspace /> : <>
+          {Workspace ? <Workspace /> : <>
           <FileDropzone
             id={`${tool.id}-files`}
             label={uploadLabel(tool)}

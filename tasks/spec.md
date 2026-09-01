@@ -26,7 +26,8 @@ Root and unknown language-prefixed routes redirect safely to `/en` or show a use
 2. “All emojis” means all fully-qualified RGI emoji sequences from Unicode Emoji 17.0, including flags, ZWJ sequences, and skin-tone variants. The catalog is lazy-loaded so it does not slow the main tool page.
 3. “Built from scratch” means original application UX and processing workflows. Maintained low-level libraries implement complex binary standards such as PDF, DOCX, OCR/WASM, and ZIP.
 4. Conversion quality is honest: DOCX-to-PDF prioritizes readable layout but may not reproduce advanced Word features; PDF-to-DOCX produces editable text and basic paragraphs, not a pixel-perfect reconstruction.
-5. AI API keys are stored in `localStorage` only when the user enables “Remember on this device.” Files and outputs never use persistent browser storage.
+5. AI provider, model, and API key preferences are saved to `localStorage` by default under one versioned key so returning users do not re-enter them. A visible “Forget key on this device” control clears them, and the UI explains the storage tradeoff. Files and outputs never use persistent browser storage.
+6. Audio transcription defaults to a fully in-browser Whisper model (downloaded on first use); users can switch to their own provider API key for faster, higher-quality transcription.
 
 ## Tech stack
 
@@ -92,11 +93,12 @@ tasks/                     Spec, plan, and implementation checklist
 
 ### Node boundary
 
-Two Vercel functions forward validated, size-bounded requests to OpenAI:
+Two Vercel functions forward validated, size-bounded requests to the user's chosen provider (OpenAI, Anthropic, or Google Gemini):
 
 ```ts
 type SummarizeRequest = {
-  model: 'gpt-5.6-sol' | 'gpt-5.6-terra' | 'gpt-5.6-luna' | string;
+  provider: 'openai' | 'anthropic' | 'google';
+  model: string; // preset or custom ID, validated shape
   text: string;
   detail: 'brief' | 'balanced' | 'detailed';
 };
@@ -106,16 +108,16 @@ type ApiError = {
 };
 ```
 
-- `POST /api/ai/summarize` accepts JSON, a key in `x-provider-key`, and at most 500,000 text characters. It calls the OpenAI Responses API with `store: false`.
-- `POST /api/ai/transcribe` accepts one multipart audio chunk below 3.75 MB plus a model ID. Large source audio is decoded and chunked in the browser before sequential requests.
+- `POST /api/ai/summarize` accepts JSON, a key in `x-provider-key`, and at most 500,000 text characters. It calls only allowlisted provider endpoints (OpenAI Responses with `store: false`, Anthropic Messages, Gemini generateContent) and returns plain summary text.
+- `POST /api/ai/transcribe` accepts one JSON-wrapped base64 WAV audio chunk below 3.75 MB plus a model ID (OpenAI transcription models). Large source audio is decoded and chunked in the browser before sequential requests. The default transcription path is in-browser Whisper and never touches this function.
 - Methods, content types, model IDs, sizes, and upstream response shapes are validated. Responses use `Cache-Control: no-store` and a single consistent error shape.
 - Functions never log request bodies, filenames, keys, provider responses, or stack traces.
 
 ## AI settings
 
-- Model presets: GPT-5.6 Luna (fast/value), Terra (balanced default), and Sol (highest quality), plus a custom OpenAI-compatible model ID field.
+- Providers: OpenAI, Anthropic, and Google Gemini. Each has model presets (fast / balanced / best) plus a custom model ID field.
 - The API key field is masked and has a show/hide control.
-- “Remember on this device” is off by default. If enabled, provider/model/key preference is stored under one versioned local-storage key and can be cleared from the UI.
+- Provider/model/key preference is stored by default under one versioned local-storage key and can be cleared with one visible control.
 - The UI states that local storage is readable by scripts running on the origin and recommends a restricted/project key.
 - Extracted document text and audio are considered untrusted model input. Model output is rendered only as escaped text/Markdown primitives; never as raw HTML.
 
@@ -136,6 +138,8 @@ type ApiError = {
 | Merge | PDF, PNG, JPEG, WebP | 20 files / 150 MB total | PDF |
 | OCR | PDF, PNG, JPEG, WebP | 25 MB / 50 PDF pages | TXT/clipboard |
 | Audio to text | MP3, MP4, M4A, WAV, WebM, OGG, FLAC | 100 MB / 90 min decoded | TXT/SRT when available |
+
+Audio transcription runs in-browser by default (Whisper via WebAssembly, model fetched on first use) and can optionally use the user's OpenAI key for faster, higher-quality results.
 | Split | PDF | 100 MB / 500 pages | PDF or ZIP |
 | Compress | PDF, PNG, JPEG, WebP | 100 MB | same family |
 | Word to PDF | DOCX | 25 MB | PDF |
@@ -168,7 +172,7 @@ Limits protect browser memory and function payloads; they are shown before uploa
 - Component/integration tests: upload-to-result flows with in-memory fixtures, drag/reorder, error/cancel states, settings persistence opt-in, routing, and mocked provider boundaries.
 - API integration tests: methods, malformed input, size limits, safe upstream requests, timeout/error mapping, `store: false`, and no-store headers.
 - End-to-end tests: home navigation, one fully client-side PDF flow, OCR upload state, AI settings safety, emoji search/copy, mobile menu/layout, and clean console.
-- Global Vitest thresholds: statements, branches, functions, and lines must each exceed 90% (configured at 91%). No skipped tests in the release gate.
+- Global Vitest thresholds: statements, branches, functions, and lines must each exceed 95% (configured at 95). No skipped tests in the release gate.
 - Real-browser verification: desktop and mobile screenshots, accessibility tree/keyboard flow, console warnings/errors, network request shape, and a short performance trace.
 
 ## Code style
@@ -214,7 +218,7 @@ Components use named exports, one responsibility, semantic HTML, and colocated t
 - Model/key preferences follow opt-in local-storage behavior and can be cleared.
 - Unicode Emoji 17.0's fully-qualified catalog is searchable and lazy-loaded.
 - Home and tool pages remain usable at 320 px without horizontal overflow and meet keyboard/accessibility checks.
-- `npm run verify` and `npm run test:e2e` pass; all four coverage metrics are above 90%; the production browser console is clean.
+- `npm run verify` and `npm run test:e2e` pass; all four coverage metrics are above 95%; the production browser console is clean.
 - Vercel configuration builds the SPA, rewrites client routes, runs the Node functions, and sets security/cache headers.
 
 ## Open questions
