@@ -1,5 +1,5 @@
 import { Check, Copy, Download, RotateCcw } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface TextResultProps {
   title: string;
@@ -12,14 +12,10 @@ interface TextResultProps {
 export function TextResult({ title, label, text, filename, onReset }: TextResultProps) {
   const [value, setValue] = useState(text);
   const [copied, setCopied] = useState(false);
-  const [url, setUrl] = useState('');
   const copyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  useEffect(() => {
-    const nextUrl = URL.createObjectURL(new Blob([value], { type: 'text/plain' }));
-    setUrl(nextUrl);
-    return () => URL.revokeObjectURL(nextUrl);
-  }, [value]);
+  const url = useMemo(() => URL.createObjectURL(new Blob([value], { type: 'text/plain' })), [value]);
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
 
   useEffect(() => () => clearTimeout(copyTimer.current), []);
 

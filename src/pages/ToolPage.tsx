@@ -10,6 +10,7 @@ import { MergeWorkspace } from '../features/merge/MergeWorkspace';
 import { OcrWorkspace } from '../features/ocr/OcrWorkspace';
 import { PdfToWordWorkspace } from '../features/pdf-to-word/PdfToWordWorkspace';
 import { SplitWorkspace } from '../features/split/SplitWorkspace';
+import { SummarizeWorkspace } from '../features/summarize/SummarizeWorkspace';
 import { WordToPdfWorkspace } from '../features/word-to-pdf/WordToPdfWorkspace';
 import { formatBytes, type FilePolicy } from '../lib/files';
 
@@ -21,6 +22,7 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   'pdf-to-word': PdfToWordWorkspace,
   convert: ConvertWorkspace,
   ocr: OcrWorkspace,
+  summarize: SummarizeWorkspace,
 };
 
 const MB = 1024 * 1024;
