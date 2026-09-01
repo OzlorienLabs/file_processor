@@ -208,3 +208,15 @@ h2 { margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3.4rem); }
   .ai-settings-grid { grid-template-columns: 1fr; }
 }
 .srt-row { margin: 1rem 0 0; }
+.emoji-page h1 { font-size: clamp(2.4rem, 6vw, 4rem); }
+.emoji-controls { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; margin-top: 2rem; }
+.emoji-controls .input-with-suffix svg { margin-right: 0.8rem; color: var(--muted); }
+.emoji-count { margin: 1rem 0; color: var(--muted); font-size: 0.9rem; font-weight: 700; }
+.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.2rem, 1fr)); gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.emoji-grid button { width: 100%; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.emoji-grid button:hover { border-color: var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.emoji-grid button[data-copied="true"] { border-color: var(--teal); background: var(--teal-soft); }
+.emoji-more { margin-top: 1.5rem; }
+@media (max-width: 40rem) {
+  .emoji-controls { grid-template-columns: 1fr; }
+}

@@ -1,5 +1,5 @@
 import { ArrowRight, Code2, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import {
   BrowserRouter,
   Link,
@@ -11,6 +11,8 @@ import {
 import { HomePage } from '../pages/HomePage';
 import { ToolPage } from '../pages/ToolPage';
 import { coreTools } from './tool-catalog';
+
+const EmojiPage = lazy(() => import('../pages/EmojiPage'));
 
 function AppHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -79,17 +81,10 @@ function AppFooter() {
   );
 }
 
-function EmojiPlaceholder() {
+function EmojiLoading() {
   return (
     <main className="shell narrow-page page-section">
-      <p className="eyebrow">Unicode 17.0</p>
-      <h1>Every emoji, one searchable library</h1>
-      <p className="lede">
-        The complete catalog is being loaded separately so the file tools stay fast.
-      </p>
-      <Link className="button button-secondary" to="/en">
-        Back to all tools <ArrowRight aria-hidden="true" size={18} />
-      </Link>
+      <p className="progress-note" role="status">Loading the emoji library…</p>
     </main>
   );
 }
@@ -120,7 +115,14 @@ export function AppRoutes() {
         {coreTools.map((tool) => (
           <Route key={tool.id} path={tool.path} element={<ToolPage tool={tool} />} />
         ))}
-        <Route path="/en/emojis" element={<EmojiPlaceholder />} />
+        <Route
+          path="/en/emojis"
+          element={
+            <Suspense fallback={<EmojiLoading />}>
+              <EmojiPage />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <AppFooter />
