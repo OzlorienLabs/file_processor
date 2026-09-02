@@ -79,7 +79,7 @@ jobs:
             echo "::notice title=Dependency review skipped::Enable Dependency graph (Settings -> Advanced Security) to activate this check."
           fi
       # Flags newly introduced vulnerable or disallowed-license deps in the diff.
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v5
         if: steps.graph.outputs.enabled == 'true'
         with:
           fail-on-severity: high
