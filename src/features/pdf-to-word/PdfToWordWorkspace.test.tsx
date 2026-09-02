@@ -1,31 +1,39 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { convertPdfToDocx } from '../../lib/pdf-to-docx';
+import { downloadBlob } from '../../lib/download';
+import { getPdfPageCount } from '../../lib/pdf';
+import { convertPdfToDocx, extractPdfPageTexts } from '../../lib/pdf-to-docx';
 import { PdfToWordWorkspace } from './PdfToWordWorkspace';
 
-vi.mock('../../lib/pdf-to-docx', () => ({ convertPdfToDocx: vi.fn() }));
+vi.mock('../../lib/pdf-to-docx', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/pdf-to-docx')>();
+  return { ...actual, convertPdfToDocx: vi.fn(), extractPdfPageTexts: vi.fn() };
+});
+vi.mock('../../lib/pdf', () => ({ getPdfPageCount: vi.fn() }));
+vi.mock('../../lib/download', () => ({ downloadBlob: vi.fn() }));
 
-beforeAll(() => {
-  vi.stubGlobal('URL', {
-    ...URL,
-    createObjectURL: vi.fn(() => 'blob:pdf-to-word'),
-    revokeObjectURL: vi.fn(),
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(getPdfPageCount).mockResolvedValue(2);
 });
 
-beforeEach(() => vi.clearAllMocks());
+async function upload(user: ReturnType<typeof userEvent.setup>, name = 'report.pdf') {
+  const file = new File(['pdf'], name, { type: 'application/pdf' });
+  await user.upload(screen.getByLabelText(/choose a pdf document/i), file);
+  await screen.findByText('p. 2');
+  return file;
+}
 
 describe('PdfToWordWorkspace', () => {
-  it('converts a PDF and offers the DOCX download', async () => {
+  it('converts a PDF to flowing DOCX and downloads it', async () => {
     vi.mocked(convertPdfToDocx).mockResolvedValue(new Blob(['docx']));
     const user = userEvent.setup();
     render(<PdfToWordWorkspace />);
+    const file = await upload(user);
 
-    const file = new File(['pdf'], 'contract.pdf', { type: 'application/pdf' });
-    await user.upload(screen.getByLabelText(/choose a pdf document/i), file);
-    await user.click(screen.getByRole('button', { name: /convert to word/i }));
+    await user.click(screen.getByRole('button', { name: /create docx/i }));
 
     expect(convertPdfToDocx).toHaveBeenCalledWith(
       file,
@@ -33,77 +41,71 @@ describe('PdfToWordWorkspace', () => {
       expect.any(AbortSignal),
       expect.any(Function),
     );
-    expect(await screen.findByRole('link', { name: /download word document/i })).toHaveAttribute(
-      'download',
-      'contract.docx',
-    );
+    expect(await screen.findByText('Create DOCX complete')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /download docx/i }));
+    expect(downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'report.docx');
   });
 
-  it('reports extraction progress while working', async () => {
-    let resolveConversion: (blob: Blob) => void = () => {};
-    vi.mocked(convertPdfToDocx).mockImplementation(async (_file, _open, _signal, onProgress) => {
-      onProgress?.(2, 5);
-      return new Promise((resolve) => {
-        resolveConversion = resolve;
-      });
-    });
+  it('writes Markdown with a section per page when that structure is chosen', async () => {
+    vi.mocked(extractPdfPageTexts).mockResolvedValue(['first page', 'second page']);
     const user = userEvent.setup();
     render(<PdfToWordWorkspace />);
+    await upload(user, 'deck.pdf');
 
-    await user.upload(
-      screen.getByLabelText(/choose a pdf document/i),
-      new File(['pdf'], 'long.pdf', { type: 'application/pdf' }),
-    );
-    await user.click(screen.getByRole('button', { name: /convert to word/i }));
+    await user.click(screen.getByRole('radio', { name: /markdown/i }));
+    await user.click(screen.getByRole('button', { name: /create docx/i }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Extracting page 2 of 5');
-    resolveConversion(new Blob(['done']));
-    expect(await screen.findByRole('link', { name: /download word document/i })).toBeInTheDocument();
+    expect(await screen.findByText('2 pages as Markdown')).toBeInTheDocument();
+    expect(screen.getByText(/## Page 1/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /download markdown/i }));
+    expect(downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'deck.md');
   });
 
-  it('starts over after converting and cancels quietly', async () => {
-    vi.mocked(convertPdfToDocx).mockResolvedValueOnce(new Blob(['docx']));
-    const user = userEvent.setup();
-    render(<PdfToWordWorkspace />);
-
-    await user.upload(
-      screen.getByLabelText(/choose a pdf document/i),
-      new File(['pdf'], 'a.pdf', { type: 'application/pdf' }),
-    );
-    await user.click(screen.getByRole('button', { name: /convert to word/i }));
-    await user.click(await screen.findByRole('button', { name: /start over/i }));
-    expect(screen.getByLabelText(/choose a pdf document/i)).toBeInTheDocument();
-
-    vi.mocked(convertPdfToDocx).mockImplementationOnce(
-      (_file, _open, signal) =>
+  it('reports real extraction progress and cancels quietly', async () => {
+    vi.mocked(convertPdfToDocx).mockImplementation(
+      (_file, _open, signal, onProgress) =>
         new Promise((_resolve, reject) => {
+          onProgress?.(1, 2);
           signal?.addEventListener('abort', () =>
             reject(new DOMException('The operation was cancelled.', 'AbortError')),
           );
         }),
     );
-    await user.upload(
-      screen.getByLabelText(/choose a pdf document/i),
-      new File(['pdf'], 'slow.pdf', { type: 'application/pdf' }),
-    );
-    await user.click(screen.getByRole('button', { name: /convert to word/i }));
-    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
-
-    expect(await screen.findByRole('button', { name: /convert to word/i })).toBeEnabled();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('shows an actionable error when conversion fails', async () => {
-    vi.mocked(convertPdfToDocx).mockRejectedValue(new Error('encrypted'));
     const user = userEvent.setup();
     render(<PdfToWordWorkspace />);
+    await upload(user, 'slow.pdf');
+    await user.click(screen.getByRole('button', { name: /create docx/i }));
 
+    expect(await screen.findByRole('progressbar')).toHaveAttribute('aria-valuenow', '45');
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }));
+    expect(await screen.findByRole('button', { name: /create docx/i })).toBeEnabled();
+  });
+
+  it('uses the singular page label for a one-page document', async () => {
+    vi.mocked(getPdfPageCount).mockResolvedValue(1);
+    vi.mocked(extractPdfPageTexts).mockResolvedValue(['only page']);
+    const user = userEvent.setup();
+    render(<PdfToWordWorkspace />);
+    await user.upload(
+      screen.getByLabelText(/choose a pdf document/i),
+      new File(['pdf'], 'one.pdf', { type: 'application/pdf' }),
+    );
+    expect(await screen.findByText(/1 page ·/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('radio', { name: /markdown/i }));
+    await user.click(screen.getByRole('button', { name: /create docx/i }));
+    expect(await screen.findByText('1 page as Markdown')).toBeInTheDocument();
+  });
+
+  it('explains when the PDF cannot be opened', async () => {
+    vi.mocked(getPdfPageCount).mockRejectedValue(new Error('encrypted'));
+    const user = userEvent.setup();
+    render(<PdfToWordWorkspace />);
     await user.upload(
       screen.getByLabelText(/choose a pdf document/i),
       new File(['pdf'], 'locked.pdf', { type: 'application/pdf' }),
     );
-    await user.click(screen.getByRole('button', { name: /convert to word/i }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/could not be converted/i);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/encrypted or damaged/i);
   });
 });

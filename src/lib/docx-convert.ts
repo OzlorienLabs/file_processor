@@ -1,3 +1,4 @@
+import type { PageSpec } from './blocks-to-pdf';
 import { htmlToBlocks, type DocBlock } from './doc-blocks';
 import { readBlobBytes } from './files';
 import type { NamedBlob } from './pdf';
@@ -30,10 +31,16 @@ export async function convertDocxToPdf(
   file: NamedBlob,
   extractBlocks: ExtractDocxBlocks = extractDocxBlocks,
   signal?: AbortSignal,
+  page?: PageSpec,
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<Uint8Array> {
   assertNotAborted(signal);
+  // Two real milestones: the DOCX is read, then the PDF is laid out.
   const blocks = await extractBlocks(file);
+  onProgress?.(1, 2);
   assertNotAborted(signal);
   const { renderBlocksToPdf } = await import('./blocks-to-pdf');
-  return renderBlocksToPdf(blocks);
+  const bytes = await renderBlocksToPdf(blocks, page);
+  onProgress?.(2, 2);
+  return bytes;
 }

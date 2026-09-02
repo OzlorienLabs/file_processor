@@ -50,6 +50,16 @@ export const createTesseractEngine: CreateOcrEngine = async (language, onProgres
   };
 };
 
+/** The "Recognition effort" slider spans a 1.2x to 3x page render. */
+export function renderScaleFor(quality: number): number {
+  return Number((1.2 + (quality / 100) * 1.8).toFixed(2));
+}
+
+/** Collapses the single newlines inside a paragraph when page line breaks are not wanted. */
+export function unwrapLines(text: string): string {
+  return text.replace(/([^\n])\n(?!\n)/g, '$1 ');
+}
+
 export interface OcrDeps {
   createEngine: CreateOcrEngine;
   openDocument: OpenPdfRasterDocument;
@@ -64,13 +74,16 @@ async function defaultOpenDocument(file: NamedBlob) {
   return openPdfRasterDocument(file);
 }
 
-export async function ocrFile(
+/** One entry per recognised page; single images produce a one-entry list. */
+export async function ocrPages(
   file: NamedBlob,
   language: string,
   deps?: Partial<OcrDeps>,
   signal?: AbortSignal,
   onProgress?: (label: string, ratio: number) => void,
-): Promise<string> {
+  /** Render scale for PDF pages: more pixels, better recognition, slower. */
+  renderScale = 2,
+): Promise<string[]> {
   assertNotAborted(signal);
   const isPdf = file.type === 'application/pdf' || fileExtension(file.name) === 'pdf';
   const createEngine = deps?.createEngine ?? createTesseractEngine;
@@ -83,7 +96,7 @@ export async function ocrFile(
   try {
     assertNotAborted(signal);
     if (!isPdf) {
-      return (await engine.recognize(file)).trim();
+      return [(await engine.recognize(file)).trim()];
     }
 
     const source = await openDocument(file);
@@ -98,14 +111,26 @@ export async function ocrFile(
           );
         describe(pageRatio);
         pageRatio = 0;
-        const rendered = await source.renderPage(pageNumber, 2, 0.95, signal);
+        const rendered = await source.renderPage(pageNumber, renderScale, 0.95, signal);
         texts.push((await engine.recognize(rendered.blob)).trim());
       }
-      return texts.join('\n\n').trim();
+      return texts;
     } finally {
       await source.close();
     }
   } finally {
     await engine.terminate();
   }
+}
+
+export async function ocrFile(
+  file: NamedBlob,
+  language: string,
+  deps?: Partial<OcrDeps>,
+  signal?: AbortSignal,
+  onProgress?: (label: string, ratio: number) => void,
+  renderScale?: number,
+): Promise<string> {
+  const pages = await ocrPages(file, language, deps, signal, onProgress, renderScale);
+  return pages.join('\n\n').trim();
 }

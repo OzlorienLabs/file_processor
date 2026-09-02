@@ -10,6 +10,7 @@ import {
   buildSummarizeRequest,
   buildSummaryPrompt,
   isValidModel,
+  DETAILS,
   MAX_TEXT_CHARS,
   parseSummaryResponse,
   PROVIDERS,
@@ -32,8 +33,8 @@ export function validateSummarizeBody(body: unknown): SummarizeBody | undefined 
   if (!PROVIDERS.includes(provider as Provider)) return undefined;
   if (!isValidModel(model)) return undefined;
   if (typeof text !== 'string' || !text.trim() || text.length > MAX_TEXT_CHARS) return undefined;
-  if (detail !== 'brief' && detail !== 'balanced' && detail !== 'detailed') return undefined;
-  return { provider: provider as Provider, model, text, detail };
+  if (!DETAILS.includes(detail as Detail)) return undefined;
+  return { provider: provider as Provider, model, text, detail: detail as Detail };
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {

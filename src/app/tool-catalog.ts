@@ -27,6 +27,30 @@ export type ToolId =
   | 'snippets'
   | 'snippet-generator';
 
+/** One choice in a file tool's "2 · Settings" panel. */
+export interface ToolOutput {
+  label: string;
+  note: string;
+}
+
+/**
+ * The parameters the shared stacked flow (source -> settings -> result) reads for a file
+ * tool. Every string is the design's final copy. A control only appears where the engine
+ * behind it can actually deliver the choice, so `quality` and `extra` are optional.
+ */
+export interface ToolFlow {
+  outputLabel: string;
+  outputs: ToolOutput[];
+  /** Slider label; omitted where the tool has no real quality knob. */
+  quality?: string;
+  qualityHint: string;
+  /** Single checkbox label; omitted where the tool has no such option. */
+  extra?: string;
+  runLabel: string;
+  /** What the download button offers, e.g. "Download PDF". */
+  out: string;
+}
+
 export interface ToolDefinition {
   id: ToolId;
   path: string;
@@ -43,6 +67,8 @@ export interface ToolDefinition {
   maxSize: string;
   howTo: string;
   steps: [string, string, string];
+  /** File tools all run the same stacked flow; editors have bespoke layouts. */
+  flow?: ToolFlow;
 }
 
 export const coreTools: ToolDefinition[] = [
@@ -62,6 +88,19 @@ export const coreTools: ToolDefinition[] = [
       'Pick one of the compatible output formats.',
       'Convert in your browser and download the result.',
     ],
+    flow: {
+      outputLabel: 'Output format',
+      outputs: [
+        { label: 'PNG', note: 'lossless' },
+        { label: 'JPG', note: 'smallest' },
+        { label: 'WebP', note: 'modern' },
+        { label: 'PDF', note: 'one page each' },
+      ],
+      quality: 'Image quality',
+      qualityHint: 'Higher keeps detail; lower makes a smaller file.',
+      runLabel: 'Convert file',
+      out: 'PNG',
+    },
   },
   {
     id: 'compress',
@@ -79,6 +118,19 @@ export const coreTools: ToolDefinition[] = [
       'Choose the balance between size and clarity.',
       'Compare the result and download the smaller file.',
     ],
+    flow: {
+      outputLabel: 'Compression preset',
+      outputs: [
+        { label: 'Balanced', note: 'recommended' },
+        { label: 'Smaller', note: 'visible loss' },
+        { label: 'Sharpest', note: 'bigger file' },
+        { label: 'Custom', note: 'set below' },
+      ],
+      quality: 'Target quality',
+      qualityHint: 'The preview updates so you can judge before downloading.',
+      runLabel: 'Compress file',
+      out: 'file',
+    },
   },
   {
     id: 'summarize',
@@ -96,6 +148,18 @@ export const coreTools: ToolDefinition[] = [
       'Select a model, detail level, and provide your API key.',
       'Create, copy, or download the generated summary.',
     ],
+    flow: {
+      outputLabel: 'Shape of the summary',
+      outputs: [
+        { label: 'Key points', note: 'bulleted' },
+        { label: 'Executive brief', note: 'one page' },
+        { label: 'Section by section', note: 'longer' },
+        { label: 'Plain summary', note: 'no headings' },
+      ],
+      qualityHint: 'Text is extracted here, then sent to the provider whose key you supply.',
+      runLabel: 'Summarize',
+      out: 'brief',
+    },
   },
   {
     id: 'merge',
@@ -113,6 +177,19 @@ export const coreTools: ToolDefinition[] = [
       'Reorder the files into the sequence you want.',
       'Merge them locally and download one PDF.',
     ],
+    flow: {
+      outputLabel: 'Page order',
+      outputs: [
+        { label: 'Keep file order', note: 'as added' },
+        { label: 'By name', note: 'A–Z' },
+        { label: 'By date', note: 'oldest first' },
+        { label: 'Reverse', note: 'last first' },
+      ],
+      quality: 'Page scale',
+      qualityHint: 'Use the arrows in the list to set the exact sequence.',
+      runLabel: 'Merge into one PDF',
+      out: 'PDF',
+    },
   },
   {
     id: 'ocr',
@@ -130,6 +207,18 @@ export const coreTools: ToolDefinition[] = [
       'Select the document language and start OCR.',
       'Edit, copy, or download the extracted text.',
     ],
+    flow: {
+      outputLabel: 'Text output',
+      outputs: [
+        { label: 'Plain text', note: '.txt' },
+        { label: 'Per page', note: 'one file each' },
+      ],
+      quality: 'Recognition effort',
+      qualityHint: 'Fifteen languages, all recognised in this tab by WASM.',
+      extra: 'Keep line breaks as in the page',
+      runLabel: 'Extract text',
+      out: 'text',
+    },
   },
   {
     id: 'audio-to-text',
@@ -147,6 +236,19 @@ export const coreTools: ToolDefinition[] = [
       'Select a transcription model and language.',
       'Transcribe, review, and download the text.',
     ],
+    flow: {
+      outputLabel: 'Transcript format',
+      outputs: [
+        { label: 'Plain transcript', note: '.txt' },
+        { label: 'With timestamps', note: '.srt' },
+        { label: 'Captions', note: '.vtt' },
+      ],
+      quality: 'Model size',
+      qualityHint: 'On-device Whisper by default; your OpenAI key is the alternative.',
+      extra: 'Split into paragraphs at pauses',
+      runLabel: 'Transcribe',
+      out: 'transcript',
+    },
   },
   {
     id: 'split',
@@ -164,6 +266,20 @@ export const coreTools: ToolDefinition[] = [
       'Choose every page, a range, or selected pages.',
       'Split locally and download a PDF or ZIP.',
     ],
+    flow: {
+      outputLabel: 'How to split',
+      outputs: [
+        { label: 'Every page', note: 'one PDF each' },
+        { label: 'Page ranges', note: 'you type them' },
+        { label: 'Selected pages', note: 'click below' },
+        { label: 'Every N pages', note: 'fixed size' },
+      ],
+      quality: 'Pages per file',
+      qualityHint: 'Click pages in the preview to include or exclude them.',
+      extra: 'Deliver as a ZIP archive',
+      runLabel: 'Split PDF',
+      out: 'ZIP',
+    },
   },
   {
     id: 'word-to-pdf',
@@ -181,6 +297,17 @@ export const coreTools: ToolDefinition[] = [
       'Review the browser-rendered document preview.',
       'Create and download the PDF file.',
     ],
+    flow: {
+      outputLabel: 'Page size',
+      outputs: [
+        { label: 'A4', note: 'portrait' },
+        { label: 'Letter', note: 'portrait' },
+        { label: 'A4', note: 'landscape' },
+      ],
+      qualityHint: 'The document is rendered here first so you can check it.',
+      runLabel: 'Create PDF',
+      out: 'PDF',
+    },
   },
   {
     id: 'pdf-to-word',
@@ -198,6 +325,16 @@ export const coreTools: ToolDefinition[] = [
       'Extract its pages into editable paragraphs.',
       'Download the result as a Word DOCX file.',
     ],
+    flow: {
+      outputLabel: 'Document structure',
+      outputs: [
+        { label: 'Flowing text', note: 'best for editing' },
+        { label: 'Markdown', note: 'plain structure' },
+      ],
+      qualityHint: 'Text-based PDFs convert cleanly; scans should go through OCR first.',
+      runLabel: 'Create DOCX',
+      out: 'DOCX',
+    },
   },
   {
     id: 'notepad',

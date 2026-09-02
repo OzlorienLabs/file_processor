@@ -1,7 +1,8 @@
 export type Provider = 'openai' | 'anthropic' | 'google';
-export type Detail = 'brief' | 'balanced' | 'detailed';
+export type Detail = 'brief' | 'balanced' | 'detailed' | 'plain';
 
 export const PROVIDERS: Provider[] = ['openai', 'anthropic', 'google'];
+export const DETAILS: Detail[] = ['brief', 'balanced', 'detailed', 'plain'];
 export const MAX_TEXT_CHARS = 500_000;
 
 const MODEL_ID_PATTERN = /^[\w][\w.:/-]{0,99}$/;
@@ -15,6 +16,8 @@ const detailInstructions: Record<Detail, string> = {
   balanced: 'Write a few short paragraphs covering the main points and key details.',
   detailed:
     'Write a thorough, well-structured summary with short section headings, covering every significant topic.',
+  plain:
+    'Write a few plain prose paragraphs. Use no headings, no bullet points, and no other formatting.',
 };
 
 export function buildSummaryPrompt(text: string, detail: Detail): string {

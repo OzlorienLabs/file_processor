@@ -21,11 +21,15 @@ function kindOf(file: NamedBlob): 'pdf' | 'png' | 'jpg' | undefined {
 export async function mergeToPdf(
   files: NamedBlob[],
   signal?: AbortSignal,
+  onProgress?: (completed: number, total: number) => void,
+  /** How much of the printable area an embedded image fills, 0.1 to 1. */
+  imageScale = 1,
 ): Promise<Uint8Array> {
   if (!files.length) throw new Error('Add at least one file to merge.');
   const { PDFDocument } = await import('pdf-lib');
   const output = await PDFDocument.create();
 
+  let done = 0;
   for (const file of files) {
     assertNotAborted(signal);
     const kind = kindOf(file);
@@ -36,6 +40,8 @@ export async function mergeToPdf(
       const source = await PDFDocument.load(bytes);
       const pages = await output.copyPages(source, source.getPageIndices());
       pages.forEach((page) => output.addPage(page));
+      done += 1;
+      onProgress?.(done, files.length);
       continue;
     }
 
@@ -43,7 +49,8 @@ export async function mergeToPdf(
       kind === 'png' ? await output.embedPng(bytes) : await output.embedJpg(bytes);
     const maxWidth = IMAGE_PAGE.width - IMAGE_PAGE.margin * 2;
     const maxHeight = IMAGE_PAGE.height - IMAGE_PAGE.margin * 2;
-    const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+    const fit = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+    const scale = fit * Math.min(1, Math.max(0.1, imageScale));
     const width = image.width * scale;
     const height = image.height * scale;
     const page = output.addPage([IMAGE_PAGE.width, IMAGE_PAGE.height]);
@@ -53,6 +60,8 @@ export async function mergeToPdf(
       width,
       height,
     });
+    done += 1;
+    onProgress?.(done, files.length);
   }
 
   assertNotAborted(signal);
@@ -63,6 +72,7 @@ export async function splitPdf(
   file: NamedBlob,
   groups: number[][],
   signal?: AbortSignal,
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<Uint8Array[]> {
   if (!groups.length || groups.some((group) => group.length === 0)) {
     throw new Error('Choose at least one page group to split.');
@@ -88,6 +98,7 @@ export async function splitPdf(
     );
     pages.forEach((page) => document.addPage(page));
     outputs.push(await document.save({ useObjectStreams: true }));
+    onProgress?.(outputs.length, groups.length);
   }
   return outputs;
 }

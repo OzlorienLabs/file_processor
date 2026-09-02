@@ -11,6 +11,8 @@ export interface ConversionOption {
     file: File,
     signal?: AbortSignal,
     onProgress?: (completed: number, total: number) => void,
+    /** Encoder quality, 0 to 1; only the lossy image targets use it. */
+    quality?: number,
   ) => Promise<{ blob: Blob; filename: string }>;
 }
 
@@ -33,9 +35,14 @@ function assertNotAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('The operation was cancelled.', 'AbortError');
 }
 
-async function imageTo(target: 'png' | 'jpg' | 'webp', file: File, signal?: AbortSignal) {
+async function imageTo(
+  target: 'png' | 'jpg' | 'webp',
+  file: File,
+  signal?: AbortSignal,
+  quality?: number,
+) {
   const { convertImage } = await import('./raster');
-  const blob = await convertImage(file, target, undefined, signal);
+  const blob = await convertImage(file, target, undefined, signal, quality);
   return { blob, filename: `${safeBaseName(file.name)}.${target}` };
 }
 
@@ -151,7 +158,7 @@ export function conversionsFor(file: File): ConversionOption[] {
             id: `image-${target}`,
             label: `${target.toUpperCase()} image`,
             hint: target === 'jpg' ? 'Smaller, no transparency' : target === 'png' ? 'Lossless, keeps transparency' : 'Modern, small, keeps transparency',
-            run: (input, signal) => imageTo(target, input, signal),
+            run: (input, signal, _onProgress, quality) => imageTo(target, input, signal, quality),
           });
         }
       }

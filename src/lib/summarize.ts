@@ -1,7 +1,7 @@
 import type { AiProvider } from './ai-settings';
 import { chunkText } from './text-extract';
 
-export type SummaryDetail = 'brief' | 'balanced' | 'detailed';
+export type SummaryDetail = 'brief' | 'balanced' | 'detailed' | 'plain';
 
 /** Keep single requests comfortably inside provider context windows. */
 export const SUMMARY_CHUNK_CHARS = 120_000;

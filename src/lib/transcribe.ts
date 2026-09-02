@@ -30,6 +30,15 @@ export const transcribeLanguages = [
   { code: 'zh', whisper: 'chinese', label: 'Chinese' },
 ] as const;
 
+/** The "Model size" slider picks from the on-device Whisper list, smallest first. */
+export function modelForQuality(quality: number): string {
+  const index = Math.min(
+    localWhisperModels.length - 1,
+    Math.floor((quality / 100) * localWhisperModels.length),
+  );
+  return localWhisperModels[index].id;
+}
+
 export interface TranscriptionSegment {
   start: number;
   end: number;
@@ -79,6 +88,35 @@ export function toSrt(segments: TranscriptionSegment[]): string {
         `${index + 1}\n${formatSrtTimestamp(segment.start)} --> ${formatSrtTimestamp(segment.end)}\n${segment.text.trim()}`,
     )
     .join('\n\n');
+}
+
+/** WebVTT captions from the same segments the SRT writer uses. */
+export function toVtt(segments: TranscriptionSegment[]): string {
+  const cues = segments.map(
+    (segment, index) =>
+      `${index + 1}\n${formatSrtTimestamp(segment.start).replace(',', '.')} --> ` +
+      `${formatSrtTimestamp(segment.end).replace(',', '.')}\n${segment.text}`,
+  );
+  return `WEBVTT\n\n${cues.join('\n\n')}\n`;
+}
+
+/** Groups segments into paragraphs wherever the speaker pauses for `gapSeconds` or more. */
+export function toParagraphs(
+  segments: TranscriptionSegment[],
+  fallback: string,
+  gapSeconds = 1.2,
+): string {
+  if (!segments.length) return fallback;
+  const paragraphs: string[][] = [[]];
+  let previousEnd = segments[0].start;
+  for (const segment of segments) {
+    if (paragraphs[paragraphs.length - 1].length && segment.start - previousEnd >= gapSeconds) {
+      paragraphs.push([]);
+    }
+    paragraphs[paragraphs.length - 1].push(segment.text);
+    previousEnd = segment.end;
+  }
+  return paragraphs.map((lines) => lines.join(' ').trim()).filter(Boolean).join('\n\n');
 }
 
 export function bytesToBase64(bytes: Uint8Array): string {
@@ -141,23 +179,27 @@ export async function transcribeLocally(
   file: Blob,
   options: LocalTranscribeOptions,
   signal?: AbortSignal,
-  onProgress?: (label: string) => void,
+  onProgress?: (label: string, fraction?: number) => void,
 ): Promise<TranscriptionResult> {
   assertNotAborted(signal);
-  onProgress?.('Decoding the audio on this device');
+  onProgress?.('Decoding the audio on this device', 0.02);
   const decoded = await decodeAudioFile(file, options.decode);
   assertNotAborted(signal);
 
   const factory = options.engineFactory ?? createWhisperEngine;
-  onProgress?.('Preparing the speech model (downloads on first use)');
+  onProgress?.('Preparing the speech model (downloads on first use)', 0.1);
   const engine = await factory(options.model, (info) => {
     if (info.status === 'progress' && typeof info.progress === 'number') {
-      onProgress?.(`Downloading the speech model — ${Math.round(info.progress)}%`);
+      // The download is the only part of the local run whose completion is measurable.
+      onProgress?.(
+        `Downloading the speech model — ${Math.round(info.progress)}%`,
+        0.1 + (info.progress / 100) * 0.35,
+      );
     }
   });
   assertNotAborted(signal);
 
-  onProgress?.('Transcribing on this device');
+  onProgress?.('Transcribing on this device', 0.5);
   const language = transcribeLanguages.find((entry) => entry.code === options.languageCode)?.whisper;
   return engine(resampleTo16kMono(decoded), language);
 }
@@ -174,10 +216,10 @@ export async function transcribeViaApi(
   file: Blob,
   options: ApiTranscribeOptions,
   signal?: AbortSignal,
-  onProgress?: (label: string) => void,
+  onProgress?: (label: string, fraction?: number) => void,
 ): Promise<TranscriptionResult> {
   assertNotAborted(signal);
-  onProgress?.('Decoding the audio on this device');
+  onProgress?.('Decoding the audio on this device', 0.02);
   const decoded = await decodeAudioFile(file, options.decode);
   const mono = resampleTo16kMono(decoded);
   const monoDecoded: DecodedAudio = {
@@ -193,6 +235,7 @@ export async function transcribeViaApi(
     assertNotAborted(signal);
     onProgress?.(
       ranges.length > 1 ? `Transcribing part ${index + 1} of ${ranges.length}` : 'Transcribing the recording',
+      0.05 + (index / ranges.length) * 0.95,
     );
     const wav = encodeWavPcm16(monoDecoded, range);
     const audio = bytesToBase64(new Uint8Array(await wav.arrayBuffer()));

@@ -80,12 +80,13 @@ export async function convertImage(
   target: ImageTarget,
   adapter: RasterAdapter = browserRasterAdapter,
   signal?: AbortSignal,
+  quality = 0.92,
 ): Promise<Blob> {
   abortIfNeeded(signal);
   const decoded = await adapter.decode(file);
   try {
     abortIfNeeded(signal);
-    return await adapter.encode(decoded.source, decoded.width, decoded.height, targetTypes[target], 0.92);
+    return await adapter.encode(decoded.source, decoded.width, decoded.height, targetTypes[target], quality);
   } finally {
     decoded.close();
   }
@@ -96,9 +97,12 @@ export async function compressImage(
   level: CompressionLevel,
   adapter: RasterAdapter = browserRasterAdapter,
   signal?: AbortSignal,
+  /** Overrides the preset's encoder quality for the "Custom" preset. */
+  quality?: number,
 ): Promise<CompressedImage> {
   abortIfNeeded(signal);
-  const settings = getCompressionSettings(level);
+  const preset = getCompressionSettings(level);
+  const settings = quality === undefined ? preset : { ...preset, quality };
   const decoded = await adapter.decode(file);
   try {
     abortIfNeeded(signal);

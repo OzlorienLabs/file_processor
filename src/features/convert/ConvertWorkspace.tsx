@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
-import { FileDropzone } from '../../components/FileDropzone/FileDropzone';
-import { ResultDownload } from '../../components/ResultDownload/ResultDownload';
+import { coreTools } from '../../app/tool-catalog';
+import { FileToolFlow, type FlowRun } from '../../components/FileToolFlow/FileToolFlow';
 import { conversionsFor, type ConversionOption } from '../../lib/convert-map';
 import { formatBytes } from '../../lib/files';
 
@@ -27,120 +27,49 @@ const policy = {
   maxFiles: 1,
 };
 
+const tool = coreTools.find((candidate) => candidate.id === 'convert')!;
+
 export function ConvertWorkspace() {
-  const [file, setFile] = useState<File>();
+  // The real option list depends on the file, so the catalog's four are only the placeholder
+  // shown before one is chosen.
   const [options, setOptions] = useState<ConversionOption[]>([]);
-  const [selectedId, setSelectedId] = useState('');
-  const [progress, setProgress] = useState('');
-  const [result, setResult] = useState<{ blob: Blob; filename: string }>();
-  const [error, setError] = useState('');
-  const [isWorking, setIsWorking] = useState(false);
-  const controller = useRef<AbortController | undefined>(undefined);
 
-  const reset = () => {
-    controller.current?.abort();
-    setFile(undefined);
-    setOptions([]);
-    setSelectedId('');
-    setProgress('');
-    setResult(undefined);
-    setError('');
-    setIsWorking(false);
-  };
-
-  const selectFile = ([nextFile]: File[]) => {
-    const nextOptions = conversionsFor(nextFile);
-    setFile(nextFile);
-    setOptions(nextOptions);
-    setSelectedId(nextOptions[0]?.id ?? '');
-    setError(
-      nextOptions.length
-        ? ''
-        : `${nextFile.name} has no supported conversions. Try a PDF, DOCX, text, image, or audio file.`,
-    );
-  };
-
-  const convert = async () => {
-    const option = options.find((candidate) => candidate.id === selectedId);
-    if (!file || !option) return;
-    const nextController = new AbortController();
-    controller.current = nextController;
-    setError('');
-    setIsWorking(true);
-    try {
-      setResult(
-        await option.run(file, nextController.signal, (completed, total) =>
-          setProgress(`Converting part ${completed} of ${total}`),
-        ),
+  function describe(files: File[]) {
+    const available = conversionsFor(files[0]);
+    setOptions(available);
+    if (!available.length) {
+      throw new Error(
+        `${files[0].name} has no supported conversions. Try a PDF, DOCX, text, image, or audio file.`,
       );
-    } catch (reason) {
-      if ((reason as Error).name !== 'AbortError') {
-        setError('This file could not be converted. It may be damaged or use an unsupported codec.');
-      }
-    } finally {
-      setIsWorking(false);
-      setProgress('');
     }
-  };
+    return { meta: formatBytes(files[0].size) };
+  }
 
-  if (result) {
-    return (
-      <ResultDownload blob={result.blob} filename={result.filename} label="Download converted file" onReset={reset} />
-    );
+  async function run({ files, output, quality, signal, report }: FlowRun) {
+    const option = options[output] ?? options[0];
+    const produced = await option
+      .run(files[0], signal, (done, total) => report(done / total), quality / 100)
+      .catch((reason: Error) => {
+        if (reason.name === 'AbortError') throw reason;
+        throw new Error('This file could not be converted. It may be damaged or use an unsupported codec.');
+      });
+    return {
+      ...produced,
+      figure: '✓',
+      title: 'Convert file complete',
+      meta: `${option.label} · ${formatBytes(produced.blob.size)} · nothing was uploaded`,
+      out: option.label,
+    };
   }
 
   return (
-    <div aria-busy={isWorking}>
-      <FileDropzone
-        id="convert-file"
-        label="Choose a file to convert"
-        hint="PDF · DOCX · TXT · Images · Audio — up to 100 MB"
-        policy={policy}
-        disabled={isWorking}
-        onFiles={selectFile}
-      />
-      {file && options.length ? (
-        <div className="workflow-controls">
-          <div className="control-heading">
-            <div><strong>{file.name}</strong><p>{formatBytes(file.size)}</p></div>
-            <span>Ready</span>
-          </div>
-          <fieldset className="choice-group">
-            <legend>Convert to</legend>
-            {options.map((option) => (
-              <label key={option.id}>
-                <input
-                  type="radio"
-                  name="convert-target"
-                  checked={selectedId === option.id}
-                  disabled={isWorking}
-                  onChange={() => setSelectedId(option.id)}
-                />
-                <span><strong>{option.label}</strong><small>{option.hint}</small></span>
-              </label>
-            ))}
-          </fieldset>
-          {error ? <p className="field-error" role="alert">{error}</p> : null}
-          {isWorking && progress ? <p className="progress-note" role="status">{progress}</p> : null}
-          <div className="workflow-actions">
-            <button className="button button-primary" type="button" disabled={isWorking} onClick={convert}>
-              {isWorking ? 'Converting…' : 'Convert file'}
-            </button>
-            {isWorking ? (
-              <button className="button button-secondary" type="button" onClick={() => controller.current?.abort()}>
-                Cancel
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : (
-        <>
-          {error ? <p className="field-error" role="alert">{error}</p> : null}
-          {!file ? (
-            <p className="empty-workspace">Add a file to see its available formats. Everything converts on this device.</p>
-          ) : null}
-        </>
-      )}
-    </div>
+    <FileToolFlow
+      tool={tool}
+      policy={policy}
+      inputLabel="Choose a file to convert"
+      outputs={options.length ? options.map((option) => ({ label: option.label, note: option.hint })) : undefined}
+      describe={describe}
+      onRun={run}
+    />
   );
 }

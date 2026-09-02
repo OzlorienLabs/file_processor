@@ -1,21 +1,41 @@
 import type { DocBlock } from './doc-blocks';
 
-const PAGE = { width: 595.28, height: 841.89, margin: 56 };
+/** Point sizes of the page formats the Word-to-PDF tool offers. */
+const FORMATS = {
+  a4: { width: 595.28, height: 841.89 },
+  letter: { width: 612, height: 792 },
+} as const;
+
+const MARGIN = 56;
+
+export interface PageSpec {
+  format: keyof typeof FORMATS;
+  orientation: 'portrait' | 'landscape';
+}
+
+export const defaultPageSpec: PageSpec = { format: 'a4', orientation: 'portrait' };
 
 function headingSize(level: number): number {
   return [22, 18, 15, 13, 12, 11][Math.min(Math.max(level, 1), 6) - 1];
 }
 
-export async function renderBlocksToPdf(blocks: DocBlock[]): Promise<Uint8Array> {
+export async function renderBlocksToPdf(
+  blocks: DocBlock[],
+  page: PageSpec = defaultPageSpec,
+): Promise<Uint8Array> {
   const { jsPDF } = await import('jspdf');
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const usableWidth = PAGE.width - PAGE.margin * 2;
-  let y = PAGE.margin;
+  const size = FORMATS[page.format];
+  const landscape = page.orientation === 'landscape';
+  const pageWidth = landscape ? size.height : size.width;
+  const pageHeight = landscape ? size.width : size.height;
+  const doc = new jsPDF({ unit: 'pt', format: page.format, orientation: page.orientation });
+  const usableWidth = pageWidth - MARGIN * 2;
+  let y = MARGIN;
 
   const ensureRoom = (needed: number) => {
-    if (y + needed > PAGE.height - PAGE.margin) {
+    if (y + needed > pageHeight - MARGIN) {
       doc.addPage();
-      y = PAGE.margin;
+      y = MARGIN;
     }
   };
 
@@ -31,10 +51,10 @@ export async function renderBlocksToPdf(blocks: DocBlock[]): Promise<Uint8Array>
     const lines: string[] = doc.splitTextToSize(text, usableWidth - indent);
 
     ensureRoom(lineHeight + (isHeading ? size * 0.6 : 0));
-    if (isHeading && y > PAGE.margin) y += size * 0.6;
+    if (isHeading && y > MARGIN) y += size * 0.6;
     for (const line of lines) {
       ensureRoom(lineHeight);
-      doc.text(line, PAGE.margin + indent, y + size);
+      doc.text(line, MARGIN + indent, y + size);
       y += lineHeight;
     }
     y += size * 0.55;
@@ -43,7 +63,7 @@ export async function renderBlocksToPdf(blocks: DocBlock[]): Promise<Uint8Array>
   if (!blocks.length) {
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(11);
-    doc.text('This document contained no extractable text.', PAGE.margin, y + 11);
+    doc.text('This document contained no extractable text.', MARGIN, y + 11);
   }
   return new Uint8Array(doc.output('arraybuffer'));
 }

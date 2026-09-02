@@ -84,7 +84,7 @@ describe('transcribeLocally with the default engine', () => {
     options.progress_callback({ status: 'progress', progress: 42.4 });
     options.progress_callback({ status: 'done' });
 
-    expect(progress).toHaveBeenCalledWith('Downloading the speech model — 42%');
+    expect(progress).toHaveBeenCalledWith('Downloading the speech model — 42%', expect.any(Number));
     expect(result.text).toBe('whisper text');
   });
 });
@@ -116,7 +116,7 @@ describe('transcribeViaApi edge cases', () => {
     const [, init] = fetchSpy.mock.calls[0] as unknown as [string, RequestInit];
     expect(JSON.parse(init.body as string).language).toBeUndefined();
     expect(result.text).toBe('spoken');
-    expect(progress).toHaveBeenCalledWith('Transcribing the recording');
+    expect(progress).toHaveBeenCalledWith('Transcribing the recording', expect.any(Number));
     vi.unstubAllGlobals();
   });
 

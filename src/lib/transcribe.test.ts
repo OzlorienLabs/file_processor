@@ -91,7 +91,7 @@ describe('transcribeLocally', () => {
 
     expect(result.text).toBe('local words');
     expect(engine).toHaveBeenCalledWith(expect.any(Float32Array), 'german');
-    expect(progress).toHaveBeenCalledWith('Transcribing on this device');
+    expect(progress).toHaveBeenCalledWith('Transcribing on this device', expect.any(Number));
   });
 
   it('stops before decoding when cancelled', async () => {
@@ -133,7 +133,7 @@ describe('transcribeViaApi', () => {
 
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     expect(result.text).toBe('part1 part2');
-    expect(progress).toHaveBeenCalledWith('Transcribing part 2 of 2');
+    expect(progress).toHaveBeenCalledWith('Transcribing part 2 of 2', expect.any(Number));
     const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     expect((init.headers as Record<string, string>)['x-provider-key']).toBe('sk-audio');
   });

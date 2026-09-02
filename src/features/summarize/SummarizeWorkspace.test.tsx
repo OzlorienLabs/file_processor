@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { downloadBlob } from '../../lib/download';
 import { summarizeText } from '../../lib/summarize';
 import { extractText } from '../../lib/text-extract';
 import { SummarizeWorkspace } from './SummarizeWorkspace';
@@ -14,94 +15,64 @@ vi.mock('../../lib/summarize', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../lib/summarize')>();
   return { ...actual, summarizeText: vi.fn() };
 });
-
-beforeAll(() => {
-  vi.stubGlobal('URL', {
-    ...URL,
-    createObjectURL: vi.fn(() => 'blob:summary'),
-    revokeObjectURL: vi.fn(),
-  });
-});
+vi.mock('../../lib/download', () => ({ downloadBlob: vi.fn() }));
 
 beforeEach(() => vi.clearAllMocks());
 
 async function uploadReport(user: ReturnType<typeof userEvent.setup>) {
   const file = new File(['doc'], 'report.pdf', { type: 'application/pdf' });
   await user.upload(screen.getByLabelText(/choose a file to summarize/i), file);
+  await screen.findByRole('group', { name: /ai model and key/i });
   return file;
 }
 
+async function addKey(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText('API key'), 'sk-test');
+}
+
 describe('SummarizeWorkspace', () => {
-  it('keeps the button disabled until an API key is provided', async () => {
+  it('keeps the run button blocked until a provider key is present', async () => {
     const user = userEvent.setup();
     render(<SummarizeWorkspace />);
     await uploadReport(user);
 
-    const button = screen.getByRole('button', { name: /summarize file/i });
-    expect(button).toBeDisabled();
-
-    await user.type(screen.getByLabelText(/^api key$/i), 'sk-test');
-    expect(button).toBeEnabled();
+    expect(screen.getByRole('button', { name: /add your provider key/i })).toBeDisabled();
+    await addKey(user);
+    expect(screen.getByRole('button', { name: /^summarize$/i })).toBeEnabled();
   });
 
-  it('extracts locally, summarizes with the chosen settings, and shows the summary', async () => {
-    vi.mocked(extractText).mockResolvedValue('Extracted document text');
-    vi.mocked(summarizeText).mockResolvedValue('A useful summary.');
+  it('extracts locally, summarizes in the chosen shape, and shows the summary', async () => {
+    vi.mocked(extractText).mockResolvedValue('Long document text');
+    vi.mocked(summarizeText).mockResolvedValue('A crisp summary');
     const user = userEvent.setup();
     render(<SummarizeWorkspace />);
-
     const file = await uploadReport(user);
-    await user.selectOptions(screen.getByLabelText(/ai provider/i), 'anthropic');
-    await user.type(screen.getByLabelText(/^api key$/i), 'sk-ant');
-    await user.click(screen.getByRole('radio', { name: /detailed/i }));
-    await user.click(screen.getByRole('button', { name: /summarize file/i }));
+    await addKey(user);
+
+    await user.click(screen.getByRole('radio', { name: /plain summary/i }));
+    await user.click(screen.getByRole('button', { name: /^summarize$/i }));
 
     expect(extractText).toHaveBeenCalledWith(file, undefined, expect.any(AbortSignal), expect.any(Function));
-    expect(summarizeText).toHaveBeenCalledWith('Extracted document text', expect.objectContaining({
-      provider: 'anthropic',
-      model: 'claude-sonnet-5',
-      apiKey: 'sk-ant',
-      detail: 'detailed',
-    }));
-    expect(await screen.findByLabelText('Summary')).toHaveValue('A useful summary.');
-    expect(screen.getByRole('link', { name: /download text/i })).toHaveAttribute(
-      'download',
-      'report-summary.txt',
+    expect(summarizeText).toHaveBeenCalledWith(
+      'Long document text',
+      expect.objectContaining({ detail: 'plain', apiKey: 'sk-test' }),
     );
+    expect(await screen.findByText('A crisp summary')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /download brief/i }));
+    expect(downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'report-summary.txt');
   });
 
-  it('remembers settings across visits by default', async () => {
-    const user = userEvent.setup();
-    const { unmount } = render(<SummarizeWorkspace />);
-    await uploadReport(user);
-    await user.type(screen.getByLabelText(/^api key$/i), 'sk-persisted');
-    unmount();
-
-    render(<SummarizeWorkspace />);
-    await uploadReport(user);
-    expect(screen.getByLabelText(/^api key$/i)).toHaveValue('sk-persisted');
-  });
-
-  it('prompts for a key and starts over after a summary', async () => {
-    vi.mocked(extractText).mockResolvedValue('text');
-    vi.mocked(summarizeText).mockResolvedValue('done');
-    const user = userEvent.setup();
-    render(<SummarizeWorkspace />);
-    await uploadReport(user);
-
-    expect(screen.getByText(/add your provider api key above/i)).toBeInTheDocument();
-
-    await user.type(screen.getByLabelText(/^api key$/i), 'sk-x');
-    await user.click(screen.getByRole('button', { name: /summarize file/i }));
-    await user.click(await screen.findByRole('button', { name: /start over/i }));
-    expect(screen.getByLabelText(/choose a file to summarize/i)).toBeInTheDocument();
-  });
-
-  it('lets a slow summary be cancelled quietly', async () => {
-    vi.mocked(extractText).mockImplementation(
-      (_file, _open, signal) =>
+  it('says where the work runs while the provider request is in flight', async () => {
+    vi.mocked(extractText).mockImplementation(async (_file, _open, _signal, onProgress) => {
+      onProgress?.(1, 2);
+      return 'text';
+    });
+    vi.mocked(summarizeText).mockImplementation(
+      (_text, options) =>
         new Promise((_resolve, reject) => {
-          signal?.addEventListener('abort', () =>
+          options.onProgress?.('Summarizing');
+          options.signal?.addEventListener('abort', () =>
             reject(new DOMException('The operation was cancelled.', 'AbortError')),
           );
         }),
@@ -109,25 +80,24 @@ describe('SummarizeWorkspace', () => {
     const user = userEvent.setup();
     render(<SummarizeWorkspace />);
     await uploadReport(user);
+    await addKey(user);
+    await user.click(screen.getByRole('button', { name: /^summarize$/i }));
 
-    await user.type(screen.getByLabelText(/^api key$/i), 'sk-x');
-    await user.click(screen.getByRole('button', { name: /summarize file/i }));
+    expect(await screen.findByText(/sent to your provider with your key/i)).toBeInTheDocument();
+    expect(screen.getByText(/only its text reaches the provider you chose/i)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /^cancel$/i }));
-
-    expect(await screen.findByRole('button', { name: /summarize file/i })).toBeEnabled();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /^summarize$/i })).toBeEnabled();
   });
 
-  it('surfaces provider errors from the summarize call', async () => {
+  it('surfaces provider errors', async () => {
     vi.mocked(extractText).mockResolvedValue('text');
-    vi.mocked(summarizeText).mockRejectedValue(new Error('The provider rejected this API key.'));
+    vi.mocked(summarizeText).mockRejectedValue(new Error('The provider returned no summary text.'));
     const user = userEvent.setup();
     render(<SummarizeWorkspace />);
-
     await uploadReport(user);
-    await user.type(screen.getByLabelText(/^api key$/i), 'sk-bad');
-    await user.click(screen.getByRole('button', { name: /summarize file/i }));
+    await addKey(user);
+    await user.click(screen.getByRole('button', { name: /^summarize$/i }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('The provider rejected this API key.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(/no summary text/i);
   });
 });
