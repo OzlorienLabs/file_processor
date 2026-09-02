@@ -61,6 +61,25 @@ describe('AppShell', () => {
     }
   });
 
+  it.each(coreTools.map((tool) => [tool.path, tool.id] as const))(
+    'marks %s in the rail and no other route',
+    (path) => {
+      const tool = coreTools.find((candidate) => candidate.path === path)!;
+      render(
+        <MemoryRouter initialEntries={[path]}>
+          <AppShell tool={tool}>
+            <p>workspace body</p>
+          </AppShell>
+        </MemoryRouter>,
+      );
+      const rail = screen.getByRole('navigation', { name: /all tools/i });
+      // /en/convert is a prefix of /en/convert/word/pdf: only the exact route may claim it.
+      const current = within(rail).getAllByRole('link', { current: 'page' });
+      expect(current).toHaveLength(1);
+      expect(current[0]).toHaveAttribute('href', path);
+    },
+  );
+
   it('keeps the skip link and labels the workspace region', () => {
     renderShell();
     expect(screen.getByRole('link', { name: /skip to content/i })).toHaveAttribute('href', '#main-content');

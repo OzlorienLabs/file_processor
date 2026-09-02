@@ -19,6 +19,16 @@ test.describe('app shell', () => {
     }
   });
 
+  test('marks exactly one rail item on every route, nested paths included', async ({ page }) => {
+    // /en/convert is a prefix of /en/convert/word/pdf; only the exact route may be current.
+    for (const tool of coreTools) {
+      await page.goto(tool.path);
+      const current = page.locator('.tool-rail a[aria-current="page"]');
+      await expect(current).toHaveCount(1);
+      await expect(current).toHaveAttribute('href', tool.path);
+    }
+  });
+
   test('the rail marks the open tool and navigates to another', async ({ page, isMobile }) => {
     await page.goto('/en/merge');
     const rail = page.getByRole('navigation', { name: /all tools/i });

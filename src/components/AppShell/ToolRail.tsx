@@ -17,7 +17,9 @@ const groups: { category: ToolCategory; label: string }[] = [
 
 function RailItem({ tool, labels }: { tool: ToolDefinition; labels: boolean }) {
   return (
-    <NavLink className="rail-item ctl" to={tool.path} title={tool.name} data-category={tool.category}>
+    // `end` matters: /en/convert is a prefix of /en/convert/word/pdf, and without it both
+    // rail items would claim aria-current on the nested routes.
+    <NavLink className="rail-item ctl" to={tool.path} end title={tool.name} data-category={tool.category}>
       <span className="rail-mark">
         <ToolMark tool={tool.id} />
       </span>
