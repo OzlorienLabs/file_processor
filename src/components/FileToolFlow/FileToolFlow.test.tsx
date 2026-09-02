@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -121,21 +121,36 @@ describe('FileToolFlow', () => {
   });
 
   it('announces the stage and percentage to a live region', async () => {
-    let report: ((fraction: number) => void) | undefined;
     const user = userEvent.setup();
     renderFlow({
       onRun: (run) =>
-        new Promise((resolve) => {
-          report = run.report;
+        new Promise(() => {
           run.report(0.9);
-          setTimeout(() => resolve(result()), 0);
         }),
     });
     await user.upload(screen.getByLabelText('Choose a file'), png());
     await user.click(screen.getByRole('button', { name: /compress file/i }));
 
-    expect(report).toBeTypeOf('function');
-    expect(await screen.findByText('Smaller by 68%')).toBeInTheDocument();
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent('Writing the result 90%');
+    expect(screen.getByRole('progressbar', { name: /compress files progress/i })).toHaveAttribute(
+      'aria-valuenow',
+      '90',
+    );
+  });
+
+  it('names each pipeline stage from the reported percentage', async () => {
+    const reports: ((fraction: number) => void)[] = [];
+    const user = userEvent.setup();
+    renderFlow({ onRun: (run) => new Promise(() => reports.push(run.report)) });
+    await user.upload(screen.getByLabelText('Choose a file'), png());
+    await user.click(screen.getByRole('button', { name: /compress file/i }));
+
+    expect(await screen.findByText('Reading the file')).toBeInTheDocument();
+    act(() => reports[0](0.5));
+    expect(screen.getByText('Compress file…')).toBeInTheDocument();
+    act(() => reports[0](0.9));
+    expect(screen.getByText('Writing the result')).toBeInTheDocument();
   });
 
   it('reports a failure without losing the chosen file', async () => {

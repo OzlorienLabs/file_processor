@@ -19,7 +19,7 @@ test.describe('emoji library', () => {
 test.describe('AI settings safety', () => {
   test('masks the key, persists by default, and forgets on request', async ({ page }) => {
     await page.goto('/en/summarize');
-    await page.setInputFiles('#summarize-file', {
+    await page.getByLabel('Choose a file to summarize').setInputFiles({
       name: 'notes.txt',
       mimeType: 'text/plain',
       buffer: Buffer.from('Some notes to summarize.'),
@@ -30,7 +30,7 @@ test.describe('AI settings safety', () => {
     await keyField.fill('sk-test-persisted');
 
     await page.reload();
-    await page.setInputFiles('#summarize-file', {
+    await page.getByLabel('Choose a file to summarize').setInputFiles({
       name: 'notes.txt',
       mimeType: 'text/plain',
       buffer: Buffer.from('Some notes to summarize.'),

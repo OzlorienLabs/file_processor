@@ -10,13 +10,13 @@ test.describe('home and navigation', () => {
     });
 
     await page.goto('/en');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/useful tools/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Result out.');
     await expect(page.getByTestId('tool-card')).toHaveCount(coreTools.length);
 
     await page.getByTestId('tool-card').filter({ hasText: 'Merge PDF' }).click();
     await expect(page).toHaveURL(/\/en\/merge$/);
     await expect(page.getByRole('heading', { name: 'Merge PDF', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /how to merge pdf/i })).toBeVisible();
+    await expect(page.getByRole('main', { name: /merge pdf workspace/i })).toBeVisible();
 
     expect(consoleErrors).toEqual([]);
   });

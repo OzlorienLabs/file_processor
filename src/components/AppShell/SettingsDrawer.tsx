@@ -42,12 +42,31 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
   const titleId = useId();
   const keyId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const drawer = useRef<HTMLElement>(null);
   const [ai, setAi] = useState<AiSettings>(() => loadAiSettings());
 
   useEffect(() => {
     closeRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = drawer.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !drawer.current?.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
@@ -68,6 +87,7 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
     <div className="settings-scrim" role="presentation" onClick={onClose}>
       <aside
         className="settings-drawer g fu"
+        ref={drawer}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

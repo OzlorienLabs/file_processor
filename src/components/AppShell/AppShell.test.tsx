@@ -119,6 +119,23 @@ describe('AppShell', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('keeps Tab inside the settings dialog', async () => {
+    const user = userEvent.setup();
+    renderShell();
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+
+    const dialog = screen.getByRole('dialog');
+    const close = screen.getByRole('button', { name: /^close$/i });
+    expect(close).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+    expect(screen.getByRole('button', { name: /forget key on this device/i })).toHaveFocus();
+
+    await user.tab();
+    expect(close).toHaveFocus();
+  });
+
   it('stores and forgets the AI provider key from the drawer', async () => {
     const user = userEvent.setup();
     renderShell();
