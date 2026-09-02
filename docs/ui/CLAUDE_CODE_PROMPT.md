@@ -6,9 +6,9 @@ Paste this into Claude Code from the root of `OzlorienLabs/file_processor`, with
 
 ## Prompt
 
-We are revamping FileKit's design and building the features the new design needs. The complete specification is in `design_handoff_filekit_revamp/README.md`; the HTML prototype it documents is `design_handoff_filekit_revamp/design/FileKit.dc.html` (serve that folder over HTTP to view it) and the logo marks are in `design/ToolMark.dc.html`.
+We are revamping FileKit's design and building the features the new design needs. The complete specification is in `docs/ui/README.md`; the HTML prototype it documents is `docs/ui/design/FileKit.dc.html` (serve that folder over HTTP to view it) and the logo marks are in `docs/ui/design/ToolMark.dc.html`.
 
-Read `design_handoff_filekit_revamp/README.md` in full first, then `CLAUDE.md`, `tasks/spec.md`, `src/app/tool-catalog.ts`, `src/pages/{HomePage,ToolPage,tool-disclosure}.tsx`, `src/app/App.tsx` and `src/styles/global.css` before writing code.
+Read `docs/ui/README.md` in full first, then `CLAUDE.md`, `tasks/spec.md`, `src/app/tool-catalog.ts`, `src/pages/{HomePage,ToolPage,tool-disclosure}.tsx`, `src/app/App.tsx` and `src/styles/global.css` before writing code.
 
 **Ground rules**
 
