@@ -17,7 +17,7 @@ const EmojiPage = lazy(() => import('../pages/EmojiPage'));
 function AppHeader() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <header className="site-header">
+    <header className="site-header g2">
       <div className="shell header-inner">
         <Link className="brand" to="/en" aria-label="FileKit home">
           <span className="brand-mark" aria-hidden="true">
@@ -52,7 +52,7 @@ function AppHeader() {
 
 function AppFooter() {
   return (
-    <footer className="site-footer">
+    <footer className="site-footer g2">
       <div className="shell footer-inner">
         <div>
           <Link className="brand" to="/en">

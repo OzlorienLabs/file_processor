@@ -57,7 +57,7 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
           <Link className="back-link" to="/en">
             <ArrowLeft aria-hidden="true" size={17} /> All tools
           </Link>
-          <div className="processing-pill">
+          <div className="processing-pill gi">
             <Icon aria-hidden="true" size={15} />
             {disclosure.pill}
           </div>
@@ -67,11 +67,11 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
       </section>
 
       <section className={`shell ${width} workspace-section`} aria-label={`${tool.name} workspace`}>
-        <div className="privacy-note">
+        <div className="privacy-note gi">
           <CheckCircle2 aria-hidden="true" size={19} />
           <p>{disclosure.note}</p>
         </div>
-        <div className="workspace-card" data-layout={tool.layout ?? 'narrow'}>
+        <div className="workspace-card g" data-layout={tool.layout ?? 'narrow'}>
           <Suspense fallback={<WorkspaceLoading name={tool.shortName} />}>
             <Workspace />
           </Suspense>
@@ -83,7 +83,7 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
         <h2 id="instructions-title">{tool.howTo}</h2>
         <ol className="instruction-grid">
           {tool.steps.map((step, index) => (
-            <li data-testid="instruction-step" key={step}>
+            <li className="g" data-testid="instruction-step" key={step}>
               <span>{index + 1}</span>
               <p>{step}</p>
             </li>

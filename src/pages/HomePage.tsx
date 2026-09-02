@@ -52,7 +52,7 @@ const processingLabels: Record<ToolDefinition['processing'], string> = {
 function ToolCard({ tool }: { tool: ToolDefinition }) {
   const Icon = icons[tool.icon as keyof typeof icons];
   return (
-    <Link className="tool-card" data-tone={tool.tone} data-testid="tool-card" to={tool.path}>
+    <Link className="tool-card g lift" data-category={tool.category} data-testid="tool-card" to={tool.path}>
       <span className="tool-icon" aria-hidden="true">
         <Icon size={26} strokeWidth={1.8} />
       </span>
@@ -88,7 +88,7 @@ export function HomePage() {
               </a>
             </div>
           </div>
-          <aside className="privacy-card" id="privacy" aria-labelledby="privacy-title">
+          <aside className="privacy-card g" id="privacy" aria-labelledby="privacy-title">
             <ShieldCheck aria-hidden="true" size={28} />
             <div>
               <h2 id="privacy-title">Private by default</h2>
@@ -142,15 +142,15 @@ export function HomePage() {
             </p>
           </div>
           <ol className="process-list">
-            <li>
+            <li className="g">
               <span><Upload aria-hidden="true" /></span>
               <div><strong>Choose</strong><p>Add only the file or files the task needs.</p></div>
             </li>
-            <li>
+            <li className="g">
               <span><Check aria-hidden="true" /></span>
               <div><strong>Adjust</strong><p>Pick page ranges, quality, output, or model.</p></div>
             </li>
-            <li>
+            <li className="g">
               <span><FileOutput aria-hidden="true" /></span>
               <div><strong>Download</strong><p>Save the finished result immediately.</p></div>
             </li>
