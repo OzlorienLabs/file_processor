@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke-width="1.7">
+  <title>Notepad</title>
+  <path d="M4.8 3.8h9.4l4.6 4.6v11.8H4.8z" fill="none" stroke="#0088b0"/>
+  <path d="M8 10.2h7.2M8 13.4h7.2M8 16.6h4" fill="none" stroke="#201e1d" stroke-width="1.2"/>
+  <path d="M14.2 3.8v4.6h4.6" fill="none" stroke="#d6006c"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke-width="1.7">
+  <title>Mermaid editor</title>
+  <circle cx="12" cy="5.4" r="2.8" fill="none" stroke="#0088b0"/>
+  <circle cx="6" cy="18" r="2.8" fill="none" stroke="#0088b0"/>
+  <circle cx="18" cy="18" r="2.8" fill="none" stroke="#d6006c"/>
+  <path d="M10.4 7.8 7.4 15.4M13.6 7.8l3 7.6" fill="none" stroke="#201e1d" stroke-width="1.2"/>
+</svg>

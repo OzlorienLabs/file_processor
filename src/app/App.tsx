@@ -8,6 +8,7 @@ import {
   Routes,
 } from 'react-router-dom';
 
+import { ToolMark } from '../components/ToolMark/ToolMark';
 import { HomePage } from '../pages/HomePage';
 import { ToolPage } from '../pages/ToolPage';
 import { coreTools } from './tool-catalog';
@@ -20,8 +21,8 @@ function AppHeader() {
     <header className="site-header g2">
       <div className="shell header-inner">
         <Link className="brand" to="/en" aria-label="FileKit home">
-          <span className="brand-mark" aria-hidden="true">
-            F
+          <span className="brand-mark">
+            <ToolMark tool="brand" />
           </span>
           <span>FileKit</span>
         </Link>
@@ -56,8 +57,8 @@ function AppFooter() {
       <div className="shell footer-inner">
         <div>
           <Link className="brand" to="/en">
-            <span className="brand-mark" aria-hidden="true">
-              F
+            <span className="brand-mark">
+              <ToolMark tool="brand" />
             </span>
             <span>FileKit</span>
           </Link>

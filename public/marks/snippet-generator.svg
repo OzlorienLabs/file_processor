@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke-width="1.7">
+  <title>Snippet generator</title>
+  <circle cx="10.6" cy="13.4" r="6.2" fill="none" stroke="#0088b0"/>
+  <path d="M10.6 7.2v12.4M4.4 13.4h12.4" fill="none" stroke="#201e1d" stroke-width="1.1" opacity="0.55"/>
+  <path d="M18.4 3 19.6 6l3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#d6006c" stroke="none"/>
+</svg>

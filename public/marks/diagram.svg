@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke-width="1.7">
+  <title>Diagram creator</title>
+  <rect x="3.4" y="3.6" width="6.2" height="6.2" fill="none" stroke="#0088b0"/>
+  <rect x="14.4" y="14.2" width="6.2" height="6.2" fill="none" stroke="#0088b0"/>
+  <circle cx="17.5" cy="6.7" r="3.1" fill="none" stroke="#d6006c"/>
+  <path d="M9.6 6.7h4.8M6.5 9.8v7.5h7.9" fill="none" stroke="#201e1d" stroke-width="1.2"/>
+</svg>

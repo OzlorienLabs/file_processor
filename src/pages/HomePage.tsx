@@ -1,47 +1,9 @@
-import {
-  ArrowRight,
-  AudioLines,
-  BookOpenText,
-  Braces,
-  Check,
-  FileInput,
-  FileOutput,
-  Files,
-  GitCompareArrows,
-  ListCollapse,
-  Minimize2,
-  NotebookPen,
-  PenTool,
-  RefreshCw,
-  ScanText,
-  Scissors,
-  ShieldCheck,
-  Upload,
-  WandSparkles,
-  Workflow,
-} from 'lucide-react';
+import { ArrowRight, Check, FileOutput, ShieldCheck, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { coreTools, toolsInCategory, type ToolDefinition } from '../app/tool-catalog';
+import { ToolMark } from '../components/ToolMark/ToolMark';
 
-const icons = {
-  AudioLines,
-  BookOpenText,
-  Braces,
-  FileInput,
-  FileOutput,
-  Files,
-  GitCompareArrows,
-  ListCollapse,
-  Minimize2,
-  NotebookPen,
-  PenTool,
-  RefreshCw,
-  ScanText,
-  Scissors,
-  WandSparkles,
-  Workflow,
-};
 
 const processingLabels: Record<ToolDefinition['processing'], string> = {
   browser: 'Runs locally',
@@ -50,11 +12,10 @@ const processingLabels: Record<ToolDefinition['processing'], string> = {
 };
 
 function ToolCard({ tool }: { tool: ToolDefinition }) {
-  const Icon = icons[tool.icon as keyof typeof icons];
   return (
     <Link className="tool-card g lift" data-category={tool.category} data-testid="tool-card" to={tool.path}>
-      <span className="tool-icon" aria-hidden="true">
-        <Icon size={26} strokeWidth={1.8} />
+      <span className="tool-icon">
+        <ToolMark tool={tool.id} />
       </span>
       <span className="tool-card-arrow" aria-hidden="true">
         <ArrowRight size={18} />

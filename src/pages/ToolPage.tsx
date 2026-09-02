@@ -3,6 +3,8 @@ import { lazy, Suspense, type ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ToolDefinition, ToolId } from '../app/tool-catalog';
+import { ToolMark } from '../components/ToolMark/ToolMark';
+import { useToolMeta } from '../hooks/useToolMeta';
 import { describeProcessing } from './tool-disclosure';
 import { AudioToTextWorkspace } from '../features/audio-to-text/AudioToTextWorkspace';
 import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
@@ -45,6 +47,7 @@ function WorkspaceLoading({ name }: { name: string }) {
 }
 
 export function ToolPage({ tool }: { tool: ToolDefinition }) {
+  useToolMeta({ mark: tool.id, title: tool.name, description: tool.description });
   const Workspace = workspaces[tool.id];
   const disclosure = describeProcessing(tool);
   const Icon = disclosure.icon;
@@ -61,6 +64,9 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
             <Icon aria-hidden="true" size={15} />
             {disclosure.pill}
           </div>
+          <span className="tool-hero-mark">
+            <ToolMark tool={tool.id} />
+          </span>
           <h1>{tool.name}</h1>
           <p className="lede">{tool.description}</p>
         </div>
