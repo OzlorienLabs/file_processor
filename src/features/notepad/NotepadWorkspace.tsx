@@ -1,5 +1,5 @@
-import { Check, Copy, Download, FilePlus2, FolderDown, Search, Trash2, Upload } from 'lucide-react';
-import { useMemo, useState, type ChangeEvent } from 'react';
+import { Check, Copy, Download, FilePlus2, FolderDown, Search, Smile, Trash2, Upload } from 'lucide-react';
+import { useMemo, useRef, useState, type ChangeEvent } from 'react';
 
 import { HtmlPreview } from '../../components/HtmlPreview/HtmlPreview';
 import { MarkdownPreview } from '../../components/MarkdownPreview/MarkdownPreview';
@@ -20,6 +20,7 @@ import {
   type Note,
   type NoteMode,
 } from '../../lib/notes';
+import { EmojiReferencePanel } from './EmojiReferencePanel';
 
 type View = 'edit' | 'split' | 'preview';
 
@@ -34,6 +35,8 @@ export function NotepadWorkspace() {
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [message, setMessage] = useState('');
   const [copied, setCopied] = useState(false);
+  const [emojiPanelOpen, setEmojiPanelOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const visible = useMemo(() => searchNotes(store.items, query), [store.items, query]);
   const stats = countText(current.body);
@@ -93,6 +96,25 @@ export function NotepadWorkspace() {
     if (result) setMessage(`Imported ${result.imported} ${result.imported === 1 ? 'note' : 'notes'}; skipped ${result.skipped}.`);
   };
 
+  const insertEmoji = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      change({ body: current.body + emoji });
+      return;
+    }
+    const start = textarea.selectionStart ?? current.body.length;
+    const end = textarea.selectionEnd ?? current.body.length;
+    const before = current.body.substring(0, start);
+    const after = current.body.substring(end);
+    const nextBody = before + emoji + after;
+    change({ body: nextBody });
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
+  };
+
   const showPreview = current.mode !== 'plain';
   const layoutView: View = showPreview ? view : 'edit';
 
@@ -125,6 +147,20 @@ export function NotepadWorkspace() {
         ) : (
           <p className="inline-note">{store.items.length ? 'No notes match that search.' : 'Notes you write appear here and stay in this browser.'}</p>
         )}
+
+        <div className="side-tools-section">
+          <p className="side-section-label">Tools to refer to</p>
+          <button
+            className="button button-secondary side-tool-button"
+            type="button"
+            aria-label="Emoji library reference tool"
+            aria-expanded={emojiPanelOpen}
+            onClick={() => setEmojiPanelOpen((open) => !open)}
+          >
+            <Smile aria-hidden="true" size={15} /> Emoji library
+          </button>
+        </div>
+
         <div className="editor-toolbar" style={{ marginBottom: 0 }}>
           <button className="button button-secondary" type="button" disabled={!store.items.length} onClick={exportAll}>
             <FolderDown aria-hidden="true" size={15} /> Export all (.zip)
@@ -179,6 +215,15 @@ export function NotepadWorkspace() {
               ))}
             </div>
           ) : null}
+          <button
+            className="button button-secondary"
+            type="button"
+            aria-label="Emoji library reference tool"
+            aria-expanded={emojiPanelOpen}
+            onClick={() => setEmojiPanelOpen((open) => !open)}
+          >
+            <Smile aria-hidden="true" size={15} /> Emoji library
+          </button>
         </div>
 
         <div className="editor-split" data-view={layoutView === 'edit' ? 'editor' : layoutView}>
@@ -188,6 +233,7 @@ export function NotepadWorkspace() {
               <small>{isSaved ? 'Saved' : isBlankNote(current) ? 'Start typing to save' : 'Not saved'}</small>
             </header>
             <textarea
+              ref={textareaRef}
               className="code-editor note-body"
               id="note-body"
               value={current.body}
@@ -243,6 +289,12 @@ export function NotepadWorkspace() {
           {message ? <span className="pill-ok">{message}</span> : null}
         </p>
       </section>
+
+      <EmojiReferencePanel
+        isOpen={emojiPanelOpen}
+        onClose={() => setEmojiPanelOpen(false)}
+        onInsertEmoji={insertEmoji}
+      />
     </div>
   );
 }

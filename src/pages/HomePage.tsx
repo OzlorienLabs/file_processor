@@ -16,7 +16,6 @@ import {
   ScanText,
   Scissors,
   ShieldCheck,
-  Sparkles,
   Upload,
   WandSparkles,
   Workflow,
@@ -87,9 +86,6 @@ export function HomePage() {
               <a className="button button-primary" href="#tools">
                 Pick a tool <ArrowRight aria-hidden="true" size={18} />
               </a>
-              <Link className="text-link" to="/en/emojis">
-                Browse every emoji <Sparkles aria-hidden="true" size={17} />
-              </Link>
             </div>
           </div>
           <aside className="privacy-card" id="privacy" aria-labelledby="privacy-title">

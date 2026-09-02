@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { copyText, downloadBlob, downloadText } from '../../lib/download';
@@ -13,6 +14,14 @@ vi.mock('../../lib/download', async (importOriginal) => {
 beforeEach(() => vi.clearAllMocks());
 
 const list = () => screen.getByRole('complementary', { name: /saved notes/i });
+
+function renderWorkspace() {
+  return render(
+    <MemoryRouter>
+      <NotepadWorkspace />
+    </MemoryRouter>,
+  );
+}
 
 describe('NotepadWorkspace', () => {
   it('saves notes as you type, lists them, and restores them on the next visit', async () => {
@@ -161,5 +170,48 @@ describe('NotepadWorkspace', () => {
     await user.click(screen.getByRole('button', { name: /delete note/i }));
     expect(screen.getByLabelText(/note format/i)).toHaveValue('html');
     expect(screen.getByLabelText(/^note$/i)).toHaveValue('');
+  });
+
+  it('opens emoji reference tool, searches, inserts emoji at cursor, copies, and closes', async () => {
+    const catalog = {
+      version: '17.0',
+      count: 2,
+      groups: [
+        { name: 'Smileys & Emotion', emojis: [{ e: '😀', n: 'grinning face' }, { e: '🚀', n: 'rocket' }] },
+      ],
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(catalog), { status: 200 })),
+    );
+
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.type(screen.getByLabelText(/^note$/i), 'Hello world ');
+
+    // Open emoji library reference tool from toolbar
+    const emojiButtons = screen.getAllByRole('button', { name: /emoji library reference tool/i });
+    await user.click(emojiButtons[0]);
+
+    expect(screen.getByRole('dialog', { name: /emoji library reference tool/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /insert grinning face/i })).toBeInTheDocument();
+
+    // Search emoji
+    await user.type(screen.getByRole('textbox', { name: /search emoji/i }), 'rocket');
+    expect(screen.queryByRole('button', { name: /insert grinning face/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /insert rocket/i })).toBeInTheDocument();
+
+    // Click emoji to insert and copy
+    await user.click(screen.getByRole('button', { name: /insert rocket/i }));
+    expect(screen.getByLabelText(/^note$/i)).toHaveValue('Hello world 🚀');
+    expect(screen.getByText(/inserted 🚀/i)).toBeInTheDocument();
+    expect(copyText).toHaveBeenCalledWith('🚀');
+
+    // Close reference panel
+    await user.click(screen.getByRole('button', { name: /close emoji reference/i }));
+    expect(screen.queryByRole('dialog', { name: /emoji library reference tool/i })).not.toBeInTheDocument();
+
+    vi.unstubAllGlobals();
   });
 });

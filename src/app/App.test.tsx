@@ -15,17 +15,14 @@ function renderAt(path: string) {
 }
 
 describe('application routes', () => {
-  it('shows every requested tool and the emoji catalog on the home page', () => {
+  it('shows every requested tool on the home page', () => {
     renderAt('/en');
 
     expect(
       screen.getByRole('heading', { name: /useful tools for everyday files/i }),
     ).toBeInTheDocument();
     expect(screen.getAllByTestId('tool-card')).toHaveLength(coreTools.length);
-    expect(screen.getByRole('link', { name: /browse every emoji/i })).toHaveAttribute(
-      'href',
-      '/en/emojis',
-    );
+    expect(screen.queryByRole('link', { name: /browse every emoji/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/log in/i)).not.toBeInTheDocument();
   });
 
