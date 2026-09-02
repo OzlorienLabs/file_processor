@@ -57,18 +57,30 @@ jobs:
     name: Dependency review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    # Advisory only. The action needs the repository's Dependency graph, which is
-    # currently disabled (Settings -> Advanced Security -> Dependency graph); until it is
-    # turned on the action exits with "Dependency review is not supported on this
-    # repository", and the blocking `npm audit` job above already gates vulnerabilities.
-    continue-on-error: true
     permissions:
       contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
+      # dependency-review-action needs the repository's Dependency graph. When it is off
+      # (Settings -> Advanced Security -> Dependency graph) the action fails with
+      # "Dependency review is not supported on this repository", so probe the SBOM
+      # endpoint first and skip with a notice instead of failing the check. The blocking
+      # `npm audit` job above still gates vulnerabilities either way.
+      - name: Check whether Dependency graph is enabled
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${GITHUB_REPOSITORY}/dependency-graph/sbom" --silent >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Dependency review skipped::Enable Dependency graph (Settings -> Advanced Security) to activate this check."
+          fi
       # Flags newly introduced vulnerable or disallowed-license deps in the diff.
       - uses: actions/dependency-review-action@v4
+        if: steps.graph.outputs.enabled == 'true'
         with:
           fail-on-severity: high
           comment-summary-in-pr: on-failure
