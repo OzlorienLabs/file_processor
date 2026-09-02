@@ -65,7 +65,7 @@ export interface HighlightResult {
   language: string;
 }
 
-type Lowlight = ReturnType<typeof import('lowlight').createLowlight>;
+export type Lowlight = ReturnType<typeof import('lowlight').createLowlight>;
 let lowlightPromise: Promise<Lowlight> | undefined;
 
 async function loadLowlight(): Promise<Lowlight> {
@@ -77,11 +77,15 @@ async function loadLowlight(): Promise<Lowlight> {
  * Highlights code into a hast tree. Auto-detection falls back to plain text when the
  * grammar engine is not confident, which keeps random prose from being coloured oddly.
  */
-export async function highlightCode(code: string, language: string = AUTO_LANGUAGE): Promise<HighlightResult> {
+export async function highlightCode(
+  code: string,
+  language: string = AUTO_LANGUAGE,
+  engine?: Lowlight,
+): Promise<HighlightResult> {
   if (!code || code.length > MAX_HIGHLIGHT_CHARS) {
     return { tree: plainTree(code), language: language === AUTO_LANGUAGE ? PLAIN_LANGUAGE : language };
   }
-  const lowlight = await loadLowlight();
+  const lowlight = engine ?? (await loadLowlight());
   if (language !== AUTO_LANGUAGE && language !== PLAIN_LANGUAGE && lowlight.registered(language)) {
     return { tree: lowlight.highlight(language, code), language };
   }

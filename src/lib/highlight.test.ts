@@ -51,6 +51,19 @@ describe('highlightCode', () => {
   });
 });
 
+describe('highlightCode with an injected engine', () => {
+  it('treats missing detection metadata as plain text', async () => {
+    const engine = {
+      registered: () => false,
+      highlight: () => plainTree('x'),
+      highlightAuto: () => ({ type: 'root', children: [] }),
+    } as unknown as import('./highlight').Lowlight;
+    expect((await highlightCode('some code', 'auto', engine)).language).toBe('plaintext');
+    const noRelevance = { ...engine, highlightAuto: () => ({ type: 'root', children: [], data: { language: 'go' } }) } as unknown as import('./highlight').Lowlight;
+    expect((await highlightCode('some code', 'auto', noRelevance)).language).toBe('plaintext');
+  });
+});
+
 describe('language metadata', () => {
   it('maps ids to labels and download extensions with sane fallbacks', () => {
     expect(languageOptions.length).toBeGreaterThan(30);

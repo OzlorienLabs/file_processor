@@ -15,7 +15,7 @@ import { SummarizeWorkspace } from '../features/summarize/SummarizeWorkspace';
 import { WordToPdfWorkspace } from '../features/word-to-pdf/WordToPdfWorkspace';
 
 // Editor tools are route-level chunks so their engines never reach the initial bundle.
-const workspaces: Partial<Record<ToolId, ComponentType>> = {
+const workspaces: Record<ToolId, ComponentType> = {
   merge: MergeWorkspace,
   split: SplitWorkspace,
   compress: CompressionWorkspace,
@@ -25,10 +25,12 @@ const workspaces: Partial<Record<ToolId, ComponentType>> = {
   ocr: OcrWorkspace,
   summarize: SummarizeWorkspace,
   'audio-to-text': AudioToTextWorkspace,
+  diagram: lazy(() => import('../features/diagram/DiagramWorkspace').then((m) => ({ default: m.DiagramWorkspace }))),
   diff: lazy(() => import('../features/diff/DiffWorkspace').then((m) => ({ default: m.DiffWorkspace }))),
   markdown: lazy(() => import('../features/markdown/MarkdownWorkspace').then((m) => ({ default: m.MarkdownWorkspace }))),
   notepad: lazy(() => import('../features/notepad/NotepadWorkspace').then((m) => ({ default: m.NotepadWorkspace }))),
   snippets: lazy(() => import('../features/snippets/SnippetsWorkspace').then((m) => ({ default: m.SnippetsWorkspace }))),
+  mermaid: lazy(() => import('../features/mermaid/MermaidWorkspace').then((m) => ({ default: m.MermaidWorkspace }))),
   'snippet-generator': lazy(() =>
     import('../features/snippet-generator/SnippetGeneratorWorkspace').then((m) => ({ default: m.SnippetGeneratorWorkspace })),
   ),
@@ -70,13 +72,9 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
           <p>{disclosure.note}</p>
         </div>
         <div className="workspace-card" data-layout={tool.layout ?? 'narrow'}>
-          {Workspace ? (
-            <Suspense fallback={<WorkspaceLoading name={tool.shortName} />}>
-              <Workspace />
-            </Suspense>
-          ) : (
-            <p className="empty-workspace">This tool is still being assembled.</p>
-          )}
+          <Suspense fallback={<WorkspaceLoading name={tool.shortName} />}>
+            <Workspace />
+          </Suspense>
         </div>
       </section>
 

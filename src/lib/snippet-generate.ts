@@ -110,6 +110,6 @@ export function searchGenerated(items: GeneratedSnippet[], query: string): Gener
 
 /** A short title for a generated snippet: the first line of the description. */
 export function generatedTitle(description: string): string {
-  const line = description.trim().split('\n')[0] ?? '';
+  const line = description.trim().split('\n')[0];
   return line.length > 80 ? `${line.slice(0, 79)}…` : line || 'Generated snippet';
 }

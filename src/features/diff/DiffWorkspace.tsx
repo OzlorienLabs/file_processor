@@ -3,10 +3,10 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { z } from 'zod';
 
 import { copyText, downloadText } from '../../lib/download';
+import { errorMessage } from '../../lib/errors';
 import { createValueStore } from '../../lib/local-store';
 import {
   computeDiff,
-  DiffInputError,
   readDiffFile,
   unifiedPatch,
   type DiffLine,
@@ -125,7 +125,7 @@ export function DiffWorkspace() {
       setError('');
     } catch (reason) {
       setResult(undefined);
-      setError(reason instanceof DiffInputError ? reason.message : 'The texts could not be compared.');
+      setError(errorMessage(reason, 'The texts could not be compared.'));
     }
   };
 
@@ -143,7 +143,7 @@ export function DiffWorkspace() {
       update({ [side]: await readDiffFile(file) });
       setError('');
     } catch (reason) {
-      setError(reason instanceof DiffInputError ? reason.message : `${file.name} could not be read.`);
+      setError(errorMessage(reason, `${file.name} could not be read.`));
     }
   };
 

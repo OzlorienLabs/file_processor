@@ -356,3 +356,17 @@ h2 { margin-bottom: 1rem; font-size: clamp(2rem, 5vw, 3.4rem); }
 .generator-result .control-heading strong { font-size: 1.05rem; }
 .generator-explanation { white-space: pre-wrap; }
 .engine-choice small { line-height: 1.45; }
+
+/* Mermaid editor */
+.mermaid-main { min-width: 0; }
+.mermaid-preview { display: grid; place-items: start center; background: var(--paper); }
+.mermaid-preview img { max-width: 100%; height: auto; }
+.mermaid-preview[data-actual="true"] { place-items: start; }
+.mermaid-preview[data-actual="true"] img { max-width: none; }
+.mermaid .editor-pane header .option-row { font-size: 0.75rem; text-transform: none; letter-spacing: 0; color: var(--muted); font-weight: 800; }
+
+/* Diagram creator (Excalidraw canvas) */
+.diagram-canvas { position: relative; height: min(72vh, 52rem); min-height: 30rem; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
+.diagram-canvas .excalidraw { --color-primary: #b85c3e; --color-primary-darker: #a04f34; --color-primary-darkest: #8a4430; --color-primary-light: #f7eae3; }
+.diagram-loading { display: grid; height: 100%; place-items: center; }
+.button.is-disabled { opacity: 0.5; pointer-events: none; }

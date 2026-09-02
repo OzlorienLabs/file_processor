@@ -12,6 +12,14 @@ describe('CodeBlock', () => {
     expect(onLanguage).toHaveBeenCalledWith('javascript');
   });
 
+  it('ignores highlight results that arrive after unmount', async () => {
+    const onLanguage = vi.fn();
+    const { unmount } = render(<CodeBlock code="const a = 1;" language="javascript" onLanguage={onLanguage} />);
+    unmount();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(onLanguage).not.toHaveBeenCalled();
+  });
+
   it('shows plain text while and after detection when nothing matches', async () => {
     const { container, rerender } = render(<CodeBlock code="plain words only" language="auto" />);
     expect(container.querySelector('pre')).toHaveTextContent('plain words only');

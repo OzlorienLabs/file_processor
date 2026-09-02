@@ -171,6 +171,10 @@ describe('SnippetGeneratorWorkspace', () => {
     });
     await user.click(screen.getByRole('button', { name: /save to snippets/i }));
     expect(screen.getByRole('alert')).toHaveTextContent(/out of local storage/i);
+
+    await user.click(screen.getByRole('button', { name: /generate again/i }));
+    await waitFor(() => expect(screen.getAllByRole('alert').length).toBeGreaterThan(0));
+    expect(screen.getAllByRole('alert').at(-1)).toHaveTextContent(/out of local storage/i);
     setItem.mockRestore();
   });
 });

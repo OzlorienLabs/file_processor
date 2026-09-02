@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -113,12 +113,21 @@ describe('SnippetsWorkspace', () => {
     expect(await screen.findByText(/imported 1 snippet; skipped 0/i)).toBeInTheDocument();
     expect(within(list()).getAllByRole('listitem')).toHaveLength(2);
 
+    const more = JSON.stringify([
+      { id: 'imp2', createdAt: 1, updatedAt: 1, title: 'Two', language: 'go', tags: [], code: 'b' },
+      { id: 'imp3', createdAt: 1, updatedAt: 1, title: 'Three', language: 'go', tags: [], code: 'c' },
+    ]);
+    await user.upload(screen.getByLabelText(/import snippets json/i), new File([more], 'more.json', { type: 'application/json' }));
+    expect(await screen.findByText(/imported 2 snippets; skipped 0/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/import snippets json/i), { target: { files: [] } });
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(4);
+
     await user.upload(screen.getByLabelText(/import snippets json/i), new File(['bad'], 'bad.json', { type: 'application/json' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/not valid json/i);
 
     await user.click(screen.getByRole('button', { name: /clear all/i }));
     await user.click(screen.getByRole('button', { name: /keep them/i }));
-    expect(within(list()).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(4);
     await user.click(screen.getByRole('button', { name: /clear all/i }));
     await user.click(screen.getByRole('button', { name: /yes, delete all/i }));
     expect(screen.getByText(/all snippets were removed/i)).toBeInTheDocument();

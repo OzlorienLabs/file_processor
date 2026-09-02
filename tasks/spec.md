@@ -17,6 +17,8 @@ The initial release provides these public routes:
 - `/en/convert/pdf/word` — PDF to editable DOCX
 - `/en/convert` — practical browser-supported file conversions
 - `/en/emojis` — searchable list of every fully-qualified Unicode Emoji 17.0 sequence
+- `/en/diagram`, `/en/mermaid`, `/en/diff`, `/en/notepad`, `/en/markdown`, `/en/snippets`,
+  `/en/snippet-generator` — local-first editors (see "Creator tools" below)
 
 Root and unknown language-prefixed routes redirect safely to `/en` or show a useful not-found state. There is no login, database, pricing, trust badge, testimonial, or long marketing section.
 
@@ -220,6 +222,25 @@ Components use named exports, one responsibility, semantic HTML, and colocated t
 - Home and tool pages remain usable at 320 px without horizontal overflow and meet keyboard/accessibility checks.
 - `npm run verify` and `npm run test:e2e` pass; all four coverage metrics are above 95%; the production browser console is clean.
 - Vercel configuration builds the SPA, rewrites client routes, runs the Node functions, and sets security/cache headers.
+
+## Creator tools (added 2026-09-01)
+
+Seven editors join the file tools. Design record: `docs/superpowers/specs/2026-09-01-creator-tools-design.md`.
+
+- All processing is in the browser. The only network path is the snippet generator when the
+  user picks a cloud provider; it goes through `POST /api/ai/generate`, a stateless proxy with
+  the same validation, allowlist, `no-store`, and no-logging rules as `summarize`.
+- User content persists in `localStorage` under one versioned key per tool (`filekit.<tool>.v1`),
+  validated with zod on read, capped in size, with visible export and clear controls. Quota
+  errors show a friendly message; corrupt data degrades to an empty state.
+- Untrusted text is never injected as HTML: Markdown and highlighted code become React
+  elements from syntax trees; Mermaid SVG is shown through an `<img>` (blob URL) with
+  `securityLevel: 'strict'`; author HTML previews render inside an `<iframe sandbox>` after
+  DOMPurify sanitisation; model output is displayed as text/highlighted code only.
+- Chrome's built-in Prompt API (`LanguageModel`) is feature-detected; when absent the tool
+  explains why and offers the provider path.
+- Excalidraw fonts are self-hosted at `/excalidraw/fonts` (copied from the package at build
+  time by a Vite plugin) so the `font-src 'self'` CSP holds.
 
 ## Open questions
 

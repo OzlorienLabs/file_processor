@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -42,6 +42,26 @@ describe('DiffWorkspace', () => {
 
     await user.click(screen.getByRole('button', { name: /side by side/i }));
     expect(within(result).getAllByRole('row')).toHaveLength(4);
+  });
+
+  it('renders removed-only rows with an empty right side', async () => {
+    const user = userEvent.setup();
+    render(<DiffWorkspace />);
+    await fillBoth(user, 'keep{enter}gone', 'keep');
+    await user.click(screen.getByRole('button', { name: /find difference/i }));
+    const rows = screen.getAllByRole('row');
+    expect(rows).toHaveLength(2);
+    expect(rows[1]).toHaveAttribute('data-kind', 'removed');
+    expect(rows[1].querySelectorAll('td')[3]).toHaveClass('empty');
+    await user.click(screen.getByRole('button', { name: /unified/i }));
+    expect(screen.getAllByText('−')).toHaveLength(1);
+  });
+
+  it('ignores an empty file selection', () => {
+    render(<DiffWorkspace />);
+    fireEvent.change(screen.getByLabelText(/upload original file/i), { target: { files: [] } });
+    expect(screen.getByLabelText(/original text/i)).toHaveValue('');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('reports identical texts and disables navigation', async () => {

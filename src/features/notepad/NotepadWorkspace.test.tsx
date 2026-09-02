@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -116,9 +116,18 @@ describe('NotepadWorkspace', () => {
     expect(await screen.findByText(/imported 1 note; skipped 1/i)).toBeInTheDocument();
     expect(within(list()).getAllByRole('listitem')).toHaveLength(2);
 
+    const more = JSON.stringify([
+      { id: 'imported-2', createdAt: 1, updatedAt: 1, title: 'Two', body: 'b', mode: 'plain' },
+      { id: 'imported-3', createdAt: 1, updatedAt: 1, title: 'Three', body: 'c', mode: 'plain' },
+    ]);
+    await user.upload(screen.getByLabelText(/import notes json/i), new File([more], 'more.json', { type: 'application/json' }));
+    expect(await screen.findByText(/imported 2 notes; skipped 0/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/import notes json/i), { target: { files: [] } });
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(4);
+
     await user.click(screen.getByRole('button', { name: /clear all/i }));
     await user.click(screen.getByRole('button', { name: /keep them/i }));
-    expect(within(list()).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(4);
 
     await user.click(screen.getByRole('button', { name: /clear all/i }));
     await user.click(screen.getByRole('button', { name: /yes, delete all/i }));

@@ -8,8 +8,9 @@ import { useLocalCollection } from '../../hooks/useLocalCollection';
 import { effectiveModel, isValidModelId, loadAiSettings, saveAiSettings, type AiSettings } from '../../lib/ai-settings';
 import { checkChromeAi, chromeAiHints, type ChromeAiAvailability } from '../../lib/chrome-ai';
 import { copyText, downloadText, formatWhen } from '../../lib/download';
+import { errorMessage, isAbortError } from '../../lib/errors';
 import { languageOptions } from '../../lib/highlight';
-import { createValueStore, LocalStoreError, stampNew } from '../../lib/local-store';
+import { createValueStore, stampNew } from '../../lib/local-store';
 import {
   createGeneratedCollection,
   generatedTitle,
@@ -83,7 +84,6 @@ export function SnippetGeneratorWorkspace() {
   const canGenerate = description.trim().length > 0 && !isWorking && engineReady;
 
   const generate = async () => {
-    if (!canGenerate) return;
     const nextController = new AbortController();
     controller.current = nextController;
     setError('');
@@ -112,9 +112,7 @@ export function SnippetGeneratorWorkspace() {
       store.upsert(record);
       setResult(record);
     } catch (reason) {
-      if ((reason as Error).name !== 'AbortError') {
-        setError(reason instanceof Error ? reason.message : 'The snippet could not be generated.');
-      }
+      if (!isAbortError(reason)) setError(errorMessage(reason, 'The snippet could not be generated.'));
     } finally {
       setIsWorking(false);
       setProgress('');
@@ -131,27 +129,21 @@ export function SnippetGeneratorWorkspace() {
     setError('');
   };
 
-  const copyCode = async () => {
-    if (result && (await copyText(result.code))) {
+  const copyCode = async (item: GeneratedSnippet) => {
+    if (await copyText(item.code)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const saveToSnippets = () => {
-    if (!result) return;
+  const saveToSnippets = (item: GeneratedSnippet) => {
     try {
       savedSnippets.upsert(
-        createSnippet({
-          title: generatedTitle(result.description),
-          language: result.language,
-          tags: ['generated'],
-          code: result.code,
-        }),
+        createSnippet({ title: generatedTitle(item.description), language: item.language, tags: ['generated'], code: item.code }),
       );
       setMessage('Saved to your snippets.');
     } catch (reason) {
-      setError(reason instanceof LocalStoreError ? reason.message : 'The snippet could not be saved.');
+      setError(errorMessage(reason, 'The snippet could not be saved.'));
     }
   };
 
@@ -331,7 +323,7 @@ export function SnippetGeneratorWorkspace() {
             <CodeBlock code={result.code} language={result.language} />
             {result.explanation ? <p className="inline-note generator-explanation">{result.explanation}</p> : null}
             <div className="editor-toolbar" style={{ marginBottom: 0 }}>
-              <button className="button button-secondary" type="button" onClick={copyCode}>
+              <button className="button button-secondary" type="button" onClick={() => copyCode(result)}>
                 {copied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
                 {copied ? 'Copied' : 'Copy code'}
               </button>
@@ -342,7 +334,7 @@ export function SnippetGeneratorWorkspace() {
               >
                 <Download aria-hidden="true" size={15} /> Download
               </button>
-              <button className="button button-secondary" type="button" onClick={saveToSnippets}>
+              <button className="button button-secondary" type="button" onClick={() => saveToSnippets(result)}>
                 <BookmarkPlus aria-hidden="true" size={15} /> Save to snippets
               </button>
               <button className="button button-secondary" type="button" onClick={() => deleteFromHistory(result)}>

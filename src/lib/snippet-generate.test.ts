@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createGeneratedCollection,
@@ -28,7 +28,20 @@ describe('parseGeneratedText', () => {
   });
 });
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe('generateSnippet', () => {
+  it('uses the global fetch and the real Chrome adapter by default', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(200, { text: '```js\nglobal()\n```' })));
+    expect((await generateSnippet(request, { engine: 'openai', model: 'gpt-5-mini', apiKey: 'k' })).code).toBe('global()');
+
+    vi.stubGlobal('LanguageModel', {
+      availability: async () => 'available',
+      create: async () => ({ prompt: async () => '```ts\nlocal()\n```', destroy: () => {} }),
+    });
+    expect((await generateSnippet(request, { engine: 'chrome', model: '', apiKey: '' })).code).toBe('local()');
+  });
+
   it('uses the on-device model when the engine is chrome and reports progress', async () => {
     const chromePrompt = vi.fn(async (_prompt: string, options?: { onProgress?: (percent: number) => void }) => {
       options?.onProgress?.(40);

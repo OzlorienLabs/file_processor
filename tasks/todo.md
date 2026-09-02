@@ -168,3 +168,30 @@
 **Dependencies:** Tasks 1-12
 
 **Files likely touched:** tests, README, final scoped fixes
+
+## Task 14: Creator-tool foundation and CI repair
+
+**Acceptance criteria:**
+- [x] Catalog gains category/layout/storage fields; editors get wide, lazy-loaded workspaces with storage-aware privacy notes.
+- [x] Shared zod-validated localStorage collections/value stores with export, import, caps, and quota errors.
+- [x] GitHub Actions on Node 24 action majors; Dependency review advisory; TypeScript majors ignored by Dependabot.
+
+**Verification:** `npm run verify`, `npm run audit`
+
+## Task 15: Diff, Markdown, notepad, snippets
+
+**Acceptance criteria:**
+- [x] Diff: real ignore-whitespace/case, word highlights, split/unified, navigation, file upload, `.patch` export.
+- [x] Markdown previewer and notepad share a React Markdown renderer and a sandboxed HTML preview; notes export as files/ZIP.
+- [x] Snippets: detection, hast-based highlighting, tags, filters, JSON export/import.
+
+**Verification:** colocated tests ≥95% coverage, Playwright creator-tools flows
+
+## Task 16: Snippet generator, Mermaid, diagram creator
+
+**Acceptance criteria:**
+- [x] Generator runs on Chrome's built-in model or via `POST /api/ai/generate`; history is searchable and exportable.
+- [x] Mermaid renders live with samples, saved diagrams, SVG/PNG export; errors keep the last good preview.
+- [x] Excalidraw canvas autosaves, imports/exports `.excalidraw`/PNG/SVG, fonts self-hosted for the CSP.
+
+**Verification:** `npm run verify && npm run test:e2e && npm run audit`
