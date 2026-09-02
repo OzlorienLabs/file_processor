@@ -1,11 +1,7 @@
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { lazy, Suspense, type ComponentType } from 'react';
-import { Link } from 'react-router-dom';
 
 import type { ToolDefinition, ToolId } from '../app/tool-catalog';
-import { ToolMark } from '../components/ToolMark/ToolMark';
-import { useToolMeta } from '../hooks/useToolMeta';
-import { describeProcessing } from './tool-disclosure';
+import { AppShell } from '../components/AppShell/AppShell';
 import { AudioToTextWorkspace } from '../features/audio-to-text/AudioToTextWorkspace';
 import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
 import { ConvertWorkspace } from '../features/convert/ConvertWorkspace';
@@ -46,56 +42,14 @@ function WorkspaceLoading({ name }: { name: string }) {
   );
 }
 
+/** Every tool route is the same shell around its own workspace. */
 export function ToolPage({ tool }: { tool: ToolDefinition }) {
-  useToolMeta({ mark: tool.id, title: tool.name, description: tool.description });
   const Workspace = workspaces[tool.id];
-  const disclosure = describeProcessing(tool);
-  const Icon = disclosure.icon;
-  const width = tool.layout === 'wide' ? 'wide-page' : 'narrow-page';
-
   return (
-    <main id="main-content" className="tool-page">
-      <section className="tool-hero">
-        <div className="shell narrow-page">
-          <Link className="back-link" to="/en">
-            <ArrowLeft aria-hidden="true" size={17} /> All tools
-          </Link>
-          <div className="processing-pill gi">
-            <Icon aria-hidden="true" size={15} />
-            {disclosure.pill}
-          </div>
-          <span className="tool-hero-mark">
-            <ToolMark tool={tool.id} />
-          </span>
-          <h1>{tool.name}</h1>
-          <p className="lede">{tool.description}</p>
-        </div>
-      </section>
-
-      <section className={`shell ${width} workspace-section`} aria-label={`${tool.name} workspace`}>
-        <div className="privacy-note gi">
-          <CheckCircle2 aria-hidden="true" size={19} />
-          <p>{disclosure.note}</p>
-        </div>
-        <div className="workspace-card g" data-layout={tool.layout ?? 'narrow'}>
-          <Suspense fallback={<WorkspaceLoading name={tool.shortName} />}>
-            <Workspace />
-          </Suspense>
-        </div>
-      </section>
-
-      <section className="shell narrow-page instructions-section" aria-labelledby="instructions-title">
-        <p className="eyebrow">Quick instructions</p>
-        <h2 id="instructions-title">{tool.howTo}</h2>
-        <ol className="instruction-grid">
-          {tool.steps.map((step, index) => (
-            <li className="g" data-testid="instruction-step" key={step}>
-              <span>{index + 1}</span>
-              <p>{step}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-    </main>
+    <AppShell key={tool.id} tool={tool}>
+      <Suspense fallback={<WorkspaceLoading name={tool.shortName} />}>
+        <Workspace />
+      </Suspense>
+    </AppShell>
   );
 }

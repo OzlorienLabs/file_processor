@@ -1,5 +1,5 @@
 import { ArrowRight, Code2, Menu, X } from 'lucide-react';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useState, type ReactNode } from 'react';
 import {
   BrowserRouter,
   Link,
@@ -97,31 +97,54 @@ function NotFoundPage() {
   );
 }
 
-export function AppRoutes() {
+/** The marketing frame: header, page, footer. Tool routes use the app shell instead. */
+function SitePage({ children }: { children: ReactNode }) {
   return (
     <div className="app-frame">
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
       <AppHeader />
-      <Routes>
-        <Route path="/" element={<Navigate to="/en" replace />} />
-        <Route path="/en" element={<HomePage />} />
-        {coreTools.map((tool) => (
-          <Route key={tool.id} path={tool.path} element={<ToolPage tool={tool} />} />
-        ))}
-        <Route
-          path="/en/emojis"
-          element={
+      {children}
+      <AppFooter />
+    </div>
+  );
+}
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/en" replace />} />
+      <Route
+        path="/en"
+        element={
+          <SitePage>
+            <HomePage />
+          </SitePage>
+        }
+      />
+      {coreTools.map((tool) => (
+        <Route key={tool.id} path={tool.path} element={<ToolPage tool={tool} />} />
+      ))}
+      <Route
+        path="/en/emojis"
+        element={
+          <SitePage>
             <Suspense fallback={<EmojiLoading />}>
               <EmojiPage />
             </Suspense>
-          }
-        />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-      <AppFooter />
-    </div>
+          </SitePage>
+        }
+      />
+      <Route
+        path="*"
+        element={
+          <SitePage>
+            <NotFoundPage />
+          </SitePage>
+        }
+      />
+    </Routes>
   );
 }
 

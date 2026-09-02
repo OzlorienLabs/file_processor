@@ -27,14 +27,36 @@ describe('application routes', () => {
     expect(screen.queryByText(/log in/i)).not.toBeInTheDocument();
   });
 
-  it('renders a focused tool page with privacy and instructions', () => {
+  it('opens a tool into the shell, with the rail, top bar, and workspace', () => {
     renderAt('/en/merge');
 
-    expect(screen.getByRole('heading', { name: 'Merge PDF' })).toBeInTheDocument();
-    expect(screen.getByText(/your files stay on this device/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /how to merge pdf/i })).toBeInTheDocument();
-    expect(screen.getAllByTestId('instruction-step')).toHaveLength(3);
+    expect(screen.getByRole('heading', { level: 1, name: 'Merge PDF' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: /all tools/i })).toBeInTheDocument();
+    expect(screen.getByRole('main', { name: /merge pdf workspace/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/choose files to merge/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^all tools$/i })).toHaveAttribute('href', '/en');
+  });
+
+  it('marks the open tool in the rail and no other', () => {
+    renderAt('/en/merge');
+    const rail = screen.getByRole('navigation', { name: /all tools/i });
+    const current = within(rail).getAllByRole('link', { current: 'page' });
+    expect(current).toHaveLength(1);
+    expect(current[0]).toHaveAttribute('href', '/en/merge');
+  });
+
+  it('keeps the how-to and the full disclosure behind the top-bar pill', async () => {
+    const user = userEvent.setup();
+    renderAt('/en/merge');
+
+    const pill = screen.getByRole('button', { name: /runs in your browser/i });
+    expect(pill).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('heading', { name: /how to merge pdf/i })).not.toBeInTheDocument();
+
+    await user.click(pill);
+    expect(screen.getByRole('heading', { name: /how to merge pdf/i })).toBeInTheDocument();
+    expect(screen.getByText(/your files stay on this device/i)).toBeInTheDocument();
+    expect(screen.getAllByTestId('instruction-step')).toHaveLength(3);
   });
 
   it('redirects the root and gives unknown routes a useful recovery link', () => {
@@ -60,22 +82,26 @@ describe('application routes', () => {
     ).toBeGreaterThan(0);
   });
 
-  it('labels AI-assisted tools distinctly from fully local ones', () => {
+  it('labels AI-assisted tools distinctly from fully local ones', async () => {
+    const user = userEvent.setup();
     renderAt('/en/summarize');
-    expect(screen.getByText(/browser \+ your ai provider/i)).toBeInTheDocument();
+    const pill = screen.getByRole('button', { name: /browser \+ your ai provider/i });
+    await user.click(pill);
     expect(screen.getByText(/the file is read locally/i)).toBeInTheDocument();
   });
 
-  it('explains local-storage persistence and widens the workspace for editors', async () => {
+  it('explains local-storage persistence for editors', async () => {
+    const user = userEvent.setup();
     renderAt('/en/diff');
-    expect(screen.getByText(/saved in this browser's local storage/i)).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: /diff checker workspace/i })).toHaveClass('wide-page');
     expect(await screen.findByLabelText(/original text/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /runs in your browser/i }));
+    expect(screen.getByText(/saved in this browser's local storage/i)).toBeInTheDocument();
   });
 
-  it('describes the on-device-or-provider choice for the snippet generator', () => {
+  it('describes the on-device-or-provider choice for the snippet generator', async () => {
+    const user = userEvent.setup();
     renderAt('/en/snippet-generator');
-    expect(screen.getByText(/on-device ai or your provider/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /on-device ai or your provider/i }));
     expect(screen.getByText(/nothing leaves this device/i)).toBeInTheDocument();
   });
 
