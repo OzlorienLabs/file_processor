@@ -119,8 +119,8 @@ export function NotepadWorkspace() {
   const layoutView: View = showPreview ? view : 'edit';
 
   return (
-    <div className="side-layout notepad">
-      <aside className="side-list" aria-label="Saved notes">
+    <div className="ed-grid notepad" data-panes="note">
+      <aside className="ed-pane g side-list" data-pad="true" aria-label="Saved notes">
         <button className="button button-primary" type="button" onClick={startNew}>
           <FilePlus2 aria-hidden="true" size={16} /> New note
         </button>
@@ -161,7 +161,7 @@ export function NotepadWorkspace() {
           </button>
         </div>
 
-        <div className="editor-toolbar" style={{ marginBottom: 0 }}>
+        <div className="side-actions">
           <button className="button button-secondary" type="button" disabled={!store.items.length} onClick={exportAll}>
             <FolderDown aria-hidden="true" size={15} /> Export all (.zip)
           </button>
@@ -187,8 +187,8 @@ export function NotepadWorkspace() {
         </div>
       </aside>
 
-      <section className="note-editor" aria-label="Note editor">
-        <div className="editor-toolbar">
+      <section className="ed-pane g note-editor" aria-label="Note editor">
+        <div className="ed-head">
           <input
             className="note-title"
             aria-label="Note title"
@@ -207,7 +207,7 @@ export function NotepadWorkspace() {
             </select>
           </label>
           {showPreview ? (
-            <div className="toggle-group" role="group" aria-label="Layout">
+            <div className="seg gi" role="group" aria-label="Layout">
               {(['edit', 'split', 'preview'] as View[]).map((option) => (
                 <button key={option} type="button" aria-pressed={view === option} onClick={() => setView(option)}>
                   {option === 'edit' ? 'Edit' : option === 'split' ? 'Split' : 'Preview'}
@@ -226,15 +226,14 @@ export function NotepadWorkspace() {
           </button>
         </div>
 
-        <div className="editor-split" data-view={layoutView === 'edit' ? 'editor' : layoutView}>
-          <div className="editor-pane">
-            <header>
-              <label htmlFor="note-body">Note</label>
-              <small>{isSaved ? 'Saved' : isBlankNote(current) ? 'Start typing to save' : 'Not saved'}</small>
-            </header>
+        <div className="ed-grid note-panes" data-panes="split" data-view={layoutView === 'edit' ? 'editor' : layoutView}>
+          <div className="ed-pane note-pane">
+            <label className="sr-only" htmlFor="note-body">
+              Note
+            </label>
             <textarea
               ref={textareaRef}
-              className="code-editor note-body"
+              className="note-body scroll"
               id="note-body"
               value={current.body}
               placeholder={current.mode === 'plain' ? 'Write anything…' : current.mode === 'markdown' ? '# Write Markdown…' : '<h1>Write HTML…</h1>'}
@@ -243,16 +242,17 @@ export function NotepadWorkspace() {
             />
           </div>
           {showPreview ? (
-            <div className="editor-pane">
-              <header>
-                <h3>Preview</h3>
-              </header>
-              {current.mode === 'markdown' ? <MarkdownPreview markdown={current.body} /> : <HtmlPreview html={current.body} />}
+            <div className="ed-pane note-pane">
+              <div className="ed-prose scroll">
+                {current.mode === 'markdown' ? <MarkdownPreview markdown={current.body} /> : <HtmlPreview html={current.body} />}
+              </div>
             </div>
           ) : null}
         </div>
 
-        <div className="editor-toolbar" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
+        <div className="ed-foot">
+          <span>{isSaved ? 'Saved locally' : isBlankNote(current) ? 'Start typing to save' : 'Not saved'}</span>
+          <span className="spacer" />
           <button className="button button-secondary" type="button" disabled={!current.body} onClick={copyBody}>
             {copied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
             {copied ? 'Copied' : 'Copy'}
@@ -275,19 +275,20 @@ export function NotepadWorkspace() {
           </button>
         </div>
 
-        {store.error ? (
-          <p className="field-error" role="alert">
-            {store.error}
-          </p>
-        ) : null}
-        <p className="status-line" role="status">
-          <span>{stats.words.toLocaleString()} words</span>
-          <span>{stats.characters.toLocaleString()} characters</span>
-          <span>
-            {store.items.length} {store.items.length === 1 ? 'note' : 'notes'} in this browser
+        <div className="ed-foot">
+          <span className="ed-status" role="status">
+            <span>
+              {stats.words.toLocaleString()} words · {stats.characters.toLocaleString()} characters ·{' '}
+              {store.items.length} {store.items.length === 1 ? 'note' : 'notes'} in this browser
+            </span>
+            {message ? <span className="ed-pill gi">{message}</span> : null}
           </span>
-          {message ? <span className="pill-ok">{message}</span> : null}
-        </p>
+          {store.error ? (
+            <span className="field-error" role="alert">
+              {store.error}
+            </span>
+          ) : null}
+        </div>
       </section>
 
       <EmojiReferencePanel

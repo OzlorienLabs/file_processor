@@ -31,7 +31,7 @@ const historyList = () => screen.getByRole('complementary', { name: /generation 
 async function describeAndGenerate(user: ReturnType<typeof userEvent.setup>, text = 'the answer constant') {
   await user.type(screen.getByLabelText(/describe the snippet/i), text);
   await user.click(screen.getByRole('button', { name: /generate snippet|generate again/i }));
-  await screen.findByRole('article', { name: /generated snippet/i });
+  await screen.findByRole('region', { name: /generated snippet/i });
 }
 
 describe('SnippetGeneratorWorkspace', () => {

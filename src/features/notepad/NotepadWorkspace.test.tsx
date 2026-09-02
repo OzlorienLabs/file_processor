@@ -32,7 +32,7 @@ describe('NotepadWorkspace', () => {
 
     await user.type(screen.getByLabelText(/^note$/i), 'Buy milk');
     expect(within(list()).getByRole('button', { name: /buy milk/i })).toHaveAttribute('aria-current', 'true');
-    expect(screen.getByText(/^saved$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^saved locally$/i)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/note title/i), 'Groceries');
     await user.click(screen.getByRole('button', { name: /new note/i }));

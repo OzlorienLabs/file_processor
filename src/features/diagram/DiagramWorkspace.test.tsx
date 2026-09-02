@@ -43,7 +43,9 @@ vi.mock('@excalidraw/excalidraw', () => ({
     const [restored, setRestored] = useState('pending');
     useEffect(() => {
       props.excalidrawAPI(fakeApi);
-      Promise.resolve(props.initialData).then((data) => setRestored(data ? 'restored' : 'blank'));
+      Promise.resolve(props.initialData).then((data) =>
+        setRestored((data as { elements?: unknown[] } | null)?.elements?.length ? 'restored' : 'blank'),
+      );
     }, [props]);
     return (
       <div>

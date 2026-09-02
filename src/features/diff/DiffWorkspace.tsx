@@ -180,12 +180,14 @@ export function DiffWorkspace() {
   const currentRow = result && hunk >= 0 ? result.hunks[hunk] : -1;
 
   return (
-    <div className="diff-workspace">
-      <div className="diff-inputs">
+    <div className="ed diff-workspace">
+      <div className="ed-grid" data-panes="split">
         {(['original', 'changed'] as const).map((side) => (
-          <div className="editor-pane" key={side}>
-            <header>
-              <label htmlFor={`diff-${side}`}>{side === 'original' ? 'Original text' : 'Changed text'}</label>
+          <section className="ed-pane g" key={side}>
+            <div className="ed-head">
+              <label className="panel-label" htmlFor={`diff-${side}`}>
+                {side === 'original' ? 'Original text' : 'Changed text'}
+              </label>
               <label className="diff-file-label">
                 <Upload aria-hidden="true" size={14} /> Upload file
                 <input
@@ -195,20 +197,20 @@ export function DiffWorkspace() {
                   onChange={(event) => void loadFile(side, event)}
                 />
               </label>
-            </header>
+            </div>
             <textarea
-              className="code-editor"
+              className="ed-code scroll"
               id={`diff-${side}`}
               value={draft[side]}
               spellCheck={false}
               placeholder={side === 'original' ? 'Paste the original text here' : 'Paste the changed text here'}
               onChange={(event) => update({ [side]: event.target.value })}
             />
-          </div>
+          </section>
         ))}
       </div>
 
-      <div className="editor-toolbar" style={{ marginTop: '0.75rem' }}>
+      <div className="ed-bar g">
         <button className="button button-primary" type="button" disabled={!canCompare} onClick={() => compare()}>
           Find difference
         </button>
@@ -246,9 +248,9 @@ export function DiffWorkspace() {
       ) : null}
 
       {result ? (
-        <section className="diff-result" aria-label="Comparison result">
-          <div className="editor-toolbar">
-            <p className="status-line" role="status" style={{ margin: 0 }}>
+        <section className="ed diff-result" aria-label="Comparison result">
+          <div className="ed-bar g">
+            <p className="status-line" role="status">
               {result.identical ? (
                 <span className="pill-ok">The two texts are identical.</span>
               ) : (
@@ -261,7 +263,7 @@ export function DiffWorkspace() {
               )}
             </p>
             <span className="spacer" />
-            <div className="toggle-group" role="group" aria-label="Diff view">
+            <div className="seg gi" role="group" aria-label="Diff view">
               {(['split', 'unified'] as View[]).map((view) => (
                 <button key={view} type="button" aria-pressed={draft.view === view} onClick={() => update({ view })}>
                   {view === 'split' ? 'Side by side' : 'Unified'}
@@ -286,7 +288,7 @@ export function DiffWorkspace() {
               <Download aria-hidden="true" size={15} /> Download .patch
             </button>
           </div>
-          <div className="diff-scroll" ref={scroller}>
+          <div className="diff-scroll g scroll" ref={scroller}>
             <table className="diff-table" data-wrap={wrap ? 'true' : 'false'}>
               <tbody>
                 {draft.view === 'split' ? (
@@ -299,7 +301,9 @@ export function DiffWorkspace() {
           </div>
         </section>
       ) : (
-        <p className="empty-workspace">Paste or upload two versions, then find the difference. Nothing leaves this browser.</p>
+        <p className="ed-note">
+          Paste or upload two versions, then find the difference. Nothing leaves this browser.
+        </p>
       )}
     </div>
   );

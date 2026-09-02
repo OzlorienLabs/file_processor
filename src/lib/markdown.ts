@@ -49,26 +49,30 @@ export async function markdownToHtml(markdown: string): Promise<string> {
 }
 
 /** Minimal Clay/Ivory stylesheet used by exported documents and the HTML preview frame. */
+/**
+ * Broadsheet in literal inks, for exported documents and the sandboxed HTML preview: a
+ * standalone file has no page to inherit the custom properties from.
+ */
 export const documentCss = `
 :root { color-scheme: light; }
-body { margin: 0; padding: 1.5rem; background: #faf9f5; color: #141413; font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+body { margin: 0; padding: 30px; background: #f3f2f2; color: #201e1d; font: 16px/1.6 "Source Serif 4", ui-serif, Georgia, serif; }
 .markdown-body { max-width: 46rem; margin: 0 auto; }
-h1, h2, h3, h4 { font-family: Georgia, "Times New Roman", serif; letter-spacing: -0.02em; line-height: 1.15; margin: 1.6em 0 0.6em; }
-h1 { font-size: 2.2rem; margin-top: 0; }
-h2 { font-size: 1.6rem; }
-h3 { font-size: 1.25rem; }
-p, ul, ol, blockquote, pre, table { margin: 0 0 1rem; }
-a { color: #b85c3e; }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; background: #f0eee6; padding: 0.1em 0.35em; border-radius: 0.3em; }
-pre { background: #f0eee6; border: 1px solid #d1cfc5; border-radius: 0.5rem; padding: 1rem; overflow: auto; }
+h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.02em; line-height: 1.12; margin: 1.1em 0 0.45em; }
+h1 { font-size: 34px; margin-top: 0; }
+h2 { font-size: 25px; }
+h3 { font-size: 20px; }
+p, ul, ol, blockquote, pre, table { margin: 0 0 1em; }
+a { color: #006786; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88em; background: #e9f8ff; padding: 1px 5px; }
+pre { background: #f8f4f4; border: 1px solid #d7d3d3; padding: 12px 14px; overflow: auto; }
 pre code { background: none; padding: 0; }
-blockquote { margin-left: 0; padding: 0.25rem 1rem; border-left: 3px solid #d97757; color: #5f5e58; }
+blockquote { margin-left: 0; padding: 2px 0 2px 16px; border-left: 2px solid #d6006c; font-style: italic; color: #790e3d; }
 table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #d1cfc5; padding: 0.45rem 0.7rem; text-align: left; }
-th { background: #f0eee6; }
+th, td { border: 1px solid #d7d3d3; padding: 7px 11px; text-align: left; }
+th { background: #f8f4f4; }
 img { max-width: 100%; }
-hr { border: 0; border-top: 1px solid #d1cfc5; margin: 2rem 0; }
-input[type="checkbox"] { accent-color: #d97757; }
+hr { border: 0; border-top: 1px solid #d7d3d3; margin: 30px 0; }
+input[type="checkbox"] { accent-color: #0088b0; }
 `;
 
 function escapeHtml(text: string): string {
@@ -124,5 +128,70 @@ export function countText(text: string): TextStats {
     words: trimmed ? trimmed.split(/\s+/).length : 0,
     characters: text.length,
     lines: text ? text.split('\n').length : 0,
+  };
+}
+
+/** The inline and block formats the Markdown toolbar applies. */
+export type MarkdownFormat = 'bold' | 'italic' | 'heading' | 'link' | 'code';
+
+export interface FormatResult {
+  text: string;
+  /** Where the caret should land afterwards, so typing continues naturally. */
+  selectionStart: number;
+  selectionEnd: number;
+}
+
+const wraps: Record<'bold' | 'italic' | 'code', string> = {
+  bold: '**',
+  italic: '_',
+  code: '`',
+};
+
+/**
+ * Applies one toolbar format to the selected range. Wrapping formats toggle off when the
+ * selection already carries them, so a second press undoes the first.
+ */
+export function applyMarkdownFormat(
+  text: string,
+  start: number,
+  end: number,
+  format: MarkdownFormat,
+): FormatResult {
+  const selected = text.slice(start, end);
+
+  if (format === 'heading') {
+    const lineStart = text.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+    const existing = /^(#{1,6}) /.exec(text.slice(lineStart));
+    const prefix = existing ? '' : '## ';
+    const removed = existing ? existing[0].length : 0;
+    const next = text.slice(0, lineStart) + prefix + text.slice(lineStart + removed);
+    const shift = prefix.length - removed;
+    return { text: next, selectionStart: start + shift, selectionEnd: end + shift };
+  }
+
+  if (format === 'link') {
+    const label = selected || 'link text';
+    const inserted = `[${label}](https://)`;
+    return {
+      text: text.slice(0, start) + inserted + text.slice(end),
+      selectionStart: start + label.length + 3,
+      selectionEnd: start + inserted.length - 1,
+    };
+  }
+
+  const token = wraps[format];
+  const before = text.slice(Math.max(0, start - token.length), start);
+  const after = text.slice(end, end + token.length);
+  if (before === token && after === token) {
+    return {
+      text: text.slice(0, start - token.length) + selected + text.slice(end + token.length),
+      selectionStart: start - token.length,
+      selectionEnd: end - token.length,
+    };
+  }
+  return {
+    text: text.slice(0, start) + token + selected + token + text.slice(end),
+    selectionStart: start + token.length,
+    selectionEnd: end + token.length,
   };
 }

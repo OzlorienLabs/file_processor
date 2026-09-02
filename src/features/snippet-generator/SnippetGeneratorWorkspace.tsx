@@ -160,59 +160,8 @@ export function SnippetGeneratorWorkspace() {
   };
 
   return (
-    <div className="side-layout generator">
-      <aside className="side-list" aria-label="Generation history">
-        <label className="field-label" htmlFor="history-search">
-          <span className="sr-only">Search history</span>
-          <span className="input-with-suffix">
-            <input id="history-search" value={query} placeholder="Search history" onChange={(event) => setQuery(event.target.value)} />
-            <Search aria-hidden="true" size={15} />
-          </span>
-        </label>
-        {visible.length ? (
-          <ul>
-            {visible.map((item) => (
-              <li key={item.id}>
-                <button type="button" aria-current={result?.id === item.id ? 'true' : undefined} onClick={() => openHistory(item)}>
-                  <strong>{generatedTitle(item.description)}</strong>
-                  <small>
-                    {item.language} · {item.engine === 'chrome' ? 'on-device' : item.model} · {formatWhen(item.updatedAt)}
-                  </small>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="inline-note">{store.items.length ? 'Nothing in history matches that search.' : 'Generated snippets are kept here, in this browser only.'}</p>
-        )}
-        <div className="editor-toolbar" style={{ marginBottom: 0 }}>
-          <button
-            className="button button-secondary"
-            type="button"
-            disabled={!store.items.length}
-            onClick={() => downloadText(history.exportJson(), 'filekit-generated-snippets.json', 'application/json')}
-          >
-            <FolderDown aria-hidden="true" size={15} /> Export history
-          </button>
-          {confirmingClear ? (
-            <span className="option-row">
-              <span>Delete {store.items.length} entries?</span>
-              <button className="button button-secondary" type="button" onClick={clearHistory}>
-                Yes, clear
-              </button>
-              <button className="button button-secondary" type="button" onClick={() => setConfirmingClear(false)}>
-                Keep
-              </button>
-            </span>
-          ) : (
-            <button className="button button-secondary" type="button" disabled={!store.items.length} onClick={() => setConfirmingClear(true)}>
-              <Trash2 aria-hidden="true" size={15} /> Clear history
-            </button>
-          )}
-        </div>
-      </aside>
-
-      <section className="generator-main" aria-label="Snippet generator" aria-busy={isWorking}>
+    <div className="ed-grid generator" data-panes="generator">
+      <section className="ed-pane g generator-main" data-pad="true" aria-label="Snippet generator" aria-busy={isWorking}>
         <fieldset className="choice-group engine-choice" disabled={isWorking}>
           <legend>Where the model runs</legend>
           <label>
@@ -245,7 +194,7 @@ export function SnippetGeneratorWorkspace() {
               onChange={(event) => setDescription(event.target.value)}
             />
           </label>
-          <div className="editor-toolbar" style={{ marginBottom: 0 }}>
+          <div className="ed-bar-inline">
             <label className="field-label" htmlFor="generator-language">
               Language
               <select id="generator-language" value={prefs.language} disabled={isWorking} onChange={(event) => updatePrefs({ language: event.target.value })}>
@@ -285,11 +234,6 @@ export function SnippetGeneratorWorkspace() {
               {error}
             </p>
           ) : null}
-          {isWorking && progress ? (
-            <p className="progress-note" role="status">
-              {progress}
-            </p>
-          ) : null}
           <div className="workflow-actions">
             <button className="button button-primary" type="button" disabled={!canGenerate} onClick={generate}>
               <WandSparkles aria-hidden="true" size={16} /> {isWorking ? 'Generating…' : result ? 'Generate again' : 'Generate snippet'}
@@ -301,7 +245,7 @@ export function SnippetGeneratorWorkspace() {
             ) : null}
           </div>
           {!engineReady && !isWorking ? (
-            <p className="empty-workspace">
+            <p className="ed-note">
               {prefs.engine === 'chrome'
                 ? "Chrome's on-device model is not ready here. Switch to a cloud provider or enable the built-in AI."
                 : 'Add your provider API key above to enable generating.'}
@@ -309,8 +253,67 @@ export function SnippetGeneratorWorkspace() {
           ) : null}
         </div>
 
-        {result ? (
-          <article className="generator-result" aria-label="Generated snippet">
+        <p className="panel-label">Recent</p>
+        <aside className="generator-history scroll" aria-label="Generation history">
+          <label className="field-label" htmlFor="history-search">
+            <span className="sr-only">Search history</span>
+            <span className="input-with-suffix">
+              <input id="history-search" value={query} placeholder="Search history" onChange={(event) => setQuery(event.target.value)} />
+              <Search aria-hidden="true" size={15} />
+            </span>
+          </label>
+        {visible.length ? (
+          <ul>
+            {visible.map((item) => (
+              <li key={item.id}>
+                <button type="button" aria-current={result?.id === item.id ? 'true' : undefined} onClick={() => openHistory(item)}>
+                  <strong>{generatedTitle(item.description)}</strong>
+                  <small>
+                    {item.language} · {item.engine === 'chrome' ? 'on-device' : item.model} · {formatWhen(item.updatedAt)}
+                  </small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="inline-note">{store.items.length ? 'Nothing in history matches that search.' : 'Generated snippets are kept here, in this browser only.'}</p>
+        )}
+        <div className="side-actions">
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={!store.items.length}
+            onClick={() => downloadText(history.exportJson(), 'filekit-generated-snippets.json', 'application/json')}
+          >
+            <FolderDown aria-hidden="true" size={15} /> Export history
+          </button>
+          {confirmingClear ? (
+            <span className="option-row">
+              <span>Delete {store.items.length} entries?</span>
+              <button className="button button-secondary" type="button" onClick={clearHistory}>
+                Yes, clear
+              </button>
+              <button className="button button-secondary" type="button" onClick={() => setConfirmingClear(false)}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <button className="button button-secondary" type="button" disabled={!store.items.length} onClick={() => setConfirmingClear(true)}>
+              <Trash2 aria-hidden="true" size={15} /> Clear history
+            </button>
+          )}
+        </div>
+        </aside>
+        </section>
+
+        <section className="ed-pane g generator-stage" data-pad="true" aria-label="Generated snippet">
+        {isWorking ? (
+          <div className="generator-busy">
+            <span className="generator-spinner spin" aria-hidden="true" />
+            <p role="status">{progress || 'Generating…'}</p>
+          </div>
+        ) : result ? (
+          <article className="generator-result fi">
             <div className="control-heading">
               <div>
                 <strong>{generatedTitle(result.description)}</strong>
@@ -322,7 +325,7 @@ export function SnippetGeneratorWorkspace() {
             </div>
             <CodeBlock code={result.code} language={result.language} />
             {result.explanation ? <p className="inline-note generator-explanation">{result.explanation}</p> : null}
-            <div className="editor-toolbar" style={{ marginBottom: 0 }}>
+            <div className="ed-bar-inline">
               <button className="button button-secondary" type="button" onClick={() => copyCode(result)}>
                 {copied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
                 {copied ? 'Copied' : 'Copy code'}
@@ -342,15 +345,20 @@ export function SnippetGeneratorWorkspace() {
               </button>
             </div>
           </article>
-        ) : null}
+        ) : (
+          <p className="ed-note">
+            Describe the snippet you need on the left. The result appears here and is kept in
+            this browser only.
+          </p>
+        )}
         {store.error ? (
           <p className="field-error" role="alert">
             {store.error}
           </p>
         ) : null}
         {message ? (
-          <p className="status-line" role="status">
-            <span className="pill-ok">{message}</span>
+          <p className="ed-status" role="status">
+            <span className="ed-pill gi">{message}</span>
           </p>
         ) : null}
       </section>

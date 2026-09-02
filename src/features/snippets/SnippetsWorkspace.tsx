@@ -115,8 +115,30 @@ export function SnippetsWorkspace() {
   const showForm = screen.kind === 'new' || screen.kind === 'edit';
 
   return (
-    <div className="side-layout snippets">
-      <aside className="side-list" aria-label="Saved snippets">
+    <div className="ed-grid snippets" data-panes="snippets">
+      <section className="ed-pane g snippet-tags" data-pad="true">
+        <p className="panel-label">Tags</p>
+        {tags.length ? (
+          <div className="chip-row" role="group" aria-label="Filter by tag">
+            {tags.slice(0, 24).map((candidate) => (
+              <button
+                key={candidate}
+                className="chip"
+                type="button"
+                data-active={tag.toLowerCase() === candidate.toLowerCase() ? 'true' : undefined}
+                aria-pressed={tag.toLowerCase() === candidate.toLowerCase()}
+                onClick={() => setTag(tag.toLowerCase() === candidate.toLowerCase() ? '' : candidate)}
+              >
+                #{candidate}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="inline-note">Tags you add to snippets appear here.</p>
+        )}
+      </section>
+
+      <aside className="ed-pane g side-list" data-pad="true" aria-label="Saved snippets">
         <button className="button button-primary" type="button" onClick={startNew}>
           <FilePlus2 aria-hidden="true" size={16} /> New snippet
         </button>
@@ -140,22 +162,6 @@ export function SnippetsWorkspace() {
                 ))}
               </select>
             </label>
-          ) : null}
-          {tags.length ? (
-            <div className="chip-row" role="group" aria-label="Filter by tag">
-              {tags.slice(0, 12).map((candidate) => (
-                <button
-                  key={candidate}
-                  className="chip"
-                  type="button"
-                  data-active={tag.toLowerCase() === candidate.toLowerCase() ? 'true' : undefined}
-                  aria-pressed={tag.toLowerCase() === candidate.toLowerCase()}
-                  onClick={() => setTag(tag.toLowerCase() === candidate.toLowerCase() ? '' : candidate)}
-                >
-                  #{candidate}
-                </button>
-              ))}
-            </div>
           ) : null}
         </div>
         {visible.length ? (
@@ -181,7 +187,7 @@ export function SnippetsWorkspace() {
         ) : (
           <p className="inline-note">{store.items.length ? 'No snippets match those filters.' : 'Saved snippets appear here and stay in this browser.'}</p>
         )}
-        <div className="editor-toolbar" style={{ marginBottom: 0 }}>
+        <div className="side-actions">
           <button
             className="button button-secondary"
             type="button"
@@ -212,10 +218,10 @@ export function SnippetsWorkspace() {
         </div>
       </aside>
 
-      <section className="snippet-main" aria-label={showForm ? 'Snippet form' : 'Snippet details'}>
+      <section className="ed-pane g snippet-main" data-pad="true" aria-label={showForm ? 'Snippet form' : 'Snippet details'}>
         {showForm ? (
           <form className="snippet-form" onSubmit={(event) => void save(event)}>
-            <div className="editor-toolbar">
+            <div className="ed-bar-inline">
               <input
                 className="note-title"
                 aria-label="Snippet title"
@@ -292,7 +298,7 @@ export function SnippetsWorkspace() {
               </div>
             ) : null}
             <CodeBlock code={selected.code} language={selected.language} />
-            <div className="editor-toolbar" style={{ marginBottom: 0 }}>
+            <div className="ed-bar-inline">
               <button className="button button-secondary" type="button" onClick={() => copy(selected)}>
                 {copied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
                 {copied ? 'Copied' : 'Copy code'}
@@ -309,18 +315,18 @@ export function SnippetsWorkspace() {
             </div>
           </article>
         ) : (
-          <p className="empty-workspace">Pick a snippet from the list, or add a new one.</p>
+          <p className="ed-note">Pick a snippet from the list, or add a new one.</p>
         )}
         {store.error ? (
           <p className="field-error" role="alert">
             {store.error}
           </p>
         ) : null}
-        <p className="status-line" role="status">
-          <span>
+        <p className="ed-status" role="status">
+          <span className="ed-note">
             {store.items.length} {store.items.length === 1 ? 'snippet' : 'snippets'} in this browser
           </span>
-          {message ? <span className="pill-ok">{message}</span> : null}
+          {message ? <span className="ed-pill gi">{message}</span> : null}
         </p>
       </section>
     </div>

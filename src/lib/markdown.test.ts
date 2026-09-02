@@ -24,7 +24,7 @@ describe('wrapHtmlDocument', () => {
     const doc = wrapHtmlDocument('<p>hi</p>', 'Notes <&> "quotes"');
     expect(doc).toContain('<title>Notes &lt;&amp;&gt; &quot;quotes&quot;</title>');
     expect(doc).toContain('<main class="markdown-body">\n<p>hi</p>');
-    expect(doc).toContain('font-family: Georgia');
+    expect(doc).toContain('Source Serif 4');
   });
 });
 

@@ -1,12 +1,27 @@
 import { Check, Copy, Download, Eraser, RotateCcw } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { z } from 'zod';
 
 import { MarkdownPreview } from '../../components/MarkdownPreview/MarkdownPreview';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { copyText, downloadText } from '../../lib/download';
 import { createValueStore } from '../../lib/local-store';
-import { countText, markdownToHtml, sampleMarkdown, wrapHtmlDocument } from '../../lib/markdown';
+import {
+  applyMarkdownFormat,
+  countText,
+  markdownToHtml,
+  sampleMarkdown,
+  wrapHtmlDocument,
+  type MarkdownFormat,
+} from '../../lib/markdown';
+
+const formats: { id: MarkdownFormat; label: string }[] = [
+  { id: 'bold', label: 'Bold' },
+  { id: 'italic', label: 'Italic' },
+  { id: 'heading', label: 'Heading' },
+  { id: 'link', label: 'Link' },
+  { id: 'code', label: 'Code' },
+];
 
 type View = 'split' | 'editor' | 'preview';
 
@@ -18,6 +33,7 @@ const draftStore = createValueStore({
 
 export function MarkdownWorkspace() {
   const [draft, setDraft] = useState(() => draftStore.load());
+  const editor = useRef<HTMLTextAreaElement>(null);
   const [copied, setCopied] = useState<'markdown' | 'html' | ''>('');
   const [error, setError] = useState('');
   const preview = useDebouncedValue(draft.markdown, 150);
@@ -35,6 +51,17 @@ export function MarkdownWorkspace() {
 
   const setMarkdown = (markdown: string) => commit({ ...draft, markdown });
   const setView = (view: View) => commit({ ...draft, view });
+
+  const format = (kind: MarkdownFormat) => {
+    const field = editor.current;
+    if (!field) return;
+    const next = applyMarkdownFormat(draft.markdown, field.selectionStart, field.selectionEnd, kind);
+    commit({ ...draft, markdown: next.text });
+    requestAnimationFrame(() => {
+      field.focus();
+      field.setSelectionRange(next.selectionStart, next.selectionEnd);
+    });
+  };
 
   const flashCopied = (kind: 'markdown' | 'html') => {
     setCopied(kind);
@@ -55,9 +82,19 @@ export function MarkdownWorkspace() {
   };
 
   return (
-    <div className="markdown-workspace">
-      <div className="editor-toolbar">
-        <div className="toggle-group" role="group" aria-label="Layout">
+    <div className="ed markdown-workspace">
+      <div className="ed-bar g">
+        {formats.map((entry) => (
+          <button
+            className="button button-secondary"
+            type="button"
+            key={entry.id}
+            onClick={() => format(entry.id)}
+          >
+            {entry.label}
+          </button>
+        ))}
+        <div className="seg gi" role="group" aria-label="Layout">
           {(['editor', 'split', 'preview'] as View[]).map((view) => (
             <button key={view} type="button" aria-pressed={draft.view === view} onClick={() => setView(view)}>
               {view === 'editor' ? 'Editor' : view === 'split' ? 'Split' : 'Preview'}
@@ -89,30 +126,37 @@ export function MarkdownWorkspace() {
         <button className="button button-secondary" type="button" disabled={!draft.markdown} onClick={() => setMarkdown('')}>
           <Eraser aria-hidden="true" size={15} /> Clear
         </button>
+        <span className="ed-note" role="status">
+          {stats.words.toLocaleString()} words · {stats.lines} lines
+        </span>
+        <span className="ed-pill gi">Draft saved here</span>
       </div>
 
-      <div className="editor-split" data-view={draft.view}>
-        <div className="editor-pane">
-          <header>
-            <label htmlFor="markdown-source">Markdown</label>
-            <small>{stats.lines} lines</small>
-          </header>
+      <div className="ed-grid" data-panes="split" data-view={draft.view}>
+        <section className="ed-pane g">
+          <div className="ed-head">
+            <label className="panel-label" htmlFor="markdown-source">
+              Markdown
+            </label>
+          </div>
           <textarea
-            className="code-editor"
+            className="ed-code scroll"
             id="markdown-source"
+            ref={editor}
             value={draft.markdown}
             spellCheck
             placeholder="# Start writing Markdown"
             onChange={(event) => setMarkdown(event.target.value)}
           />
-        </div>
-        <div className="editor-pane">
-          <header>
-            <h3>Preview</h3>
-            <small>Updates as you type</small>
-          </header>
-          <MarkdownPreview markdown={preview} />
-        </div>
+        </section>
+        <section className="ed-pane g">
+          <div className="ed-head">
+            <h3 className="panel-label">Preview</h3>
+          </div>
+          <div className="ed-prose scroll">
+            <MarkdownPreview markdown={preview} />
+          </div>
+        </section>
       </div>
 
       {error ? (
@@ -120,11 +164,6 @@ export function MarkdownWorkspace() {
           {error}
         </p>
       ) : null}
-      <p className="status-line" role="status">
-        <span>{stats.words.toLocaleString()} words</span>
-        <span>{stats.characters.toLocaleString()} characters</span>
-        <span className="pill-ok">Draft saved in this browser</span>
-      </p>
     </div>
   );
 }

@@ -17,6 +17,8 @@ import { errorMessage } from '../../lib/errors';
 import { assertFilesAllowed, FileInputError } from '../../lib/files';
 
 const AUTOSAVE_DELAY_MS = 500;
+/** Leaves room for the floating tool rail, properties panel, and zoom cluster. */
+const CANVAS_FIT_ZOOM = 0.7;
 const sceneStore = createSceneStore();
 
 // The engine (and its stylesheet) only load when someone opens this tool.
@@ -26,15 +28,18 @@ const ExcalidrawCanvas = lazy(async () => {
   return { default: module.Excalidraw };
 });
 
-async function restoreInitialScene(): Promise<ExcalidrawInitialDataState | null> {
+/** The 22px dot grid the design calls for, drawn by the engine itself. */
+const CANVAS_APP_STATE = { gridSize: 22, gridModeEnabled: true } as const;
+
+async function restoreInitialScene(): Promise<ExcalidrawInitialDataState> {
   const stored = sceneStore.load();
-  if (!stored.json) return null;
+  if (!stored.json) return { appState: { ...CANVAS_APP_STATE } } as ExcalidrawInitialDataState;
   try {
     const io = await loadExcalidrawIo();
-    const scene = await io.parse(new Blob([stored.json], { type: 'application/json' }));
-    return scene as ExcalidrawInitialDataState;
+    const scene = (await io.parse(new Blob([stored.json], { type: 'application/json' }))) as ExcalidrawInitialDataState;
+    return { ...scene, appState: { ...scene.appState, ...CANVAS_APP_STATE } };
   } catch {
-    return null;
+    return { appState: { ...CANVAS_APP_STATE } } as ExcalidrawInitialDataState;
   }
 }
 
@@ -53,6 +58,21 @@ export function DiagramWorkspace() {
 
   const currentScene = (): SceneData | undefined =>
     api ? { elements: api.getSceneElements(), appState: api.getAppState() as unknown as Record<string, unknown>, files: api.getFiles() } : undefined;
+
+  /**
+   * Excalidraw's chrome floats over the canvas, so a freshly imported scene is zoomed to sit
+   * inside the gutters the panels occupy rather than under them.
+   */
+  const fitClearOfChrome = (elements: readonly unknown[]) => {
+    try {
+      (api as unknown as { scrollToContent?: (target: unknown, options?: unknown) => void })?.scrollToContent?.(
+        elements,
+        { fitToContent: true, viewportZoomFactor: CANVAS_FIT_ZOOM, animate: false },
+      );
+    } catch {
+      // A version without the option simply keeps the imported viewport.
+    }
+  };
 
   const persist = async (scene: SceneData) => {
     try {
@@ -102,7 +122,7 @@ export function DiagramWorkspace() {
       api.updateScene({ elements: scene.elements as never, appState: scene.appState as never });
       const files = Object.values(scene.files);
       if (files.length) api.addFiles(files as never);
-      api.scrollToContent();
+      fitClearOfChrome(scene.elements as readonly unknown[]);
       setMessage(`Imported ${file.name}.`);
       setError('');
       void persist(scene);
@@ -127,8 +147,8 @@ export function DiagramWorkspace() {
   const hasElements = elementCount > 0;
 
   return (
-    <div className="diagram-workspace">
-      <div className="editor-toolbar">
+    <div className="ed diagram-workspace">
+      <div className="ed-bar g">
         {confirmingNew ? (
           <span className="option-row">
             <span>Discard this drawing?</span>
@@ -170,7 +190,7 @@ export function DiagramWorkspace() {
         </button>
       </div>
 
-      <div className="diagram-canvas" data-testid="diagram-canvas">
+      <div className="ed-canvas diagram-canvas" data-testid="diagram-canvas">
         <Suspense
           fallback={
             <p className="progress-note diagram-loading" role="status">
@@ -189,6 +209,19 @@ export function DiagramWorkspace() {
             }}
           />
         </Suspense>
+
+        <p className="gi diagram-status" role="status">
+          <span>
+            {elementCount} {elementCount === 1 ? 'element' : 'elements'}
+          </span>
+          <span aria-hidden="true">|</span>
+          <span>{savedAt ? `Saved in this browser ${formatWhen(savedAt)}` : 'Not saved yet — start drawing'}</span>
+          <span aria-hidden="true">|</span>
+          <span>PNG</span>
+          <span>SVG</span>
+          <span>.excalidraw</span>
+          {message ? <span className="diagram-message">{message}</span> : null}
+        </p>
       </div>
 
       {error ? (
@@ -196,13 +229,6 @@ export function DiagramWorkspace() {
           {error}
         </p>
       ) : null}
-      <p className="status-line" role="status">
-        <span>
-          {elementCount} {elementCount === 1 ? 'element' : 'elements'}
-        </span>
-        <span className={savedAt ? 'pill-ok' : ''}>{savedAt ? `Saved in this browser ${formatWhen(savedAt)}` : 'Not saved yet — start drawing'}</span>
-        {message ? <span>{message}</span> : null}
-      </p>
     </div>
   );
 }

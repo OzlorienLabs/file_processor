@@ -22,16 +22,70 @@ export const MAX_MERMAID_CHARS = 50_000;
 let enginePromise: Promise<MermaidEngine> | undefined;
 let renderCounter = 0;
 
+/**
+ * Mermaid in the Broadsheet inks: white or cyan-100 node fills, 1.6px ink or cyan borders,
+ * serif labels. The values are literal because the SVG is exported and rasterised on its own,
+ * away from any page that could supply the custom properties.
+ */
+export const mermaidTheme = {
+  background: '#ffffff',
+  primaryColor: '#e9f8ff',
+  primaryBorderColor: '#0088b0',
+  primaryTextColor: '#201e1d',
+  secondaryColor: '#ffffff',
+  secondaryBorderColor: '#201e1d',
+  secondaryTextColor: '#201e1d',
+  tertiaryColor: '#f8f4f4',
+  tertiaryBorderColor: '#605d5d',
+  tertiaryTextColor: '#201e1d',
+  lineColor: '#201e1d',
+  textColor: '#201e1d',
+  mainBkg: '#ffffff',
+  nodeBorder: '#201e1d',
+  nodeTextColor: '#201e1d',
+  clusterBkg: '#f8f4f4',
+  clusterBorder: '#d7d3d3',
+  titleColor: '#201e1d',
+  edgeLabelBackground: '#f3f2f2',
+  actorBkg: '#e9f8ff',
+  actorBorder: '#0088b0',
+  actorTextColor: '#201e1d',
+  signalColor: '#201e1d',
+  signalTextColor: '#201e1d',
+  labelBoxBkgColor: '#ffffff',
+  labelBoxBorderColor: '#201e1d',
+  noteBkgColor: '#fff1f4',
+  noteBorderColor: '#d6006c',
+  noteTextColor: '#201e1d',
+  pie1: '#0088b0',
+  pie2: '#d6006c',
+  pie3: '#edbb00',
+  pie4: '#99e0ff',
+  pie5: '#ffc0d0',
+  fontFamily: '"Source Serif 4", ui-serif, Georgia, serif',
+  fontSize: '15px',
+} as const;
+
+/** 1.6px strokes on every node and edge, per the diagram spec. */
+const MERMAID_CSS = `
+  .node rect, .node circle, .node ellipse, .node polygon, .node path,
+  .cluster rect, .actor, .labelBox { stroke-width: 1.6px; }
+  .edgePath .path, .flowchart-link, .messageLine0, .messageLine1 { stroke-width: 1.6px; }
+  .nodeLabel, .edgeLabel, .label, text { font-family: "Source Serif 4", ui-serif, Georgia, serif; }
+`;
+
 async function loadEngine(): Promise<MermaidEngine> {
   enginePromise ??= import('mermaid').then(({ default: mermaid }) => {
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: 'strict',
-      theme: 'neutral',
+      theme: 'base',
+      themeVariables: mermaidTheme,
+      themeCSS: MERMAID_CSS,
       htmlLabels: false,
       flowchart: { htmlLabels: false },
       class: { htmlLabels: false },
-      fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif',
+      fontFamily: mermaidTheme.fontFamily,
     });
     return mermaid as unknown as MermaidEngine;
   });
