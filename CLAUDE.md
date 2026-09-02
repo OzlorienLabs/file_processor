@@ -40,6 +40,7 @@ npm run audit           # npm audit --audit-level=high; must be clean before rel
 
 - `eslint-plugin-react-hooks` v7 enforces the React Compiler rules: no `setState` directly in an effect body (save inside handlers, or set state in a promise `.then`), and no `Date.now()`/impure calls in render or handlers the linter can see — use `touch()` from `local-store.ts` for timestamps.
 - Excalidraw resolves fonts from `window.EXCALIDRAW_ASSET_PATH` and otherwise falls back to a CDN the CSP blocks. `DiagramWorkspace` sets it to `/excalidraw/`; the `excalidrawAssets` Vite plugin serves the package fonts in dev and copies them into `dist/excalidraw/fonts` on build. Keep both in sync.
+- Even with that path set, production logs `securitypolicyviolation` for `font-src https://esm.sh/@excalidraw/...`: Excalidraw *appends* its CDN fallback to the same `@font-face src:` list, and Chrome reports every entry the CSP refuses. The fonts still load from `/excalidraw/fonts/` (200, nothing leaves the device) — it is console noise, not breakage. `vite preview` sends no CSP header, so the e2e suite cannot see this class of problem; check it against the deployed site.
 - `mermaid.render` appends a scratch `<div id="d<id>">` and leaves it behind on parse errors; `renderMermaid` removes it. Preview goes through `<img>` so `htmlLabels: false` matters for consistent PNG export.
 - `@testing-library/user-event` honours an input's `accept` list: to test the "unsupported file" branch pass `userEvent.setup({ applyAccept: false })`.
 
