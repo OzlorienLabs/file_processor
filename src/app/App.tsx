@@ -1,4 +1,4 @@
-import { ArrowRight, Code2, Menu, X } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import { lazy, Suspense, useState, type ReactNode } from 'react';
 import {
   BrowserRouter,
@@ -17,61 +17,58 @@ const EmojiPage = lazy(() => import('../pages/EmojiPage'));
 
 function AppHeader() {
   const [isOpen, setIsOpen] = useState(false);
+  const close = () => setIsOpen(false);
   return (
     <header className="site-header g2">
-      <div className="shell header-inner">
-        <Link className="brand" to="/en" aria-label="FileKit home">
-          <span className="brand-mark">
-            <ToolMark tool="brand" />
-          </span>
-          <span>FileKit</span>
+      <Link className="brand" to="/en" aria-label="FileKit home" onClick={close}>
+        <span className="brand-mark">
+          <ToolMark tool="brand" />
+        </span>
+        <span>FileKit</span>
+      </Link>
+      <button
+        className="nav-toggle"
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls="primary-navigation"
+        aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+        onClick={() => setIsOpen((value) => !value)}
+      >
+        {isOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+      </button>
+      <nav
+        className="primary-nav"
+        data-open={isOpen ? 'true' : 'false'}
+        id="primary-navigation"
+        aria-label="Primary navigation"
+      >
+        <Link to="/en#tools" onClick={close}>
+          All tools
         </Link>
-        <button
-          className="nav-toggle"
-          type="button"
-          aria-expanded={isOpen}
-          aria-controls="primary-navigation"
-          aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
-          onClick={() => setIsOpen((value) => !value)}
-        >
-          {isOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
-        </button>
-        <nav
-          className="primary-nav"
-          data-open={isOpen ? 'true' : 'false'}
-          id="primary-navigation"
-          aria-label="Primary navigation"
-        >
-          <Link to="/en" onClick={() => setIsOpen(false)}>
-            All tools
-          </Link>
-        </nav>
-      </div>
+        <Link to="/en#create" onClick={close}>
+          Editors
+        </Link>
+        <Link to="/en#how" onClick={close}>
+          How it works
+        </Link>
+      </nav>
+      <Link className="button button-primary header-cta" to={coreTools[0].path} onClick={close}>
+        Open the workspace <ArrowRight aria-hidden="true" size={16} />
+      </Link>
     </header>
   );
 }
 
 function AppFooter() {
   return (
-    <footer className="site-footer g2">
-      <div className="shell footer-inner">
-        <div>
-          <Link className="brand" to="/en">
-            <span className="brand-mark">
-              <ToolMark tool="brand" />
-            </span>
-            <span>FileKit</span>
-          </Link>
-          <p>Files in. Useful result out. Nothing left behind.</p>
-        </div>
-        <div className="footer-links">
-          <Link to="/en">All tools</Link>
-          <Link to="/en/emojis">Every emoji</Link>
-          <a href="https://github.com" aria-label="Project source on GitHub">
-            <Code2 aria-hidden="true" size={18} /> Source
-          </a>
-        </div>
-      </div>
+    <footer className="site-footer">
+      <Link className="brand" to="/en">
+        <span className="brand-mark">
+          <ToolMark tool="brand" />
+        </span>
+        <span>FileKit</span>
+      </Link>
+      <p>Built with curiosity and care by Ozlorien Labs.</p>
     </footer>
   );
 }

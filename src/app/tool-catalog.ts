@@ -479,3 +479,23 @@ export function getToolByPath(path: string): ToolDefinition | undefined {
 export function toolsInCategory(category: ToolCategory): ToolDefinition[] {
   return coreTools.filter((tool) => tool.category === category);
 }
+
+export interface ToolCounts {
+  total: number;
+  /** Tools whose work never leaves the tab. */
+  local: number;
+  /** Tools that can reach an AI provider with the reader's own key. */
+  ai: number;
+  editors: number;
+}
+
+/** The landing page's figures, so no count is written down twice. */
+export function toolCounts(tools: ToolDefinition[] = coreTools): ToolCounts {
+  const local = tools.filter((tool) => tool.processing === 'browser').length;
+  return {
+    total: tools.length,
+    local,
+    ai: tools.length - local,
+    editors: tools.filter((tool) => tool.category === 'create').length,
+  };
+}

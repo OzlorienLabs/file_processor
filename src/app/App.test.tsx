@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { App, AppRoutes } from './App';
-import { coreTools } from './tool-catalog';
+import { coreTools, toolCounts } from './tool-catalog';
 
 function renderAt(path: string) {
   return render(
@@ -18,13 +18,21 @@ describe('application routes', () => {
   it('shows every requested tool on the home page', () => {
     renderAt('/en');
 
-    expect(
-      screen.getByRole('heading', { name: /useful tools for everyday files/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/files in\.\s*result out\./i);
     expect(screen.getAllByTestId('tool-card')).toHaveLength(coreTools.length);
-    expect(screen.queryByRole('link', { name: /browse every emoji/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /every emoji/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /emoji library/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /source/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/log in/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/built with curiosity and care by ozlorien labs\./i)).toBeInTheDocument();
+  });
+
+  it('derives its counts from the catalog', () => {
+    renderAt('/en');
+    const counts = toolCounts();
+    expect(screen.getByText(new RegExp(`${counts.local} tools never leave the tab`, 'i'))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`${counts.ai} AI tools ask first`, 'i'))).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: new RegExp(`see all ${counts.total} tools`, 'i') })).toBeInTheDocument();
   });
 
   it('opens a tool into the shell, with the rail, top bar, and workspace', () => {
@@ -61,9 +69,7 @@ describe('application routes', () => {
 
   it('redirects the root and gives unknown routes a useful recovery link', () => {
     const { unmount } = renderAt('/');
-    expect(
-      screen.getByRole('heading', { name: /useful tools for everyday files/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/result out\./i);
     unmount();
 
     renderAt('/en/missing');
@@ -77,9 +83,7 @@ describe('application routes', () => {
   it('boots the full app with its own router', () => {
     window.history.pushState({}, '', '/en');
     render(<App />);
-    expect(
-      screen.getAllByRole('heading', { name: /useful tools for everyday files/i }).length,
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByRole('heading', { level: 1 })[0]).toHaveTextContent(/result out\./i);
   });
 
   it('labels AI-assisted tools distinctly from fully local ones', async () => {

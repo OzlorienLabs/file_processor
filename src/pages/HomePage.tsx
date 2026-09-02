@@ -1,15 +1,49 @@
-import { ArrowRight, Check, FileOutput, ShieldCheck, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { coreTools, toolsInCategory, type ToolDefinition } from '../app/tool-catalog';
+import { toolCounts, toolsInCategory, type ToolDefinition } from '../app/tool-catalog';
 import { ToolMark } from '../components/ToolMark/ToolMark';
+import { usePressLean } from '../hooks/usePressLean';
 
-
-const processingLabels: Record<ToolDefinition['processing'], string> = {
+const whereItRuns: Record<ToolDefinition['processing'], string> = {
   browser: 'Runs locally',
   'browser-and-provider': 'Local + your AI provider',
-  'browser-or-provider': 'On-device AI or your provider',
+  'browser-or-provider': 'On-device AI or your key',
 };
+
+function PlateHeadline({ text }: { text: string }) {
+  const press = usePressLean();
+  return (
+    <span className="cmyk-head hero-plate" ref={press}>
+      <span className="paper">{text}</span>
+      <span className="plate plate-c" aria-hidden="true">
+        {text}
+      </span>
+      <span className="plate plate-m" aria-hidden="true">
+        {text}
+      </span>
+      <span className="plate plate-y" aria-hidden="true">
+        {text}
+      </span>
+    </span>
+  );
+}
+
+function PlateNumeral({ figure }: { figure: string }) {
+  return (
+    <span className="cmyk-num step-numeral">
+      <span className="paper">{figure}</span>
+      <span className="plate plate-c" aria-hidden="true">
+        {figure}
+      </span>
+      <span className="plate plate-m" aria-hidden="true">
+        {figure}
+      </span>
+      <span className="plate plate-y" aria-hidden="true">
+        {figure}
+      </span>
+    </span>
+  );
+}
 
 function ToolCard({ tool }: { tool: ToolDefinition }) {
   return (
@@ -18,57 +52,92 @@ function ToolCard({ tool }: { tool: ToolDefinition }) {
         <ToolMark tool={tool.id} />
       </span>
       <span className="tool-card-arrow" aria-hidden="true">
-        <ArrowRight size={18} />
+        →
       </span>
       <strong>{tool.shortName}</strong>
       <span>{tool.description}</span>
-      <small>{tool.storage === 'local' ? `${processingLabels[tool.processing]} · saved here` : processingLabels[tool.processing]}</small>
+      <small>{tool.storage === 'local' ? 'Saved in this browser' : whereItRuns[tool.processing]}</small>
     </Link>
   );
 }
 
+const steps = [
+  { figure: '1', title: 'Choose', body: 'Drop in only the file the task needs.' },
+  { figure: '2', title: 'Adjust', body: 'Set the range, the quality, the format, the model.' },
+  { figure: '3', title: 'Download', body: 'Save the result. Nothing is kept on our side.' },
+];
+
 export function HomePage() {
+  const counts = toolCounts();
   const fileTools = toolsInCategory('files');
   const createTools = toolsInCategory('create');
 
   return (
     <main id="main-content">
-      <section className="home-hero">
-        <div className="shell hero-grid">
+      <section className="home-hero" id="top">
+        <div className="hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">No accounts. No file storage.</p>
-            <h1>Useful tools for everyday files.</h1>
-            <p className="lede">
-              Merge, convert, compress, read, and summarize files, then draw, write, diff, and
-              keep code snippets, without handing anything to a mystery server. The work happens
-              right in this browser.
+            <p className="eyebrow fu">No accounts · No uploads · Nothing left behind</p>
+            <h1 className="fu d1">
+              <span className="hero-line">Files in.</span>
+              <PlateHeadline text="Result out." />
+            </h1>
+            <p className="lede fu d2">
+              {counts.total} tools for the small jobs — convert, compress, merge, split, read,
+              transcribe, draw, diff, write, keep code. The work happens in this browser, on this
+              device, and then it is over.
             </p>
-            <div className="hero-actions">
-              <a className="button button-primary" href="#tools">
-                Pick a tool <ArrowRight aria-hidden="true" size={18} />
+            <div className="hero-actions fu d3">
+              <Link className="button button-primary" to={fileTools[0].path}>
+                Start with a file
+              </Link>
+              <a className="button button-secondary g" href="#tools">
+                See all {counts.total} tools
               </a>
             </div>
           </div>
-          <aside className="privacy-card g" id="privacy" aria-labelledby="privacy-title">
-            <ShieldCheck aria-hidden="true" size={28} />
-            <div>
-              <h2 id="privacy-title">Private by default</h2>
-              <p>
-                Local tools never upload your file. AI tools clearly ask before sending
-                extracted content to the provider whose key you supply.
-              </p>
-            </div>
+
+          <aside className="privacy-card g fu d4" aria-labelledby="privacy-title">
+            <h2 className="panel-label" id="privacy-title">
+              Where the work runs
+            </h2>
+            <ul className="runs-list">
+              <li>
+                <span className="runs-dot" data-ink="cyan" aria-hidden="true" />
+                <p>
+                  <strong>{counts.local} tools never leave the tab.</strong> No request is made with
+                  your file at all.
+                </p>
+              </li>
+              <li>
+                <span className="runs-dot" data-ink="magenta" aria-hidden="true" />
+                <p>
+                  <strong>{counts.ai} AI tools ask first,</strong> then use the provider key you
+                  supply — held on this device, forgettable in one click.
+                </p>
+              </li>
+              <li>
+                <span className="runs-dot" data-ink="yellow" aria-hidden="true" />
+                <p>
+                  <strong>Editors save to this browser only,</strong> with export and clear on every
+                  page.
+                </p>
+              </li>
+            </ul>
           </aside>
         </div>
       </section>
 
-      <section className="shell page-section" id="tools" aria-labelledby="tools-title">
+      <section className="page-section shell" id="tools" aria-labelledby="tools-title">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Online tools for your files</p>
-            <h2 id="tools-title">Choose what you need to get done</h2>
+            <p className="eyebrow">File operations</p>
+            <h2 id="tools-title">Pick the job, not the app</h2>
           </div>
-          <p>{coreTools.length} focused tools. No dashboard to learn.</p>
+          <p>
+            {fileTools.length} operations on the files you already have. Each one opens straight into
+            its workspace.
+          </p>
         </div>
         <div className="tool-grid">
           {fileTools.map((tool) => (
@@ -77,13 +146,16 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="shell page-section create-section" id="create" aria-labelledby="create-title">
+      <section className="page-section shell" id="create" aria-labelledby="create-title">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Draw, write, and code</p>
-            <h2 id="create-title">Editors that remember your work</h2>
+            <p className="eyebrow eyebrow-2">Creation &amp; development</p>
+            <h2 id="create-title">Editors that take the whole screen</h2>
           </div>
-          <p>Saved in this browser's local storage only. Export or clear it whenever you like.</p>
+          <p>
+            {counts.editors} full-bleed workspaces. Your work stays in this browser and follows you
+            back.
+          </p>
         </div>
         <div className="tool-grid">
           {createTools.map((tool) => (
@@ -92,29 +164,26 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="process-section">
-        <div className="shell process-grid">
+      <section className="process-section shell" id="how" aria-labelledby="how-title">
+        <div className="process-grid">
           <div className="process-intro">
             <p className="eyebrow">A short path to done</p>
-            <h2>Three steps. Then the file is yours.</h2>
+            <h2 id="how-title">Three steps, then it is yours</h2>
             <p>
-              Every tool keeps the same clear rhythm, with its processing location
-              shown before you begin.
+              Every tool keeps the same rhythm and says where it runs before you begin. Refresh the
+              page and the file is gone from memory.
             </p>
           </div>
           <ol className="process-list">
-            <li className="g">
-              <span><Upload aria-hidden="true" /></span>
-              <div><strong>Choose</strong><p>Add only the file or files the task needs.</p></div>
-            </li>
-            <li className="g">
-              <span><Check aria-hidden="true" /></span>
-              <div><strong>Adjust</strong><p>Pick page ranges, quality, output, or model.</p></div>
-            </li>
-            <li className="g">
-              <span><FileOutput aria-hidden="true" /></span>
-              <div><strong>Download</strong><p>Save the finished result immediately.</p></div>
-            </li>
+            {steps.map((step) => (
+              <li className="g" key={step.figure}>
+                <PlateNumeral figure={step.figure} />
+                <div>
+                  <strong>{step.title}</strong>
+                  <p>{step.body}</p>
+                </div>
+              </li>
+            ))}
           </ol>
         </div>
       </section>
