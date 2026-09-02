@@ -22,6 +22,10 @@ updates:
       # see the gotcha in CLAUDE.md before letting these float.
       - dependency-name: adm-zip
       - dependency-name: sharp
+      # typescript-eslint 8 declares `typescript <7`; a TS major bump breaks `npm ci`
+      # (ERESOLVE). Revisit when typescript-eslint publishes TS 7 support.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /

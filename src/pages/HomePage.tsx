@@ -1,33 +1,53 @@
 import {
   ArrowRight,
   AudioLines,
+  BookOpenText,
+  Braces,
   Check,
   FileInput,
   FileOutput,
   Files,
+  GitCompareArrows,
   ListCollapse,
   Minimize2,
+  NotebookPen,
+  PenTool,
   RefreshCw,
   ScanText,
   Scissors,
   ShieldCheck,
   Sparkles,
   Upload,
+  WandSparkles,
+  Workflow,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { coreTools, type ToolDefinition } from '../app/tool-catalog';
+import { coreTools, toolsInCategory, type ToolDefinition } from '../app/tool-catalog';
 
 const icons = {
   AudioLines,
+  BookOpenText,
+  Braces,
   FileInput,
   FileOutput,
   Files,
+  GitCompareArrows,
   ListCollapse,
   Minimize2,
+  NotebookPen,
+  PenTool,
   RefreshCw,
   ScanText,
   Scissors,
+  WandSparkles,
+  Workflow,
+};
+
+const processingLabels: Record<ToolDefinition['processing'], string> = {
+  browser: 'Runs locally',
+  'browser-and-provider': 'Local + your AI provider',
+  'browser-or-provider': 'On-device AI or your provider',
 };
 
 function ToolCard({ tool }: { tool: ToolDefinition }) {
@@ -42,14 +62,15 @@ function ToolCard({ tool }: { tool: ToolDefinition }) {
       </span>
       <strong>{tool.shortName}</strong>
       <span>{tool.description}</span>
-      <small>
-        {tool.processing === 'browser' ? 'Runs locally' : 'Local + your AI provider'}
-      </small>
+      <small>{tool.storage === 'local' ? `${processingLabels[tool.processing]} · saved here` : processingLabels[tool.processing]}</small>
     </Link>
   );
 }
 
 export function HomePage() {
+  const fileTools = toolsInCategory('files');
+  const createTools = toolsInCategory('create');
+
   return (
     <main id="main-content">
       <section className="home-hero">
@@ -58,8 +79,9 @@ export function HomePage() {
             <p className="eyebrow">No accounts. No file storage.</p>
             <h1>Useful tools for everyday files.</h1>
             <p className="lede">
-              Merge, convert, compress, read, and summarize without handing your
-              files to a mystery server. Most work happens right in this browser.
+              Merge, convert, compress, read, and summarize files, then draw, write, diff, and
+              keep code snippets, without handing anything to a mystery server. The work happens
+              right in this browser.
             </p>
             <div className="hero-actions">
               <a className="button button-primary" href="#tools">
@@ -89,10 +111,25 @@ export function HomePage() {
             <p className="eyebrow">Online tools for your files</p>
             <h2 id="tools-title">Choose what you need to get done</h2>
           </div>
-          <p>Nine focused tools. No dashboard to learn.</p>
+          <p>{coreTools.length} focused tools. No dashboard to learn.</p>
         </div>
         <div className="tool-grid">
-          {coreTools.map((tool) => (
+          {fileTools.map((tool) => (
+            <ToolCard key={tool.id} tool={tool} />
+          ))}
+        </div>
+      </section>
+
+      <section className="shell page-section create-section" id="create" aria-labelledby="create-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Draw, write, and code</p>
+            <h2 id="create-title">Editors that remember your work</h2>
+          </div>
+          <p>Saved in this browser's local storage only. Export or clear it whenever you like.</p>
+        </div>
+        <div className="tool-grid">
+          {createTools.map((tool) => (
             <ToolCard key={tool.id} tool={tool} />
           ))}
         </div>

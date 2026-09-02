@@ -30,11 +30,18 @@ npm run audit           # npm audit --audit-level=high; must be clean before rel
 
 - Named exports, one responsibility per file, colocated `*.test.ts(x)`.
 - Task flow state in workspaces: `idle → working (progress, cancellable via AbortController) → success | error`. Always release object URLs, canvases, and workers.
-- New tools: add to `coreTools` in `tool-catalog.ts` (routes/cards/steps derive from it), register the workspace in `ToolPage`'s map, define its `FilePolicy` inside the workspace, keep exactly one short "How to" section per page.
+- New tools: add to `coreTools` in `tool-catalog.ts` (routes/cards/steps derive from it), register the workspace in `ToolPage`'s map, define its `FilePolicy` inside the workspace, keep exactly one short "How to" section per page. Editors (`category: 'create'`) are `lazy()` entries with `layout: 'wide'` and `storage: 'local'`.
+- Persisted user content goes through `src/lib/local-store.ts` (`createCollection` / `createValueStore`, one `filekit.<tool>.v1` key each, zod-validated, capped) and the `useLocalCollection` hook; every such page offers export and clear controls.
+- Untrusted text becomes React elements, never HTML strings: Markdown via `MarkdownPreview` (react-markdown), code via `CodeBlock` (lowlight hast → JSX), author HTML only inside `HtmlPreview`'s sandboxed iframe, Mermaid SVG through an `<img>` blob URL.
 - UI theme: light Clay/Ivory tokens in `src/styles/global.css` (`--paper #FAF9F5`, `--ink #141413`, clay accent `#D97757`). Light theme only — no dark default.
 - Tests mock the heavy engines at the module boundary (`vi.mock` on `src/lib/*`), and lib tests inject adapters (see `RasterAdapter`, `OpenPdfRasterDocument`) instead of touching canvas/workers.
 
 ## Gotchas
+
+- `eslint-plugin-react-hooks` v7 enforces the React Compiler rules: no `setState` directly in an effect body (save inside handlers, or set state in a promise `.then`), and no `Date.now()`/impure calls in render or handlers the linter can see — use `touch()` from `local-store.ts` for timestamps.
+- Excalidraw resolves fonts from `window.EXCALIDRAW_ASSET_PATH` and otherwise falls back to a CDN the CSP blocks. `DiagramWorkspace` sets it to `/excalidraw/`; the `excalidrawAssets` Vite plugin serves the package fonts in dev and copies them into `dist/excalidraw/fonts` on build. Keep both in sync.
+- `mermaid.render` appends a scratch `<div id="d<id>">` and leaves it behind on parse errors; `renderMermaid` removes it. Preview goes through `<img>` so `htmlLabels: false` matters for consistent PNG export.
+- `@testing-library/user-event` honours an input's `accept` list: to test the "unsupported file" branch pass `userEvent.setup({ applyAccept: false })`.
 
 - `pdfjs-dist` v6: worker via `?url` import; destroy through the loading task; jsdom has no canvas — keep pdf.js behind injectable adapters.
 - Vercel function payload limit ~4.5 MB: audio chunks must stay below 3.75 MB before base64 wrapping.

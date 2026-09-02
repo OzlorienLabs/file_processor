@@ -1,8 +1,9 @@
-import { ArrowLeft, CheckCircle2, HardDrive, Sparkles } from 'lucide-react';
-import type { ComponentType } from 'react';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { lazy, Suspense, type ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ToolDefinition, ToolId } from '../app/tool-catalog';
+import { describeProcessing } from './tool-disclosure';
 import { AudioToTextWorkspace } from '../features/audio-to-text/AudioToTextWorkspace';
 import { CompressionWorkspace } from '../features/compress/CompressionWorkspace';
 import { ConvertWorkspace } from '../features/convert/ConvertWorkspace';
@@ -13,6 +14,7 @@ import { SplitWorkspace } from '../features/split/SplitWorkspace';
 import { SummarizeWorkspace } from '../features/summarize/SummarizeWorkspace';
 import { WordToPdfWorkspace } from '../features/word-to-pdf/WordToPdfWorkspace';
 
+// Editor tools are route-level chunks so their engines never reach the initial bundle.
 const workspaces: Record<ToolId, ComponentType> = {
   merge: MergeWorkspace,
   split: SplitWorkspace,
@@ -23,11 +25,30 @@ const workspaces: Record<ToolId, ComponentType> = {
   ocr: OcrWorkspace,
   summarize: SummarizeWorkspace,
   'audio-to-text': AudioToTextWorkspace,
+  diagram: lazy(() => import('../features/diagram/DiagramWorkspace').then((m) => ({ default: m.DiagramWorkspace }))),
+  diff: lazy(() => import('../features/diff/DiffWorkspace').then((m) => ({ default: m.DiffWorkspace }))),
+  markdown: lazy(() => import('../features/markdown/MarkdownWorkspace').then((m) => ({ default: m.MarkdownWorkspace }))),
+  notepad: lazy(() => import('../features/notepad/NotepadWorkspace').then((m) => ({ default: m.NotepadWorkspace }))),
+  snippets: lazy(() => import('../features/snippets/SnippetsWorkspace').then((m) => ({ default: m.SnippetsWorkspace }))),
+  mermaid: lazy(() => import('../features/mermaid/MermaidWorkspace').then((m) => ({ default: m.MermaidWorkspace }))),
+  'snippet-generator': lazy(() =>
+    import('../features/snippet-generator/SnippetGeneratorWorkspace').then((m) => ({ default: m.SnippetGeneratorWorkspace })),
+  ),
 };
 
+function WorkspaceLoading({ name }: { name: string }) {
+  return (
+    <p className="progress-note" role="status">
+      Loading the {name} workspace…
+    </p>
+  );
+}
+
 export function ToolPage({ tool }: { tool: ToolDefinition }) {
-  const isLocal = tool.processing === 'browser';
   const Workspace = workspaces[tool.id];
+  const disclosure = describeProcessing(tool);
+  const Icon = disclosure.icon;
+  const width = tool.layout === 'wide' ? 'wide-page' : 'narrow-page';
 
   return (
     <main id="main-content" className="tool-page">
@@ -37,25 +58,23 @@ export function ToolPage({ tool }: { tool: ToolDefinition }) {
             <ArrowLeft aria-hidden="true" size={17} /> All tools
           </Link>
           <div className="processing-pill">
-            {isLocal ? <HardDrive aria-hidden="true" size={15} /> : <Sparkles aria-hidden="true" size={15} />}
-            {isLocal ? 'Runs in your browser' : 'Browser + your AI provider'}
+            <Icon aria-hidden="true" size={15} />
+            {disclosure.pill}
           </div>
           <h1>{tool.name}</h1>
           <p className="lede">{tool.description}</p>
         </div>
       </section>
 
-      <section className="shell narrow-page workspace-section" aria-label={`${tool.name} workspace`}>
+      <section className={`shell ${width} workspace-section`} aria-label={`${tool.name} workspace`}>
         <div className="privacy-note">
           <CheckCircle2 aria-hidden="true" size={19} />
-          <p>
-            {isLocal
-              ? 'Your files stay on this device. Processing happens in browser memory and disappears when you close or refresh this page.'
-              : 'The file is read locally. Only the content needed for this AI task is sent to the provider you select; FileKit does not save it.'}
-          </p>
+          <p>{disclosure.note}</p>
         </div>
-        <div className="workspace-card">
-          <Workspace />
+        <div className="workspace-card" data-layout={tool.layout ?? 'narrow'}>
+          <Suspense fallback={<WorkspaceLoading name={tool.shortName} />}>
+            <Workspace />
+          </Suspense>
         </div>
       </section>
 

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { coreTools } from '../src/app/tool-catalog';
+
 test.describe('home and navigation', () => {
   test('lists every tool, keeps a clean console, and navigates to a tool page', async ({ page }) => {
     const consoleErrors: string[] = [];
@@ -9,7 +11,7 @@ test.describe('home and navigation', () => {
 
     await page.goto('/en');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/useful tools/i);
-    await expect(page.getByTestId('tool-card')).toHaveCount(9);
+    await expect(page.getByTestId('tool-card')).toHaveCount(coreTools.length);
 
     await page.getByTestId('tool-card').filter({ hasText: 'Merge PDF' }).click();
     await expect(page).toHaveURL(/\/en\/merge$/);
