@@ -49,6 +49,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: true,
+    // The emoji catalog test renders ~4k items; shared CI runners can exceed the 5 s default.
+    testTimeout: 20_000,
     exclude: ['**/node_modules/**', 'e2e/**'],
     coverage: {
       provider: 'v8',
