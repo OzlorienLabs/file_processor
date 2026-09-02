@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/broadsheet-307fed7f-0dd4-4d23-b73d-dfe6e3d85e40/styles.css">
+  <script src="_ds/broadsheet-307fed7f-0dd4-4d23-b73d-dfe6e3d85e40/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; background: #f3f2f2; }
+    * { box-sizing: border-box; }
+    a { color: var(--color-accent-700); text-decoration: none; }
+    a:hover { color: var(--color-accent-2-700); }
+    :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    textarea, input, button, select { font: inherit; color: inherit; }
+    ::selection { background: var(--color-accent-200); }
+    /* Glass surfaces — the @supports fallback is why these are classes and not inline. */
+    .g  { background: rgba(255,255,255,.52); -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); border: 1px solid rgba(255,255,255,.72); box-shadow: var(--shadow-md); }
+    .g2 { background: rgba(250,248,248,.62); -webkit-backdrop-filter: blur(30px) saturate(1.5); backdrop-filter: blur(30px) saturate(1.5); border: 1px solid rgba(255,255,255,.6); box-shadow: var(--shadow-sm); }
+    .gi { background: rgba(255,255,255,.34); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.55); }
+    @supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
+      .g, .g2, .gi { background: #faf9f9; border-color: var(--color-neutral-300); }
+    }
+    @keyframes fu { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes fi { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes drift { 0%,100% { transform: translate3d(0,0,0) } 50% { transform: translate3d(2.5%, -3%, 0) } }
+    @keyframes sweep { from { transform: translateX(-110%) } to { transform: translateX(340%) } }
+    @keyframes spin { to { transform: rotate(360deg) } }
+    @keyframes blink { 0%,45% { opacity: 1 } 50%,95% { opacity: .15 } }
+    @keyframes stamp { 0% { opacity: 0; transform: scale(1.35) rotate(-6deg) } 60% { opacity: 1; transform: scale(.97) rotate(-6deg) } 100% { opacity: 1; transform: scale(1) rotate(-6deg) } }
+    .fu { animation: fu .62s cubic-bezier(.16,.84,.28,1) both; }
+    .fi { animation: fi .5s ease both; }
+    .d1 { animation-delay: .07s } .d2 { animation-delay: .14s } .d3 { animation-delay: .21s } .d4 { animation-delay: .28s }
+    .drift { animation: drift 26s ease-in-out infinite; }
+    .sweep { animation: sweep 1.5s cubic-bezier(.5,0,.5,1) infinite; }
+    .spin { animation: spin 5.5s linear infinite; }
+    .blink { animation: blink 1.1s steps(1,end) infinite; }
+    .stamp { animation: stamp .5s cubic-bezier(.2,1.5,.4,1) both; }
+    .lift { transition: transform .32s cubic-bezier(.16,.84,.28,1), box-shadow .32s ease, background .2s ease; }
+    .lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .ctl { transition: background .16s ease, color .16s ease, border-color .16s ease, transform .12s ease; }
+    .ctl:active { transform: translateY(1px); }
+    .scroll::-webkit-scrollbar { width: 9px; height: 9px }
+    .scroll::-webkit-scrollbar-thumb { background: var(--color-neutral-400); border-radius: 9px; border: 3px solid transparent; background-clip: content-box }
+    @media (prefers-reduced-motion: reduce) { .fu, .fi, .drift, .sweep, .spin, .stamp { animation: none !important } }
+    .flat .g, .flat .g2, .flat .gi { background: #faf9f9; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--color-neutral-300); }
+    .calm .fu, .calm .fi, .calm .drift, .calm .sweep, .calm .spin, .calm .stamp, .calm .blink { animation: none !important }
+    /* Responsive workspace grids — media queries can't be expressed inline. */
+    @media (max-width: 1240px) {
+      .wsnip { grid-template-columns: minmax(210px,270px) minmax(0,1fr) !important }
+      .wsnip > section:first-child { display: none }
+    }
+    @media (max-width: 1100px) {
+      .hgrid, .howgrid { grid-template-columns: minmax(0,1fr) !important }
+      .tbar button { white-space: nowrap }
+    }
+    @media (max-height: 700px) {
+      .w2, .wnote, .wside, .wsnip { grid-auto-rows: minmax(300px, auto); overflow-y: auto }
+    }
+    @media (max-width: 860px) {
+      .w2, .wnote, .wside, .wsnip { grid-template-columns: minmax(0,1fr) !important; grid-auto-rows: minmax(300px, auto); overflow-y: auto }
+      .wnote > section:first-child { grid-auto-rows: auto }
+      .dgpanel { position: static !important; width: auto !important; transform: none !important; margin: 10px }
+      .drail { flex-direction: row !important; top: 10px !important; left: 10px !important; right: 10px; transform: none !important; overflow-x: auto }
+      .dgcontent { left: 16px !important; right: 16px !important; top: 150px !important; bottom: 60px !important }
+    }
+  </style>
+</helmet>
+
+<div style="position:relative;min-height:100vh;font-family:var(--font-body);color:var(--color-text);overflow-x:hidden">
+  <div aria-hidden="true" style="position:fixed;inset:0;z-index:0;pointer-events:none;background:#f3f2f2"></div>
+  <div aria-hidden="true" class="drift" style="position:fixed;inset:-20%;z-index:0;pointer-events:none;background:radial-gradient(38% 40% at 18% 12%, rgba(0,136,176,.24), transparent 70%),radial-gradient(34% 36% at 82% 8%, rgba(214,0,108,.16), transparent 72%),radial-gradient(46% 44% at 68% 88%, rgba(237,187,0,.14), transparent 70%)"></div>
+  <div aria-hidden="true" style="position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;background-image:radial-gradient(rgba(32,30,29,.16) .6px, transparent .7px);background-size:5px 5px"></div>
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div style="position:relative;z-index:1">
+    <header class="g2" style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:var(--space-4);padding:12px clamp(16px,4vw,56px);border-width:0 0 1px 0;border-radius:0">
+      <a href="#top" style="display:flex;align-items:center;gap:10px;color:var(--color-text)">
+        <span style="width:26px;height:26px;display:block"><dc-import name="ToolMark" tool="brand" hint-size="26px,26px"></dc-import></span>
+        <strong style="font-size:19px;letter-spacing:-.02em">FileKit</strong>
+      </a>
+      <nav style="display:flex;gap:var(--space-4);margin-left:var(--space-4);font-size:15px">
+        <a href="#tools">All tools</a>
+        <a href="#create">Editors</a>
+        <a href="#how">How it works</a>
+      </nav>
+      <div style="flex:1"></div>
+      <button class="ctl" type="button" onClick="{{ openFirst }}" style="display:flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--color-accent-700);border-radius:var(--radius-lg);background:var(--color-accent-700);color:#fff;cursor:pointer;font-size:15px" style-hover="background:var(--color-accent-800);border-color:var(--color-accent-800)">
+        Open the workspace
+        <span style="font-size:13px">&#8594;</span>
+      </button>
+    </header>
+
+    <section id="top" style="padding:clamp(40px,7vw,104px) clamp(16px,4vw,56px) clamp(32px,5vw,72px);max-width:1560px">
+      <div class="hgrid" style="display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:clamp(24px,4vw,64px);align-items:end">
+        <div>
+          <p class="fu" style="margin:0 0 var(--space-4);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">No accounts · No uploads · Nothing left behind</p>
+          <h1 class="fu d1" style="margin:0;font-size:clamp(46px,7.6vw,108px);line-height:.94;letter-spacing:-.03em;max-width:15ch">
+            <span style="display:block">Files in.</span>
+            <span class="cmyk-head" style="display:block" ref="{{ pressRef }}">
+              <span class="paper">Result out.</span>
+              <span class="plate plate-c" aria-hidden="true">Result out.</span>
+              <span class="plate plate-m" aria-hidden="true">Result out.</span>
+              <span class="plate plate-y" aria-hidden="true">Result out.</span>
+            </span>
+          </h1>
+          <p class="fu d2" style="margin:var(--space-6) 0 0;font-size:clamp(18px,1.5vw,22px);line-height:1.5;max-width:52ch;color:var(--color-neutral-800);text-wrap:pretty">
+            Sixteen tools for the small jobs — convert, compress, merge, split, read, transcribe, draw, diff, write, keep code. The work happens in this browser, on this device, and then it is over.
+          </p>
+          <div class="fu d3" style="display:flex;flex-wrap:wrap;gap:var(--space-3);margin-top:var(--space-6)">
+            <button class="ctl" type="button" onClick="{{ openFirst }}" style="padding:14px 26px;border:1px solid var(--color-accent-700);border-radius:var(--radius-lg);background:var(--color-accent-700);color:#fff;cursor:pointer;font-size:17px" style-hover="background:var(--color-accent-800)">Start with a file</button>
+            <a class="ctl g" href="#tools" style="padding:14px 26px;border-radius:var(--radius-lg);color:var(--color-text);font-size:17px" style-hover="background:rgba(255,255,255,.78)">See all 16 tools</a>
+          </div>
+        </div>
+        <div class="g fu d4" style="padding:var(--space-6);border-radius:var(--radius-lg)">
+          <p style="margin:0 0 var(--space-3);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">Where the work runs</p>
+          <div style="display:grid;gap:var(--space-3)">
+            <div style="display:flex;gap:12px;align-items:baseline">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent);flex:none;transform:translateY(-3px)"></span>
+              <p style="margin:0;font-size:15px;line-height:1.45"><strong>13 tools never leave the tab.</strong> No request is made with your file at all.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:baseline">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--color-accent-2);flex:none;transform:translateY(-3px)"></span>
+              <p style="margin:0;font-size:15px;line-height:1.45"><strong>3 AI tools ask first,</strong> then use the provider key you supply — held on this device, forgettable in one click.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:baseline">
+              <span style="width:8px;height:8px;border-radius:50%;background:var(--color-process-yellow);flex:none;transform:translateY(-3px)"></span>
+              <p style="margin:0;font-size:15px;line-height:1.45"><strong>Editors save to this browser only,</strong> with export and clear on every page.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tools" style="padding:clamp(32px,4vw,64px) clamp(16px,4vw,56px);max-width:1560px">
+      <div style="display:flex;flex-wrap:wrap;gap:var(--space-4);align-items:baseline;justify-content:space-between;margin-bottom:var(--space-6)">
+        <div>
+          <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">File operations</p>
+          <h2 style="margin:0;font-size:clamp(30px,3.4vw,46px);letter-spacing:-.025em">Pick the job, not the app</h2>
+        </div>
+        <p style="margin:0;max-width:40ch;color:var(--color-neutral-800);font-size:16px">Nine operations on the files you already have. Each one opens straight into its workspace.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:var(--space-4)">
+        <sc-for list="{{ fileTools }}" as="t" hint-placeholder-count="9">
+          <button class="g lift" type="button" onClick="{{ t.open }}" style="position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:var(--space-4);border-radius:var(--radius-lg);cursor:pointer;text-align:left;overflow:hidden" style-hover="background:rgba(255,255,255,.72)">
+            <span style="width:34px;height:34px;display:block"><dc-import name="ToolMark" tool="{{ t.id }}" hint-size="34px,34px"></dc-import></span>
+            <strong style="font-size:20px;letter-spacing:-.02em;font-family:var(--font-heading)">{{ t.shortName }}</strong>
+            <span style="font-size:15px;line-height:1.4;color:var(--color-neutral-800)">{{ t.description }}</span>
+            <span style="margin-top:auto;padding-top:8px;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--color-neutral-700)">{{ t.where }}</span>
+            <span aria-hidden="true" style="position:absolute;top:var(--space-4);right:var(--space-4);font-size:15px;color:var(--color-accent-700)">&#8594;</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section id="create" style="padding:clamp(32px,4vw,64px) clamp(16px,4vw,56px);max-width:1560px">
+      <div style="display:flex;flex-wrap:wrap;gap:var(--space-4);align-items:baseline;justify-content:space-between;margin-bottom:var(--space-6)">
+        <div>
+          <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-2-700)">Creation &amp; development</p>
+          <h2 style="margin:0;font-size:clamp(30px,3.4vw,46px);letter-spacing:-.025em">Editors that take the whole screen</h2>
+        </div>
+        <p style="margin:0;max-width:40ch;color:var(--color-neutral-800);font-size:16px">Seven full-bleed workspaces. Your work stays in this browser and follows you back.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:var(--space-4)">
+        <sc-for list="{{ createTools }}" as="t" hint-placeholder-count="7">
+          <button class="g lift" type="button" onClick="{{ t.open }}" style="position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:var(--space-4);border-radius:var(--radius-lg);cursor:pointer;text-align:left;overflow:hidden" style-hover="background:rgba(255,255,255,.72)">
+            <span style="width:34px;height:34px;display:block"><dc-import name="ToolMark" tool="{{ t.id }}" hint-size="34px,34px"></dc-import></span>
+            <strong style="font-size:20px;letter-spacing:-.02em;font-family:var(--font-heading)">{{ t.shortName }}</strong>
+            <span style="font-size:15px;line-height:1.4;color:var(--color-neutral-800)">{{ t.description }}</span>
+            <span style="margin-top:auto;padding-top:8px;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--color-neutral-700)">{{ t.where }}</span>
+            <span aria-hidden="true" style="position:absolute;top:var(--space-4);right:var(--space-4);font-size:15px;color:var(--color-accent-2-700)">&#8594;</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section id="how" style="padding:clamp(40px,5vw,88px) clamp(16px,4vw,56px);max-width:1560px">
+      <div class="howgrid" style="display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,4vw,64px);align-items:start">
+        <div>
+          <p style="margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">A short path to done</p>
+          <h2 style="margin:0 0 var(--space-3);font-size:clamp(30px,3.4vw,46px);letter-spacing:-.025em">Three steps, then it is yours</h2>
+          <p style="margin:0;font-size:17px;line-height:1.5;color:var(--color-neutral-800);max-width:44ch">Every tool keeps the same rhythm and says where it runs before you begin. Refresh the page and the file is gone from memory.</p>
+        </div>
+        <ol style="list-style:none;margin:0;padding:0;display:grid;gap:var(--space-3)">
+          <li class="g" style="display:flex;gap:var(--space-4);align-items:center;padding:var(--space-4);border-radius:var(--radius-lg)">
+            <span class="cmyk-num" style="font-size:44px;font-family:var(--font-heading);--cmyk-num-ground:transparent"><span class="paper">1</span><span class="plate plate-c" aria-hidden="true">1</span><span class="plate plate-m" aria-hidden="true">1</span><span class="plate plate-y" aria-hidden="true">1</span></span>
+            <div><strong style="font-size:19px;font-family:var(--font-heading)">Choose</strong><p style="margin:2px 0 0;color:var(--color-neutral-800)">Drop in only the file the task needs.</p></div>
+          </li>
+          <li class="g" style="display:flex;gap:var(--space-4);align-items:center;padding:var(--space-4);border-radius:var(--radius-lg)">
+            <span class="cmyk-num" style="font-size:44px;font-family:var(--font-heading);--cmyk-num-ground:transparent"><span class="paper">2</span><span class="plate plate-c" aria-hidden="true">2</span><span class="plate plate-m" aria-hidden="true">2</span><span class="plate plate-y" aria-hidden="true">2</span></span>
+            <div><strong style="font-size:19px;font-family:var(--font-heading)">Adjust</strong><p style="margin:2px 0 0;color:var(--color-neutral-800)">Set the range, the quality, the format, the model.</p></div>
+          </li>
+          <li class="g" style="display:flex;gap:var(--space-4);align-items:center;padding:var(--space-4);border-radius:var(--radius-lg)">
+            <span class="cmyk-num" style="font-size:44px;font-family:var(--font-heading);--cmyk-num-ground:transparent"><span class="paper">3</span><span class="plate plate-c" aria-hidden="true">3</span><span class="plate plate-m" aria-hidden="true">3</span><span class="plate plate-y" aria-hidden="true">3</span></span>
+            <div><strong style="font-size:19px;font-family:var(--font-heading)">Download</strong><p style="margin:2px 0 0;color:var(--color-neutral-800)">Save the result. Nothing is kept on our side.</p></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <footer style="padding:clamp(32px,4vw,64px) clamp(16px,4vw,56px) var(--space-8);max-width:1560px;display:flex;flex-wrap:wrap;gap:var(--space-6);justify-content:space-between;align-items:flex-end">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="width:30px;height:30px;display:block"><dc-import name="ToolMark" tool="brand" hint-size="30px,30px"></dc-import></span>
+        <strong style="font-size:18px">FileKit</strong>
+      </div>
+      <p style="margin:0;font-size:15px;color:var(--color-neutral-700)">Built with curiosity and care by Ozlorien Labs.</p>
+    </footer>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isTool }}">
+  <div style="position:relative;z-index:1;height:100vh;display:flex;overflow:hidden">
+    <sc-if value="{{ showRail }}" hint-placeholder-val="{{ true }}">
+    <aside class="g2 scroll" style="width:{{ railWidth }};flex:none;display:flex;flex-direction:column;gap:2px;padding:12px 10px;border-width:0 1px 0 0;border-radius:0;overflow-y:auto">
+      <button class="ctl" type="button" onClick="{{ goHome }}" style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:8px;border:0;background:transparent;cursor:pointer;border-radius:var(--radius-lg)" style-hover="background:rgba(255,255,255,.6)">
+        <span style="width:24px;height:24px;flex:none;display:block"><dc-import name="ToolMark" tool="brand" hint-size="24px,24px"></dc-import></span>
+        <sc-if value="{{ railLabels }}" hint-placeholder-val="{{ true }}"><strong style="font-size:17px;letter-spacing:-.02em">FileKit</strong></sc-if>
+      </button>
+      <sc-if value="{{ railLabels }}" hint-placeholder-val="{{ true }}">
+        <p style="margin:6px 0 4px 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Files</p>
+      </sc-if>
+      <sc-for list="{{ fileTools }}" as="t" hint-placeholder-count="9">
+        <button class="ctl" type="button" onClick="{{ t.open }}" title="{{ t.name }}" style="position:relative;display:flex;align-items:center;gap:10px;padding:8px;border:0;background:transparent;cursor:pointer;border-radius:var(--radius-lg);text-align:left;width:100%" style-hover="background:rgba(255,255,255,.62)">
+          <sc-if value="{{ t.active }}"><span aria-hidden="true" style="position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--color-accent)"></span></sc-if>
+          <span style="width:22px;height:22px;flex:none;display:block"><dc-import name="ToolMark" tool="{{ t.id }}" hint-size="22px,22px"></dc-import></span>
+          <sc-if value="{{ railLabels }}" hint-placeholder-val="{{ true }}"><span style="font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.shortName }}</span></sc-if>
+        </button>
+      </sc-for>
+      <sc-if value="{{ railLabels }}" hint-placeholder-val="{{ true }}">
+        <p style="margin:14px 0 4px 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Create</p>
+      </sc-if>
+      <sc-for list="{{ createTools }}" as="t" hint-placeholder-count="7">
+        <button class="ctl" type="button" onClick="{{ t.open }}" title="{{ t.name }}" style="position:relative;display:flex;align-items:center;gap:10px;padding:8px;border:0;background:transparent;cursor:pointer;border-radius:var(--radius-lg);text-align:left;width:100%" style-hover="background:rgba(255,255,255,.62)">
+          <sc-if value="{{ t.active }}"><span aria-hidden="true" style="position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--color-accent-2)"></span></sc-if>
+          <span style="width:22px;height:22px;flex:none;display:block"><dc-import name="ToolMark" tool="{{ t.id }}" hint-size="22px,22px"></dc-import></span>
+          <sc-if value="{{ railLabels }}" hint-placeholder-val="{{ true }}"><span style="font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.shortName }}</span></sc-if>
+        </button>
+      </sc-for>
+      <div style="flex:1"></div>
+      <button class="ctl" type="button" onClick="{{ toggleRail }}" style="display:flex;align-items:center;gap:10px;padding:8px;border:0;background:transparent;cursor:pointer;border-radius:var(--radius-lg);color:var(--color-neutral-700);font-size:13px" style-hover="background:rgba(255,255,255,.6)">
+        <span aria-hidden="true" style="width:22px;text-align:center">{{ railGlyph }}</span>
+        <sc-if value="{{ railLabels }}" hint-placeholder-val="{{ true }}"><span>Collapse rail</span></sc-if>
+      </button>
+    </aside>
+    </sc-if>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <header class="g2 tbar" style="display:flex;align-items:center;gap:var(--space-3);padding:10px clamp(12px,2vw,20px);border-width:0 0 1px 0;border-radius:0;flex:none">
+        <span style="width:26px;height:26px;flex:none;display:block"><dc-import name="ToolMark" tool="{{ toolId }}" hint-size="26px,26px"></dc-import></span>
+        <div style="min-width:0">
+          <h1 style="margin:0;font-size:19px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tool.name }}</h1>
+          <p style="margin:0;font-size:12.5px;color:var(--color-neutral-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tool.description }}</p>
+        </div>
+        <span class="gi" style="flex:none;display:flex;align-items:center;gap:7px;margin-left:var(--space-2);padding:5px 11px;border-radius:999px;font-size:12.5px;color:var(--color-accent-800)">
+          <span aria-hidden="true" style="width:7px;height:7px;border-radius:50%;background:var(--color-accent)"></span>{{ tool.where }}
+        </span>
+        <div style="flex:1"></div>
+        <button class="ctl gi" type="button" onClick="{{ toggleFull }}" title="Full screen" style="padding:7px 12px;border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="background:rgba(255,255,255,.7)">{{ fullLabel }}</button>
+        <button class="ctl gi" type="button" onClick="{{ toggleSettings }}" title="Settings" style="padding:7px 12px;border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="background:rgba(255,255,255,.7)">Settings</button>
+        <button class="ctl gi" type="button" onClick="{{ goHome }}" style="padding:7px 12px;border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="background:rgba(255,255,255,.7)">All tools</button>
+      </header>
+
+      <main class="fi" key="{{ toolId }}" style="flex:1;min-height:0;padding:clamp(10px,1.4vw,18px);display:flex">
+
+        <sc-if value="{{ isPipeline }}">
+        <div class="wpipe scroll" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:clamp(10px,1.2vw,16px);width:100%;max-width:820px;margin:0 auto;padding-bottom:var(--space-4)">
+          <section class="g" style="display:flex;flex-direction:column;min-height:300px;flex:none;padding:var(--space-4);border-radius:var(--radius-lg)">
+            <p style="margin:0 0 var(--space-3);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">1 · Source</p>
+            <sc-if value="{{ noFile }}">
+              <button class="ctl" type="button" onClick="{{ pick }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-3);border:1.5px dashed var(--color-neutral-400);border-radius:var(--radius-lg);background:rgba(255,255,255,.28);cursor:pointer" style-hover="background:rgba(233,248,255,.5);border-color:var(--color-accent)">
+                <span class="drift" style="width:74px;height:74px;display:block;opacity:.85"><dc-import name="ToolMark" tool="{{ toolId }}" hint-size="74px,74px"></dc-import></span>
+                <strong style="font-size:21px;font-family:var(--font-heading)">Drop a file, or click to choose</strong>
+                <span style="font-size:14px;color:var(--color-neutral-700)">{{ acceptLine }}</span>
+                <span style="font-size:13px;color:var(--color-neutral-600)">{{ tool.maxSize }}</span>
+              </button>
+            </sc-if>
+            <sc-if value="{{ hasFile }}">
+              <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:var(--space-3)">
+                <div class="gi fu" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius-lg)">
+                  <span style="width:28px;height:28px;flex:none;display:block"><dc-import name="ToolMark" tool="{{ toolId }}" hint-size="28px,28px"></dc-import></span>
+                  <div style="min-width:0;flex:1">
+                    <strong style="display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fileName }}</strong>
+                    <span style="font-size:12.5px;color:var(--color-neutral-700)">{{ fileMeta }}</span>
+                  </div>
+                  <button class="ctl" type="button" onClick="{{ reset }}" style="padding:5px 10px;border:1px solid var(--color-neutral-300);background:transparent;border-radius:var(--radius-lg);cursor:pointer;font-size:12.5px" style-hover="border-color:var(--color-accent-2);color:var(--color-accent-2-700)">Remove</button>
+                </div>
+                <div class="gi" style="flex:1;min-height:0;border-radius:var(--radius-lg);padding:var(--space-3);overflow:hidden;display:flex;flex-direction:column;gap:8px">
+                  <p style="margin:0;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-700)">Preview</p>
+                  <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;align-content:start;overflow:auto" class="scroll">
+                    <sc-for list="{{ pages }}" as="p" hint-placeholder-count="6">
+                      <div style="aspect-ratio:.72;background:#fff;border:1px solid var(--color-neutral-300);box-shadow:var(--shadow-sm);padding:8px;display:flex;flex-direction:column;gap:4px">
+                        <span style="height:5px;background:var(--color-neutral-300)"></span>
+                        <span style="height:5px;background:var(--color-neutral-200)"></span>
+                        <span style="height:5px;background:var(--color-neutral-200);width:70%"></span>
+                        <span style="flex:1"></span>
+                        <span style="font-size:10.5px;color:var(--color-neutral-600)">{{ p.label }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </section>
+
+          <section class="g" style="display:flex;flex-direction:column;gap:var(--space-4);flex:none;padding:var(--space-4);border-radius:var(--radius-lg)">
+            <p style="margin:0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">2 · Settings</p>
+            <div>
+              <p style="margin:0 0 8px;font-size:14px;color:var(--color-neutral-800)">{{ outputLabel }}</p>
+              <div style="display:grid;gap:6px">
+                <sc-for list="{{ outputs }}" as="o" hint-placeholder-count="4">
+                  <button class="ctl" type="button" onClick="{{ o.pick }}" style="position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.42);border-radius:var(--radius-lg);cursor:pointer;text-align:left;font-size:14.5px" style-hover="border-color:var(--color-accent);background:rgba(233,248,255,.6)">
+                    <span aria-hidden="true" style="width:13px;height:13px;border:1px solid var(--color-neutral-500);border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center">
+                      <sc-if value="{{ o.on }}"><span style="width:7px;height:7px;border-radius:50%;background:var(--color-accent)"></span></sc-if>
+                    </span>
+                    <span style="flex:1">{{ o.label }}</span>
+                    <span style="font-size:12px;color:var(--color-neutral-600)">{{ o.note }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+                <p style="margin:0;font-size:14px;color:var(--color-neutral-800)">{{ qualityLabel }}</p>
+                <strong style="font-size:14px;color:var(--color-accent-700)">{{ qualityValue }}</strong>
+              </div>
+              <input type="range" min="1" max="100" value="{{ quality }}" onChange="{{ setQuality }}" style="width:100%;accent-color:var(--color-accent)">
+              <p style="margin:6px 0 0;font-size:12.5px;color:var(--color-neutral-600)">{{ qualityHint }}</p>
+            </div>
+            <label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--color-neutral-800);cursor:pointer">
+              <input type="checkbox" checked="{{ keepMeta }}" onChange="{{ toggleMeta }}" style="margin-top:3px;accent-color:var(--color-accent)">
+              <span>{{ extraLabel }}</span>
+            </label>
+            <div style="flex:1"></div>
+            <button class="ctl" type="button" onClick="{{ run }}" style="padding:14px;border:1px solid var(--color-accent-700);background:var(--color-accent-700);color:#fff;border-radius:var(--radius-lg);cursor:pointer;font-size:16px" style-hover="background:var(--color-accent-800)">{{ runLabel }}</button>
+          </section>
+
+          <section class="g" style="display:flex;flex-direction:column;min-height:300px;flex:none;padding:var(--space-4);border-radius:var(--radius-lg);position:relative;overflow:hidden">
+            <p style="margin:0 0 var(--space-3);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">3 · Result</p>
+            <sc-if value="{{ isIdle }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;color:var(--color-neutral-700)">
+                <span class="spin" aria-hidden="true" style="width:52px;height:52px;border:1px solid var(--color-neutral-400);border-radius:50%;position:relative;display:block">
+                  <span style="position:absolute;left:50%;top:-1px;bottom:-1px;width:1px;background:var(--color-neutral-400)"></span>
+                  <span style="position:absolute;top:50%;left:-1px;right:-1px;height:1px;background:var(--color-neutral-400)"></span>
+                </span>
+                <p style="margin:0;font-size:15px;max-width:26ch">Nothing yet. The result appears here and downloads straight to your device.</p>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isWorking }}">
+              <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--space-4)">
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+                    <strong style="font-size:17px;font-family:var(--font-heading)">{{ stageLabel }}</strong>
+                    <span style="font-size:15px;color:var(--color-accent-700)">{{ pctLabel }}</span>
+                  </div>
+                  <div style="position:relative;height:8px;background:var(--color-neutral-200);border-radius:999px;overflow:hidden">
+                    <div style="position:absolute;inset:0 auto 0 0;width:{{ pctWidth }};background:linear-gradient(90deg,var(--color-accent-600),var(--color-accent-400));transition:width .3s linear"></div>
+                    <div class="sweep" aria-hidden="true" style="position:absolute;top:0;bottom:0;width:28%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)"></div>
+                  </div>
+                </div>
+                <ul style="list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px">
+                  <sc-for list="{{ log }}" as="l" hint-placeholder-count="3">
+                    <li style="display:flex;gap:10px;align-items:baseline;color:var(--color-neutral-800)">
+                      <span aria-hidden="true" style="color:var(--color-accent)">{{ l.glyph }}</span>
+                      <span>{{ l.text }}</span>
+                    </li>
+                  </sc-for>
+                </ul>
+                <p style="margin:0;font-size:13px;color:var(--color-neutral-600)">Running on this device. Closing the tab cancels it and keeps nothing.</p>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isDone }}">
+              <div style="flex:1;display:flex;flex-direction:column;gap:var(--space-4);min-height:0">
+                <div class="fu" style="display:flex;align-items:center;gap:var(--space-4)">
+                  <span class="cmyk-num" style="font-size:40px;font-family:var(--font-heading);--cmyk-num-ground:transparent"><span class="paper">{{ savedFigure }}</span><span class="plate plate-c" aria-hidden="true">{{ savedFigure }}</span><span class="plate plate-m" aria-hidden="true">{{ savedFigure }}</span><span class="plate plate-y" aria-hidden="true">{{ savedFigure }}</span></span>
+                  <div>
+                    <strong style="display:block;font-size:18px;font-family:var(--font-heading)">{{ resultTitle }}</strong>
+                    <span style="font-size:14px;color:var(--color-neutral-700)">{{ resultMeta }}</span>
+                  </div>
+                </div>
+                <div class="gi" style="flex:1;min-height:0;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                  <div style="width:56%;aspect-ratio:.74;background:#fff;box-shadow:var(--shadow-lg);border:1px solid var(--color-neutral-300);padding:16px;display:flex;flex-direction:column;gap:7px">
+                    <span style="height:8px;background:var(--color-neutral-800);width:62%"></span>
+                    <span style="height:5px;background:var(--color-neutral-300)"></span>
+                    <span style="height:5px;background:var(--color-neutral-300)"></span>
+                    <span style="height:5px;background:var(--color-neutral-300);width:80%"></span>
+                    <span style="height:5px;background:var(--color-neutral-200)"></span>
+                    <span style="flex:1"></span>
+                    <span style="height:5px;background:var(--color-neutral-200);width:40%"></span>
+                  </div>
+                  <span class="stamp" aria-hidden="true" style="position:absolute;right:11%;bottom:14%;padding:8px 14px;border:2px solid var(--color-accent-2);color:var(--color-accent-2);font-size:14px;letter-spacing:.14em;text-transform:uppercase;background:rgba(255,255,255,.55)">Done</span>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <button class="ctl" type="button" onClick="{{ reset }}" style="flex:1;min-width:140px;padding:13px;border:1px solid var(--color-accent-700);background:var(--color-accent-700);color:#fff;border-radius:var(--radius-lg);cursor:pointer;font-size:15.5px" style-hover="background:var(--color-accent-800)">Download {{ outLabel }}</button>
+                  <button class="ctl" type="button" onClick="{{ reset }}" style="padding:13px 18px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.5);border-radius:var(--radius-lg);cursor:pointer;font-size:15.5px" style-hover="border-color:var(--color-accent)">Start over</button>
+                </div>
+              </div>
+            </sc-if>
+          </section>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isMarkdown }}">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:10px">
+          <div class="g" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius-lg);flex:none;flex-wrap:wrap">
+            <sc-for list="{{ mdActions }}" as="a" hint-placeholder-count="6">
+              <button class="ctl" type="button" onClick="{{ a.run }}" style="padding:6px 11px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.45);border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="border-color:var(--color-accent);color:var(--color-accent-800)">{{ a.label }}</button>
+            </sc-for>
+            <div style="flex:1"></div>
+            <span style="font-size:12.5px;color:var(--color-neutral-700)">{{ mdStats }}</span>
+            <span class="gi" style="padding:4px 10px;border-radius:999px;font-size:12px;color:var(--color-accent-800)">Draft saved here</span>
+          </div>
+          <div class="w2 scroll" style="flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+              <p style="margin:0;padding:9px 14px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);border-bottom:1px solid rgba(32,30,29,.09)">Markdown</p>
+              <textarea class="scroll" value="{{ mdText }}" onChange="{{ setMd }}" spellcheck="false" style="flex:1;min-height:0;width:100%;padding:18px;border:0;background:transparent;resize:none;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14.5px;line-height:1.7;outline:none"></textarea>
+            </section>
+            <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+              <p style="margin:0;padding:9px 14px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);border-bottom:1px solid rgba(32,30,29,.09)">Preview</p>
+              <div class="scroll" style="flex:1;min-height:0;overflow:auto;padding:26px 30px;font-size:16.5px;line-height:1.6;background:rgba(255,255,255,.42)">{{ mdPreview }}</div>
+            </section>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isNotepad }}">
+        <div class="wnote scroll" style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(200px,250px) minmax(0,1fr);gap:10px">
+          <section class="g scroll" style="min-height:0;display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:var(--radius-lg);overflow-y:auto">
+            <button class="ctl" type="button" onClick="{{ newNote }}" style="padding:10px;border:1px solid var(--color-accent-700);background:var(--color-accent-700);color:#fff;border-radius:var(--radius-lg);cursor:pointer;font-size:14.5px" style-hover="background:var(--color-accent-800)">New note</button>
+            <p style="margin:10px 0 2px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">In this browser</p>
+            <sc-for list="{{ notes }}" as="n" hint-placeholder-count="4">
+              <button class="ctl" type="button" onClick="{{ n.open }}" style="position:relative;display:block;width:100%;padding:10px 12px;border:0;background:rgba(255,255,255,.4);border-radius:var(--radius-lg);cursor:pointer;text-align:left" style-hover="background:rgba(255,255,255,.72)">
+                <sc-if value="{{ n.active }}"><span aria-hidden="true" style="position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--color-accent-2)"></span></sc-if>
+                <strong style="display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.title }}</strong>
+                <span style="font-size:12px;color:var(--color-neutral-700)">{{ n.meta }}</span>
+              </button>
+            </sc-for>
+            <div style="flex:1"></div>
+            <button class="ctl" type="button" style="padding:9px;border:1px solid var(--color-neutral-300);background:transparent;border-radius:var(--radius-lg);cursor:pointer;font-size:13px" style-hover="border-color:var(--color-accent)">Export all as ZIP</button>
+          </section>
+          <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(32,30,29,.09);flex-wrap:wrap">
+              <input value="{{ noteTitle }}" onChange="{{ setNoteTitle }}" style="flex:1;min-width:160px;padding:6px 0;border:0;background:transparent;font-family:var(--font-heading);font-size:20px;letter-spacing:-.02em;outline:none">
+              <div class="gi" style="display:flex;gap:2px;padding:3px;border-radius:var(--radius-lg)">
+                <sc-for list="{{ noteModes }}" as="m" hint-placeholder-count="3">
+                  <button class="ctl" type="button" onClick="{{ m.pick }}" style="position:relative;padding:5px 12px;border:0;background:transparent;border-radius:var(--radius-md);cursor:pointer;font-size:13px">
+                    <sc-if value="{{ m.on }}"><span aria-hidden="true" style="position:absolute;inset:0;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-sm)"></span></sc-if>
+                    <span style="position:relative">{{ m.label }}</span>
+                  </button>
+                </sc-for>
+              </div>
+              <span style="font-size:12px;color:var(--color-neutral-700)">{{ noteSaved }}</span>
+            </div>
+            <div style="flex:1;min-height:0;display:flex">
+              <textarea class="scroll" value="{{ noteBody }}" onChange="{{ setNoteBody }}" spellcheck="false" style="flex:1;min-height:0;padding:30px clamp(24px,6vw,90px);border:0;background:transparent;resize:none;font-size:17px;line-height:1.68;outline:none;font-family:var(--font-body)"></textarea>
+            </div>
+          </section>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isDiff }}">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:10px">
+          <div class="g" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-lg);flex:none;flex-wrap:wrap">
+            <div class="gi" style="display:flex;gap:2px;padding:3px;border-radius:var(--radius-lg)">
+              <sc-for list="{{ diffModes }}" as="m" hint-placeholder-count="2">
+                <button class="ctl" type="button" onClick="{{ m.pick }}" style="position:relative;padding:6px 14px;border:0;background:transparent;border-radius:var(--radius-md);cursor:pointer;font-size:13.5px">
+                  <sc-if value="{{ m.on }}"><span aria-hidden="true" style="position:absolute;inset:0;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-sm)"></span></sc-if>
+                  <span style="position:relative">{{ m.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <span style="font-size:13.5px;color:var(--color-neutral-800)"><strong style="color:var(--color-accent-700)">{{ diffAdded }}</strong> added · <strong style="color:var(--color-accent-2-700)">{{ diffRemoved }}</strong> removed</span>
+            <div style="flex:1"></div>
+            <button class="ctl" type="button" style="padding:6px 12px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.45);border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="border-color:var(--color-accent)">Download .patch</button>
+          </div>
+          <div class="w2 scroll" style="flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+              <p style="margin:0;padding:9px 14px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);border-bottom:1px solid rgba(32,30,29,.09)">Original</p>
+              <div class="scroll" style="flex:1;min-height:0;overflow:auto;font-family:ui-monospace,Menlo,monospace;font-size:13.5px;line-height:1.75">
+                <sc-for list="{{ diffLeft }}" as="l" hint-placeholder-count="12">
+                  <div style="display:flex;gap:14px;padding:0 14px">
+                    <span style="width:2.2em;text-align:right;color:var(--color-neutral-500);flex:none">{{ l.n }}</span>
+                    <sc-if value="{{ l.cut }}"><span style="flex:1;background:rgba(255,222,230,.75);box-shadow:-6px 0 0 rgba(255,222,230,.75)">{{ l.text }}</span></sc-if>
+                    <sc-if value="{{ l.plain }}" hint-placeholder-val="{{ true }}"><span style="flex:1">{{ l.text }}</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+            <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+              <p style="margin:0;padding:9px 14px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);border-bottom:1px solid rgba(32,30,29,.09)">Changed</p>
+              <div class="scroll" style="flex:1;min-height:0;overflow:auto;font-family:ui-monospace,Menlo,monospace;font-size:13.5px;line-height:1.75">
+                <sc-for list="{{ diffRight }}" as="l" hint-placeholder-count="12">
+                  <div style="display:flex;gap:14px;padding:0 14px">
+                    <span style="width:2.2em;text-align:right;color:var(--color-neutral-500);flex:none">{{ l.n }}</span>
+                    <sc-if value="{{ l.add }}"><span style="flex:1;background:rgba(203,238,255,.8);box-shadow:-6px 0 0 rgba(203,238,255,.8)">{{ l.text }}</span></sc-if>
+                    <sc-if value="{{ l.plain }}" hint-placeholder-val="{{ true }}"><span style="flex:1">{{ l.text }}</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isDiagram }}">
+        <div style="flex:1;min-height:0;position:relative;border-radius:var(--radius-lg);overflow:hidden;background-color:rgba(255,255,255,.34);background-image:radial-gradient(rgba(32,30,29,.2) 1px, transparent 1.1px);background-size:22px 22px;border:1px solid rgba(255,255,255,.6)">
+          <div class="g drail" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:var(--radius-lg);z-index:3">
+            <sc-for list="{{ drawTools }}" as="d" hint-placeholder-count="7">
+              <button class="ctl" type="button" onClick="{{ d.pick }}" title="{{ d.name }}" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;border-radius:var(--radius-md);cursor:pointer;font-size:16px" style-hover="background:rgba(233,248,255,.8)">
+                <sc-if value="{{ d.on }}"><span aria-hidden="true" style="position:absolute;inset:0;background:var(--color-accent-100);border:1px solid var(--color-accent);border-radius:var(--radius-md)"></span></sc-if>
+                <span aria-hidden="true" style="position:relative">{{ d.glyph }}</span>
+              </button>
+            </sc-for>
+          </div>
+          <div class="dgcontent" style="position:absolute;left:72px;right:250px;top:16px;bottom:72px;z-index:1">
+            <svg aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%" fill="none">
+              <line x1="14%" y1="28%" x2="40%" y2="50%" stroke="var(--color-text)" stroke-width="1.6"></line>
+              <line x1="72%" y1="50%" x2="88%" y2="28%" stroke="var(--color-text)" stroke-width="1.6"></line>
+              <line x1="50%" y1="64%" x2="50%" y2="80%" stroke="var(--color-accent-2)" stroke-width="1.6" stroke-dasharray="5 5"></line>
+            </svg>
+            <div style="position:absolute;left:0;top:14%;width:150px;padding:14px;background:#fff;border:1.6px solid var(--color-text);box-shadow:var(--shadow-md);font-size:14.5px;z-index:2">Source file</div>
+            <div style="position:absolute;left:50%;top:46%;transform:translateX(-50%);width:170px;padding:14px;background:var(--color-accent-100);border:1.6px solid var(--color-accent);box-shadow:var(--shadow-md);font-size:14.5px;z-index:2">Runs in the browser</div>
+            <div style="position:absolute;right:0;top:14%;width:150px;padding:14px;background:#fff;border:1.6px solid var(--color-text);border-radius:999px;text-align:center;box-shadow:var(--shadow-md);font-size:14.5px;z-index:2">Download</div>
+            <div style="position:absolute;left:50%;top:80%;transform:translateX(-50%);padding:8px 14px;border:1.6px dashed var(--color-accent-2);color:var(--color-accent-2-700);font-size:13.5px;background:rgba(255,255,255,.7);white-space:nowrap;z-index:2">nothing stored</div>
+          </div>
+          <div class="g dgpanel" style="position:absolute;right:14px;top:14px;width:216px;padding:14px;border-radius:var(--radius-lg);z-index:3">
+            <p style="margin:0 0 10px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">Selection</p>
+            <div style="display:grid;gap:10px;font-size:13.5px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--color-neutral-700)">Stroke</span><span style="display:flex;gap:5px"><span style="width:16px;height:16px;background:var(--color-text);border:1px solid rgba(0,0,0,.15)"></span><span style="width:16px;height:16px;background:var(--color-accent)"></span><span style="width:16px;height:16px;background:var(--color-accent-2)"></span></span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--color-neutral-700)">Fill</span><span style="display:flex;gap:5px"><span style="width:16px;height:16px;background:#fff;border:1px solid var(--color-neutral-400)"></span><span style="width:16px;height:16px;background:var(--color-accent-100)"></span><span style="width:16px;height:16px;background:var(--color-accent-2-200)"></span></span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--color-neutral-700)">Width</span><input type="range" min="1" max="6" value="2" style="width:96px;accent-color:var(--color-accent)"></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--color-neutral-700)">Edges</span><span style="font-size:12.5px">Sharp · Round</span></div>
+            </div>
+          </div>
+          <div class="g" style="position:absolute;right:14px;bottom:14px;display:flex;align-items:center;gap:2px;padding:5px;border-radius:var(--radius-lg);z-index:3;font-size:13.5px">
+            <button class="ctl" type="button" style="width:30px;height:30px;border:0;background:transparent;cursor:pointer;border-radius:var(--radius-md)" style-hover="background:rgba(233,248,255,.8)">&#8722;</button>
+            <span style="padding:0 8px;color:var(--color-neutral-800)">100%</span>
+            <button class="ctl" type="button" style="width:30px;height:30px;border:0;background:transparent;cursor:pointer;border-radius:var(--radius-md)" style-hover="background:rgba(233,248,255,.8)">+</button>
+          </div>
+          <div class="gi" style="position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:10px;padding:7px 14px;border-radius:999px;z-index:3;font-size:13px;color:var(--color-neutral-800)">
+            <span>Saved to this browser</span><span style="color:var(--color-neutral-400)">|</span><span>PNG</span><span>SVG</span><span>.excalidraw</span>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isMermaid }}">
+        <div class="wside scroll" style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(280px,400px) minmax(0,1fr);gap:10px">
+          <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(32,30,29,.09)">
+              <p style="margin:0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);flex:1">Mermaid source</p>
+              <button class="ctl" type="button" style="padding:4px 10px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.5);border-radius:var(--radius-lg);cursor:pointer;font-size:12.5px" style-hover="border-color:var(--color-accent)">Samples</button>
+            </div>
+            <textarea class="scroll" value="{{ mermaidText }}" onChange="{{ setMermaid }}" spellcheck="false" style="flex:1;min-height:0;padding:16px;border:0;background:transparent;resize:none;font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:1.75;outline:none"></textarea>
+            <div style="padding:10px 14px;border-top:1px solid rgba(32,30,29,.09);display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--color-neutral-700)">
+              <span aria-hidden="true" class="blink" style="width:7px;height:7px;border-radius:50%;background:var(--color-accent)"></span> Live render · saved in this browser
+            </div>
+          </section>
+          <section class="g" style="min-height:0;position:relative;border-radius:var(--radius-lg);overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.4)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0;font-size:15px">
+              <div style="padding:13px 22px;background:#fff;border:1.6px solid var(--color-text);box-shadow:var(--shadow-sm)">Choose a file</div>
+              <span style="width:1.6px;height:34px;background:var(--color-text)"></span>
+              <div style="padding:13px 22px;background:var(--color-accent-100);border:1.6px solid var(--color-accent);box-shadow:var(--shadow-sm)">Process locally</div>
+              <span style="width:1.6px;height:34px;background:var(--color-text)"></span>
+              <div style="display:flex;gap:44px;align-items:flex-start;position:relative">
+                <span aria-hidden="true" style="position:absolute;left:22%;right:22%;top:0;height:1.6px;background:var(--color-text)"></span>
+                <div style="display:flex;flex-direction:column;align-items:center"><span style="width:1.6px;height:26px;background:var(--color-text)"></span><div style="padding:11px 18px;background:#fff;border:1.6px solid var(--color-text);border-radius:999px">Download</div></div>
+                <div style="display:flex;flex-direction:column;align-items:center"><span style="width:1.6px;height:26px;background:var(--color-accent-2)"></span><div style="padding:11px 18px;background:var(--color-accent-2-100);border:1.6px solid var(--color-accent-2);border-radius:999px">Discard</div></div>
+              </div>
+            </div>
+            <div class="g" style="position:absolute;right:14px;top:14px;display:flex;gap:6px;padding:6px;border-radius:var(--radius-lg)">
+              <button class="ctl" type="button" style="padding:5px 11px;border:0;background:transparent;border-radius:var(--radius-md);cursor:pointer;font-size:13px" style-hover="background:rgba(233,248,255,.85)">Fit</button>
+              <button class="ctl" type="button" style="padding:5px 11px;border:0;background:transparent;border-radius:var(--radius-md);cursor:pointer;font-size:13px" style-hover="background:rgba(233,248,255,.85)">SVG</button>
+              <button class="ctl" type="button" style="padding:5px 11px;border:0;background:transparent;border-radius:var(--radius-md);cursor:pointer;font-size:13px" style-hover="background:rgba(233,248,255,.85)">PNG</button>
+            </div>
+          </section>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isSnippets }}">
+        <div class="wsnip scroll" style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(170px,210px) minmax(220px,300px) minmax(0,1fr);gap:10px">
+          <section class="g scroll" style="min-height:0;padding:14px;border-radius:var(--radius-lg);overflow-y:auto">
+            <p style="margin:0 0 10px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">Tags</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ tags }}" as="t" hint-placeholder-count="8">
+                <button class="ctl" type="button" onClick="{{ t.pick }}" style="position:relative;padding:5px 11px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.45);border-radius:999px;cursor:pointer;font-size:13px" style-hover="border-color:var(--color-accent);color:var(--color-accent-800)">
+                  <sc-if value="{{ t.on }}"><span aria-hidden="true" style="position:absolute;inset:0;background:var(--color-accent-100);border:1px solid var(--color-accent);border-radius:999px"></span></sc-if>
+                  <span style="position:relative">{{ t.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+          <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+            <div style="padding:10px;border-bottom:1px solid rgba(32,30,29,.09)">
+              <input value="{{ snipQuery }}" onChange="{{ setSnipQuery }}" placeholder="Search snippets" style="width:100%;padding:8px 11px;border:1px solid var(--color-neutral-300);border-radius:var(--radius-lg);background:rgba(255,255,255,.6);outline:none;font-size:14px">
+            </div>
+            <div class="scroll" style="flex:1;min-height:0;overflow-y:auto;padding:8px;display:grid;gap:6px;align-content:start">
+              <sc-for list="{{ snippets }}" as="s" hint-placeholder-count="6">
+                <button class="ctl" type="button" onClick="{{ s.open }}" style="position:relative;display:block;width:100%;padding:11px 12px;border:0;background:rgba(255,255,255,.42);border-radius:var(--radius-lg);cursor:pointer;text-align:left" style-hover="background:rgba(255,255,255,.75)">
+                  <sc-if value="{{ s.active }}"><span aria-hidden="true" style="position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--color-accent)"></span></sc-if>
+                  <strong style="display:block;font-size:14.5px">{{ s.title }}</strong>
+                  <span style="font-size:12px;color:var(--color-neutral-700)">{{ s.meta }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+          <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden">
+            <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(32,30,29,.09);flex-wrap:wrap">
+              <strong style="font-family:var(--font-heading);font-size:19px;letter-spacing:-.02em">{{ snipTitle }}</strong>
+              <span class="gi" style="padding:3px 10px;border-radius:999px;font-size:12px;color:var(--color-accent-800)">{{ snipLang }}</span>
+              <div style="flex:1"></div>
+              <button class="ctl" type="button" style="padding:6px 12px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.45);border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="border-color:var(--color-accent)">Copy</button>
+              <button class="ctl" type="button" style="padding:6px 12px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.45);border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="border-color:var(--color-accent)">Download</button>
+            </div>
+            <div class="scroll" style="flex:1;min-height:0;overflow:auto;padding:18px 20px;font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:1.8">
+              <sc-for list="{{ snipLines }}" as="l" hint-placeholder-count="10">
+                <div style="display:flex;gap:16px">
+                  <span style="width:2.2em;text-align:right;color:var(--color-neutral-500);flex:none">{{ l.n }}</span>
+                  <span style="flex:1;white-space:pre-wrap;color:{{ l.color }}">{{ l.text }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isGenerator }}">
+        <div class="wside scroll" style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:10px">
+          <section class="g" style="min-height:0;display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-lg)">
+            <p style="margin:0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">Describe the snippet</p>
+            <textarea class="scroll" value="{{ genPrompt }}" onChange="{{ setGenPrompt }}" style="min-height:120px;padding:12px;border:1px solid var(--color-neutral-300);border-radius:var(--radius-lg);background:rgba(255,255,255,.55);resize:none;font-size:15px;line-height:1.5;outline:none"></textarea>
+            <div style="display:grid;gap:8px">
+              <p style="margin:0;font-size:13.5px;color:var(--color-neutral-800)">Where it runs</p>
+              <sc-for list="{{ engines }}" as="e" hint-placeholder-count="2">
+                <button class="ctl" type="button" onClick="{{ e.pick }}" style="position:relative;display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.45);border-radius:var(--radius-lg);cursor:pointer;text-align:left" style-hover="border-color:var(--color-accent)">
+                  <span aria-hidden="true" style="width:13px;height:13px;border:1px solid var(--color-neutral-500);border-radius:50%;flex:none;margin-top:3px;display:flex;align-items:center;justify-content:center">
+                    <sc-if value="{{ e.on }}"><span style="width:7px;height:7px;border-radius:50%;background:var(--color-accent)"></span></sc-if>
+                  </span>
+                  <span>
+                    <strong style="display:block;font-size:14.5px">{{ e.label }}</strong>
+                    <span style="font-size:12.5px;color:var(--color-neutral-700)">{{ e.note }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+            <button class="ctl" type="button" onClick="{{ generate }}" style="padding:13px;border:1px solid var(--color-accent-700);background:var(--color-accent-700);color:#fff;border-radius:var(--radius-lg);cursor:pointer;font-size:15.5px" style-hover="background:var(--color-accent-800)">{{ genLabel }}</button>
+            <p style="margin:0;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">Recent</p>
+            <div class="scroll" style="flex:1;min-height:0;overflow-y:auto;display:grid;gap:6px;align-content:start">
+              <sc-for list="{{ genHistory }}" as="h" hint-placeholder-count="4">
+                <button class="ctl" type="button" onClick="{{ h.open }}" style="display:block;padding:9px 11px;border:0;background:rgba(255,255,255,.42);border-radius:var(--radius-lg);cursor:pointer;text-align:left;font-size:13.5px" style-hover="background:rgba(255,255,255,.72)">{{ h.label }}</button>
+              </sc-for>
+            </div>
+          </section>
+          <section class="g" style="min-height:0;display:flex;flex-direction:column;border-radius:var(--radius-lg);overflow:hidden;position:relative">
+            <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(32,30,29,.09)">
+              <strong style="font-family:var(--font-heading);font-size:18px">{{ genTitle }}</strong>
+              <div style="flex:1"></div>
+              <button class="ctl" type="button" style="padding:6px 12px;border:1px solid var(--color-neutral-300);background:rgba(255,255,255,.45);border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="border-color:var(--color-accent)">Save to snippets</button>
+            </div>
+            <sc-if value="{{ genBusy }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+                <span class="spin" aria-hidden="true" style="width:46px;height:46px;border:1px solid var(--color-accent);border-top-color:transparent;border-radius:50%;display:block"></span>
+                <p style="margin:0;color:var(--color-neutral-700);font-size:15px">Generating on device…</p>
+              </div>
+            </sc-if>
+            <sc-if value="{{ genReady }}" hint-placeholder-val="{{ true }}">
+              <div class="scroll fi" style="flex:1;min-height:0;overflow:auto;padding:20px;font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:1.8">
+                <sc-for list="{{ genLines }}" as="l" hint-placeholder-count="9">
+                  <div style="display:flex;gap:16px">
+                    <span style="width:2.2em;text-align:right;color:var(--color-neutral-500);flex:none">{{ l.n }}</span>
+                    <span style="flex:1;white-space:pre-wrap;color:{{ l.color }}">{{ l.text }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </section>
+        </div>
+        </sc-if>
+
+      </main>
+    </div>
+
+    <sc-if value="{{ settingsOpen }}">
+    <div style="position:fixed;inset:0;z-index:40;display:flex;justify-content:flex-end;background:rgba(32,30,29,.22)" onClick="{{ closeSettings }}">
+      <aside class="g fu" style="width:min(400px,92vw);height:100%;padding:var(--space-6);border-radius:0;border-width:0 0 0 1px;display:flex;flex-direction:column;gap:var(--space-4)" onClick="{{ stop }}">
+        <div style="display:flex;align-items:baseline;gap:10px">
+          <h2 style="margin:0;font-size:25px;letter-spacing:-.02em;flex:1">Settings</h2>
+          <button class="ctl" type="button" onClick="{{ closeSettings }}" style="padding:6px 11px;border:1px solid var(--color-neutral-300);background:transparent;border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="border-color:var(--color-accent)">Close</button>
+        </div>
+        <div style="display:grid;gap:var(--space-3)">
+          <label style="display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" checked="{{ fullDefault }}" onChange="{{ toggleFullDefault }}" style="margin-top:4px;accent-color:var(--color-accent)">
+            <span><strong style="display:block;font-size:15.5px">Open tools full screen</strong><span style="font-size:13.5px;color:var(--color-neutral-700)">Every workspace goes edge to edge on open. The toolbar keeps its own toggle.</span></span>
+          </label>
+          <label style="display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" checked="{{ railLabels }}" onChange="{{ toggleRail }}" style="margin-top:4px;accent-color:var(--color-accent)">
+            <span><strong style="display:block;font-size:15.5px">Show tool names in the rail</strong><span style="font-size:13.5px;color:var(--color-neutral-700)">Off gives the canvas another 150 pixels.</span></span>
+          </label>
+          <label style="display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" checked="{{ glassOn }}" onChange="{{ toggleGlass }}" style="margin-top:4px;accent-color:var(--color-accent)">
+            <span><strong style="display:block;font-size:15.5px">Glass surfaces</strong><span style="font-size:13.5px;color:var(--color-neutral-700)">Off draws flat panels — the same fallback older browsers get.</span></span>
+          </label>
+          <label style="display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" checked="{{ calmMotion }}" onChange="{{ toggleMotion }}" style="margin-top:4px;accent-color:var(--color-accent)">
+            <span><strong style="display:block;font-size:15.5px">Reduce motion</strong><span style="font-size:13.5px;color:var(--color-neutral-700)">Keeps state changes, drops the drift and sweeps.</span></span>
+          </label>
+        </div>
+        <div style="height:1px;background:rgba(32,30,29,.12)"></div>
+        <div>
+          <p style="margin:0 0 8px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">AI provider key</p>
+          <input placeholder="sk-… (stays on this device)" style="width:100%;padding:10px 12px;border:1px solid var(--color-neutral-300);border-radius:var(--radius-lg);background:rgba(255,255,255,.6);outline:none;font-size:14px">
+          <button class="ctl" type="button" style="margin-top:8px;padding:8px 12px;border:1px solid var(--color-accent-2);color:var(--color-accent-2-700);background:transparent;border-radius:var(--radius-lg);cursor:pointer;font-size:13.5px" style-hover="background:var(--color-accent-2-100)">Forget key on this device</button>
+        </div>
+        <div style="flex:1"></div>
+        <p style="margin:0;font-size:13px;color:var(--color-neutral-700)">Settings live in this browser's local storage. Clearing site data resets them.</p>
+      </aside>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;railDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Workspace&quot;},&quot;fullscreenDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Workspace&quot;}}">
+const CATALOG = [
+  { id:'convert', name:'Convert files', shortName:'Convert', description:'Change images, documents, PDFs, text, and audio into useful formats.', cat:'files', kind:'pipeline', where:'Runs locally', accept:['Images','PDF','DOCX','TXT','Audio'], maxSize:'Up to 100 MB',
+    outputs:[['PNG','lossless'],['JPG','smallest'],['WebP','modern'],['PDF','one page each']], outputLabel:'Output format', quality:'Image quality', qualityHint:'Higher keeps detail; lower makes a smaller file.', extra:'Keep original metadata', run:'Convert file', out:'PNG' },
+  { id:'compress', name:'Compress files', shortName:'Compress', description:'Reduce image or PDF size with a quality level you control.', cat:'files', kind:'pipeline', where:'Runs locally', accept:['PDF','PNG','JPG','WebP'], maxSize:'Up to 100 MB',
+    outputs:[['Balanced','recommended'],['Smaller','visible loss'],['Sharpest','bigger file'],['Custom','set below']], outputLabel:'Compression preset', quality:'Target quality', qualityHint:'The preview updates so you can judge before downloading.', extra:'Strip embedded thumbnails', run:'Compress file', out:'file' },
+  { id:'summarize', name:'Summarize a file', shortName:'Summarize', description:'Turn a long document into a focused brief with your own AI key.', cat:'files', kind:'pipeline', where:'Local + your AI provider', accept:['PDF','DOCX','TXT','Markdown'], maxSize:'Up to 25 MB',
+    outputs:[['Key points','bulleted'],['Executive brief','one page'],['Section by section','longer'],['Plain summary','no headings']], outputLabel:'Shape of the summary', quality:'Detail level', qualityHint:'Text is extracted here, then sent to the provider whose key you supply.', extra:'Include a quoted source line per point', run:'Summarize', out:'brief' },
+  { id:'merge', name:'Merge PDF', shortName:'Merge PDF', description:'Combine PDFs and images in exactly the order you choose.', cat:'files', kind:'pipeline', where:'Runs locally', accept:['PDF','PNG','JPG','WebP'], maxSize:'20 files · 150 MB',
+    outputs:[['Keep file order','as added'],['By name','A–Z'],['By date','oldest first'],['Reverse','last first']], outputLabel:'Page order', quality:'Page scale', qualityHint:'Drag the pages in the preview to set the exact sequence.', extra:'Add a bookmark per source file', run:'Merge into one PDF', out:'PDF' },
+  { id:'ocr', name:'Extract text with OCR', shortName:'OCR', description:'Read printed text from scans, screenshots, images, and PDFs.', cat:'files', kind:'pipeline', where:'Runs locally', accept:['PDF','PNG','JPG','WebP'], maxSize:'25 MB · 50 pages',
+    outputs:[['Plain text','.txt'],['Text layer PDF','searchable'],['Markdown','keeps headings'],['Per page','one file each']], outputLabel:'Text output', quality:'Recognition effort', qualityHint:'Fifteen languages, all recognised in this tab by WASM.', extra:'Keep line breaks as in the page', run:'Extract text', out:'text' },
+  { id:'audio-to-text', name:'Audio to text', shortName:'Audio to text', description:'Transcribe interviews, voice notes, meetings, and recordings.', cat:'files', kind:'pipeline', where:'On-device model or your key', accept:['MP3','M4A','WAV','WebM','OGG','FLAC'], maxSize:'Up to 100 MB',
+    outputs:[['Plain transcript','.txt'],['With timestamps','.srt'],['Speaker turns','labelled'],['Captions','.vtt']], outputLabel:'Transcript format', quality:'Model size', qualityHint:'On-device Whisper by default; your OpenAI key is the alternative.', extra:'Split into paragraphs at pauses', run:'Transcribe', out:'transcript' },
+  { id:'split', name:'Split PDF', shortName:'Split PDF', description:'Extract selected pages or break a PDF into smaller documents.', cat:'files', kind:'pipeline', where:'Runs locally', accept:['PDF'], maxSize:'100 MB · 500 pages',
+    outputs:[['Every page','one PDF each'],['Page ranges','you type them'],['Selected pages','click below'],['Every N pages','fixed size']], outputLabel:'How to split', quality:'Pages per file', qualityHint:'Click pages in the preview to include or exclude them.', extra:'Deliver as a ZIP archive', run:'Split PDF', out:'ZIP' },
+  { id:'word-to-pdf', name:'Word to PDF', shortName:'Word to PDF', description:'Turn a DOCX document into an easy-to-share PDF.', cat:'files', kind:'pipeline', where:'Runs locally', accept:['DOCX'], maxSize:'Up to 25 MB',
+    outputs:[['A4','portrait'],['Letter','portrait'],['A4','landscape'],['Match source','as authored']], outputLabel:'Page size', quality:'Render fidelity', qualityHint:'The document is rendered here first so you can check it.', extra:'Keep hyperlinks live', run:'Create PDF', out:'PDF' },
+  { id:'pdf-to-word', name:'PDF to Word', shortName:'PDF to Word', description:'Extract PDF text into a clean, editable DOCX document.', cat:'files', kind:'pipeline', where:'Runs locally', accept:['PDF'], maxSize:'50 MB · 300 pages',
+    outputs:[['Flowing text','best for editing'],['Keep layout','text boxes'],['Text only','no images'],['Markdown','plain structure']], outputLabel:'Document structure', quality:'Layout accuracy', qualityHint:'Text-based PDFs convert cleanly; scans should go through OCR first.', extra:'Keep images inline', run:'Create DOCX', out:'DOCX' },
+  { id:'notepad', name:'Notepad', shortName:'Notepad', description:'Write notes that stay in this browser, with Markdown and HTML preview.', cat:'create', kind:'notepad', where:'Saved in this browser' },
+  { id:'markdown', name:'Markdown previewer', shortName:'Markdown preview', description:'Write Markdown on one side and see the rendered page on the other.', cat:'create', kind:'markdown', where:'Saved in this browser' },
+  { id:'diff', name:'Diff checker', shortName:'Diff checker', description:'Compare two texts or files and see every changed line and character.', cat:'create', kind:'diff', where:'Runs locally' },
+  { id:'diagram', name:'Diagram creator', shortName:'Diagram', description:'Sketch whiteboard diagrams with shapes, arrows, and text.', cat:'create', kind:'diagram', where:'Saved in this browser' },
+  { id:'mermaid', name:'Mermaid editor', shortName:'Mermaid', description:'Turn Mermaid text into flowcharts, sequence diagrams, and more.', cat:'create', kind:'mermaid', where:'Saved in this browser' },
+  { id:'snippets', name:'Code snippets', shortName:'Snippets', description:'Capture code with tags and highlighting, saved on this device.', cat:'create', kind:'snippets', where:'Saved in this browser' },
+  { id:'snippet-generator', name:'Snippet generator', shortName:'Snippet generator', description:'Describe the code you need and generate it on device or with your key.', cat:'create', kind:'generator', where:'On-device AI or your key' },
+];
+
+const MD = `# Release notes
+
+FileKit runs in **your** browser. Nothing is uploaded, nothing is queued,
+nothing is kept after the tab closes.
+
+## What changed
+
+- Every tool opens straight into a full-width workspace
+- Glass panels, with a flat fallback where the blur is unsupported
+- A registration mark per tool, doubling as its favicon
+
+> The file never leaves the device it was opened on.
+
+Run \`npm run verify\` before release.`;
+
+const SNIPS = [
+  { title:'Read a dropped file', meta:'TypeScript · dom, files', lang:'TypeScript' },
+  { title:'Blob to object URL', meta:'JavaScript · download', lang:'JavaScript' },
+  { title:'Debounce a value', meta:'React · hooks', lang:'TypeScript' },
+  { title:'Worker message channel', meta:'JavaScript · workers', lang:'JavaScript' },
+  { title:'PDF page count', meta:'TypeScript · pdf-lib', lang:'TypeScript' },
+  { title:'Clear local storage keys', meta:'JavaScript · storage', lang:'JavaScript' },
+];
+
+const CODE = [
+  ['export async function readDropped(', 'k'],
+  ['  event: DragEvent,', 'p'],
+  ['): Promise<File[]> {', 'k'],
+  ['  const items = event.dataTransfer?.files;', 'p'],
+  ['  if (!items) return [];', 'm'],
+  ['  return Array.from(items).filter((file) =>', 'p'],
+  ['    file.size <= MAX_BYTES', 'a'],
+  ['  );', 'p'],
+  ['}', 'k'],
+];
+
+const GEN = [
+  ['function toObjectUrl(blob: Blob) {', 'k'],
+  ['  const url = URL.createObjectURL(blob);', 'p'],
+  ['  // revoke as soon as the download starts', 'm'],
+  ['  requestIdleCallback(() =>', 'p'],
+  ['    URL.revokeObjectURL(url)', 'a'],
+  ['  );', 'p'],
+  ['  return url;', 'p'],
+  ['}', 'k'],
+];
+
+const DIFF_LEFT = [
+  'const tool = catalog.find((t) => t.id === id);','','if (!tool) {','  throw new Error("unknown tool");','}','','const result = await run(tool, file);','return result.blob;',
+];
+const DIFF_RIGHT = [
+  'const tool = catalog.find((t) => t.id === id);','','if (!tool) {','  throw new ToolNotFound(id);','}','','const result = await run(tool, file, { local: true });','track("tool.done", tool.id);','return result.blob;',
+];
+
+class Component extends DCLogic {
+  state = {
+    route: 'home', pipe: 'idle', pct: 0, output: 0, quality: 72, keepMeta: true,
+    settingsOpen: false, railLabels: true, fullDefault: false, glassOn: true, calmMotion: false,
+    md: MD, note: 0, noteMode: 0, noteBody: 'Everything here stays in this browser.\n\nExport a single note, or all of them as a ZIP, whenever you like.',
+    noteTitle: 'Handover notes', diffMode: 0, drawTool: 1, tag: 0, snip: 0, snipQuery: '',
+    genPrompt: 'A helper that turns a Blob into an object URL and revokes it after the download starts.',
+    engine: 0, genState: 'ready', mermaid: 'flowchart TD\n  A[Choose a file] --> B[Process locally]\n  B --> C(Download)\n  B --> D(Discard)',
+  };
+
+  componentDidMount() {
+    this.press = (e) => {
+      const el = this.pressEl; if (!el || this.state.calmMotion) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--press-nx', (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3));
+      el.style.setProperty('--press-ny', (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(3));
+    };
+    window.addEventListener('pointermove', this.press);
+    this.mq = window.matchMedia('(max-width: 1000px)');
+    this.onMq = () => this.setState({ narrow: this.mq.matches });
+    this.onMq();
+    this.mq.addEventListener('change', this.onMq);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('pointermove', this.press);
+    if (this.mq) this.mq.removeEventListener('change', this.onMq);
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  open(id) {
+    this.setState({ route: id, pipe: 'idle', pct: 0, output: 0, settingsOpen: false });
+    if (this.state.fullDefault) this.enterFull();
+  }
+  enterFull() {
+    const el = document.documentElement;
+    if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+  }
+  toggleFull = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else this.enterFull();
+    this.forceUpdate();
+  };
+  run = () => {
+    if (this.state.pipe === 'idle') { this.pick(); return; }
+    if (this.timer) clearInterval(this.timer);
+    this.setState({ pipe: 'working', pct: 0 });
+    this.timer = setInterval(() => {
+      this.setState((s) => {
+        const pct = Math.min(100, s.pct + 4 + Math.random() * 7);
+        if (pct >= 100) { clearInterval(this.timer); return { pct: 100, pipe: 'done' }; }
+        return { pct };
+      });
+    }, 130);
+  };
+  pick = () => this.setState({ pipe: 'ready' });
+  reset = () => { if (this.timer) clearInterval(this.timer); this.setState({ pipe: 'idle', pct: 0 }); };
+
+  mdNodes(text) {
+    const h = React.createElement;
+    const out = []; const lines = text.split('\n');
+    let para = [], list = [], code = null, key = 0;
+    const inline = (s) => {
+      const parts = []; const re = /(\*\*[^*]+\*\*|`[^`]+`)/g; let last = 0, m;
+      while ((m = re.exec(s))) {
+        if (m.index > last) parts.push(s.slice(last, m.index));
+        const t = m[0];
+        if (t.startsWith('**')) parts.push(h('strong', { key: parts.length }, t.slice(2, -2)));
+        else parts.push(h('code', { key: parts.length, style: { fontFamily: 'ui-monospace,Menlo,monospace', fontSize: '.88em', background: 'var(--color-accent-100)', padding: '1px 5px' } }, t.slice(1, -1)));
+        last = m.index + t.length;
+      }
+      if (last < s.length) parts.push(s.slice(last));
+      return parts;
+    };
+    const flushP = () => { if (para.length) { out.push(h('p', { key: key++, style: { margin: '0 0 1em', textWrap: 'pretty' } }, inline(para.join(' ')))); para = []; } };
+    const flushL = () => { if (list.length) { out.push(h('ul', { key: key++, style: { margin: '0 0 1em 1.1em', padding: 0 } }, list.map((li, i) => h('li', { key: i, style: { marginBottom: '.3em' } }, inline(li))))); list = []; } };
+    lines.forEach((raw) => {
+      const line = raw.trimEnd();
+      if (code !== null) { if (line.startsWith('```')) { out.push(h('pre', { key: key++, style: { margin: '0 0 1em', padding: '12px 14px', background: 'rgba(255,255,255,.75)', border: '1px solid var(--color-neutral-300)', fontFamily: 'ui-monospace,Menlo,monospace', fontSize: '14px', overflowX: 'auto' } }, code.join('\n'))); code = null; } else code.push(raw); return; }
+      if (line.startsWith('```')) { flushP(); flushL(); code = []; return; }
+      if (!line) { flushP(); flushL(); return; }
+      if (/^#{1,3} /.test(line)) {
+        flushP(); flushL();
+        const level = line.match(/^#+/)[0].length;
+        const size = level === 1 ? 34 : level === 2 ? 25 : 20;
+        out.push(h('h' + level, { key: key++, style: { margin: level === 1 ? '0 0 .5em' : '1.1em 0 .45em', fontSize: size, letterSpacing: '-.02em', fontFamily: 'var(--font-heading)' } }, inline(line.replace(/^#+ /, ''))));
+        return;
+      }
+      if (line.startsWith('- ')) { flushP(); list.push(line.slice(2)); return; }
+      if (line.startsWith('> ')) { flushP(); flushL(); out.push(h('blockquote', { key: key++, style: { margin: '0 0 1em', padding: '2px 0 2px 16px', borderLeft: '2px solid var(--color-accent-2)', fontStyle: 'italic', color: 'var(--color-accent-2-800)' } }, inline(line.slice(2)))); return; }
+      para.push(line);
+    });
+    flushP(); flushL();
+    return out;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const tool = CATALOG.find((t) => t.id === s.route) || CATALOG[0];
+    const mk = (t) => ({ ...t, active: t.id === s.route, open: () => this.open(t.id) });
+    const colorOf = (c) => c === 'k' ? 'var(--color-accent-800)' : c === 'm' ? 'var(--color-neutral-600)' : c === 'a' ? 'var(--color-accent-2-700)' : 'var(--color-text)';
+    const isFull = typeof document !== 'undefined' && !!document.fullscreenElement;
+    const pipe = tool.kind === 'pipeline';
+    const runLabel = tool.run || '';
+    const cap = (x) => x ? x.replace(/^\w/, (c) => c.toUpperCase()) : '';
+    const narrow = !!s.narrow;
+
+    return {
+      isHome: s.route === 'home', isTool: s.route !== 'home', tool, toolId: tool.id,
+      fileTools: CATALOG.filter((t) => t.cat === 'files').map(mk),
+      createTools: CATALOG.filter((t) => t.cat === 'create').map(mk),
+      openFirst: () => this.open('convert'),
+      goHome: () => this.setState({ route: 'home', settingsOpen: false }),
+      pressRef: (el) => { this.pressEl = el; },
+
+      showRail: true, railLabels: s.railLabels && !narrow, railWidth: (s.railLabels && !narrow) ? '212px' : '62px',
+      railGlyph: s.railLabels ? '\u00AB' : '\u00BB',
+      toggleRail: () => this.setState({ railLabels: !s.railLabels }),
+      fullLabel: isFull ? 'Exit full screen' : 'Full screen',
+      toggleFull: this.toggleFull,
+      toggleSettings: () => this.setState({ settingsOpen: !s.settingsOpen }),
+      closeSettings: () => this.setState({ settingsOpen: false }),
+      stop: (e) => e.stopPropagation(),
+      settingsOpen: s.settingsOpen,
+      fullDefault: s.fullDefault, toggleFullDefault: () => this.setState({ fullDefault: !s.fullDefault }),
+      glassOn: s.glassOn, toggleGlass: () => {
+        document.documentElement.classList.toggle('flat', s.glassOn);
+        this.setState({ glassOn: !s.glassOn });
+      },
+      calmMotion: s.calmMotion, toggleMotion: () => {
+        document.documentElement.classList.toggle('calm', !s.calmMotion);
+        this.setState({ calmMotion: !s.calmMotion });
+      },
+
+      isPipeline: tool.kind === 'pipeline', isMarkdown: tool.kind === 'markdown',
+      isNotepad: tool.kind === 'notepad', isDiff: tool.kind === 'diff',
+      isDiagram: tool.kind === 'diagram', isMermaid: tool.kind === 'mermaid',
+      isSnippets: tool.kind === 'snippets', isGenerator: tool.kind === 'generator',
+
+      acceptLine: (tool.accept || []).join(' \u00B7 '),
+      noFile: s.pipe === 'idle', hasFile: s.pipe !== 'idle',
+      isIdle: s.pipe === 'idle' || s.pipe === 'ready', isWorking: s.pipe === 'working', isDone: s.pipe === 'done',
+      fileName: tool.id === 'audio-to-text' ? 'standup-2026-09-01.m4a' : tool.id === 'word-to-pdf' ? 'handover.docx' : 'quarterly-report.pdf',
+      fileMeta: tool.id === 'audio-to-text' ? '18 min 42 s · 24.1 MB' : '14 pages · 6.4 MB',
+      pages: Array.from({ length: 8 }, (_, i) => ({ label: 'p. ' + (i + 1) })),
+      outputs: (tool.outputs || []).map((o, i) => ({ label: o[0], note: o[1], on: i === s.output, pick: () => this.setState({ output: i }) })),
+      outputLabel: tool.outputLabel, qualityLabel: tool.quality, qualityHint: tool.qualityHint,
+      quality: s.quality, qualityValue: s.quality + '%',
+      setQuality: (e) => this.setState({ quality: Number(e.target.value) }),
+      keepMeta: s.keepMeta, toggleMeta: () => this.setState({ keepMeta: !s.keepMeta }),
+      extraLabel: tool.extra, runLabel: s.pipe === 'idle' ? 'Choose a file first' : runLabel,
+      stageLabel: s.pct < 34 ? 'Reading the file' : s.pct < 72 ? cap(runLabel) + '\u2026' : 'Writing the result',
+      pctLabel: Math.round(s.pct) + '%', pctWidth: Math.round(s.pct) + '%',
+      log: [
+        { glyph: '\u2713', text: 'Loaded into memory in this tab' },
+        { glyph: s.pct > 40 ? '\u2713' : '\u00B7', text: 'Worker started — no network request' },
+        { glyph: s.pct > 80 ? '\u2713' : '\u00B7', text: 'Assembling the output' },
+      ],
+      savedFigure: tool.id === 'compress' ? '68%' : tool.id === 'merge' ? '1' : tool.id === 'split' ? '14' : '\u2713',
+      resultTitle: tool.id === 'compress' ? 'Smaller by 68%' : tool.id === 'merge' ? 'One PDF, 14 pages' : cap(runLabel) + ' complete',
+      resultMeta: 'Ready in your downloads folder in one click \u00B7 nothing was uploaded',
+      outLabel: tool.out || 'result', run: this.run, pick: this.pick, reset: this.reset,
+      hasPipelineFields: pipe,
+
+      mdText: s.md, setMd: (e) => this.setState({ md: e.target.value }),
+      mdPreview: this.mdNodes(s.md),
+      mdStats: s.md.split(/\s+/).filter(Boolean).length + ' words · ' + s.md.split('\n').length + ' lines',
+      mdActions: ['Bold', 'Italic', 'Heading', 'Link', 'Code', 'Copy HTML', 'Download .md'].map((l) => ({ label: l, run: () => {} })),
+
+      notes: ['Handover notes', 'Release checklist', 'Ideas — favicon set', 'Call with support'].map((t, i) => ({ title: t, meta: i === 0 ? 'Edited just now' : 'Edited ' + (i + 1) + ' d ago', active: i === s.note, open: () => this.setState({ note: i }) })),
+      noteTitle: s.noteTitle, setNoteTitle: (e) => this.setState({ noteTitle: e.target.value }),
+      noteBody: s.noteBody, setNoteBody: (e) => this.setState({ noteBody: e.target.value }),
+      noteModes: ['Plain', 'Markdown', 'HTML'].map((l, i) => ({ label: l, on: i === s.noteMode, pick: () => this.setState({ noteMode: i }) })),
+      noteSaved: 'Saved locally',
+      newNote: () => this.setState({ noteTitle: 'Untitled note', noteBody: '' }),
+
+      diffModes: ['Side by side', 'Unified'].map((l, i) => ({ label: l, on: i === s.diffMode, pick: () => this.setState({ diffMode: i }) })),
+      diffAdded: 3, diffRemoved: 2,
+      diffLeft: DIFF_LEFT.map((text, i) => ({ n: i + 1, text, cut: i === 3 || i === 6, plain: !(i === 3 || i === 6) })),
+      diffRight: DIFF_RIGHT.map((text, i) => ({ n: i + 1, text, add: i === 3 || i === 6 || i === 7, plain: !(i === 3 || i === 6 || i === 7) })),
+
+      drawTools: [
+        { name: 'Select', glyph: '\u2196' }, { name: 'Rectangle', glyph: '\u25A1' }, { name: 'Ellipse', glyph: '\u25CB' },
+        { name: 'Arrow', glyph: '\u2192' }, { name: 'Line', glyph: '\u2571' }, { name: 'Text', glyph: 'T' }, { name: 'Freehand', glyph: '\u270E' },
+      ].map((d, i) => ({ ...d, on: i === s.drawTool, pick: () => this.setState({ drawTool: i }) })),
+
+      mermaidText: s.mermaid, setMermaid: (e) => this.setState({ mermaid: e.target.value }),
+
+      tags: ['all', 'dom', 'files', 'react', 'hooks', 'pdf', 'workers', 'storage'].map((l, i) => ({ label: l, on: i === s.tag, pick: () => this.setState({ tag: i }) })),
+      snipQuery: s.snipQuery, setSnipQuery: (e) => this.setState({ snipQuery: e.target.value }),
+      snippets: SNIPS.filter((x) => x.title.toLowerCase().includes(s.snipQuery.toLowerCase())).map((x, i) => ({ ...x, active: i === s.snip, open: () => this.setState({ snip: i }) })),
+      snipTitle: (SNIPS[s.snip] || SNIPS[0]).title, snipLang: (SNIPS[s.snip] || SNIPS[0]).lang,
+      snipLines: CODE.map((c, i) => ({ n: i + 1, text: c[0], color: colorOf(c[1]) })),
+
+      genPrompt: s.genPrompt, setGenPrompt: (e) => this.setState({ genPrompt: e.target.value }),
+      engines: [
+        { label: 'Chrome built-in AI', note: 'On this device, no key, no network' },
+        { label: 'Your provider key', note: 'OpenAI, Anthropic, or Gemini' },
+      ].map((e2, i) => ({ ...e2, on: i === s.engine, pick: () => this.setState({ engine: i }) })),
+      generate: () => { this.setState({ genState: 'busy' }); setTimeout(() => this.setState({ genState: 'ready' }), 1400); },
+      genLabel: s.genState === 'busy' ? 'Generating…' : 'Generate snippet',
+      genBusy: s.genState === 'busy', genReady: s.genState === 'ready',
+      genTitle: 'Blob to object URL', genLines: GEN.map((c, i) => ({ n: i + 1, text: c[0], color: colorOf(c[1]) })),
+      genHistory: ['Debounce a value in React', 'Read a dropped file safely', 'Count PDF pages with pdf-lib', 'Clear namespaced storage keys'].map((l) => ({ label: l, open: () => {} })),
+    };
+  }
+}
+</script>
+</body>
+</html>
