@@ -44,9 +44,6 @@ function AppHeader() {
           <Link to="/en" onClick={() => setIsOpen(false)}>
             All tools
           </Link>
-          <Link to="/en/emojis" onClick={() => setIsOpen(false)}>
-            Emoji library
-          </Link>
         </nav>
       </div>
     </header>

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
@@ -23,6 +23,7 @@ describe('application routes', () => {
     ).toBeInTheDocument();
     expect(screen.getAllByTestId('tool-card')).toHaveLength(coreTools.length);
     expect(screen.queryByRole('link', { name: /browse every emoji/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /emoji library/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/log in/i)).not.toBeInTheDocument();
   });
 
@@ -91,7 +92,8 @@ describe('application routes', () => {
       'true',
     );
 
-    await user.click(screen.getByRole('link', { name: /emoji library/i }));
+    const primaryNav = screen.getByRole('navigation', { name: /primary navigation/i });
+    await user.click(within(primaryNav).getByRole('link', { name: /all tools/i }));
     expect(screen.getByRole('button', { name: /open navigation/i })).toHaveAttribute(
       'aria-expanded',
       'false',
