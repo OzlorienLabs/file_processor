@@ -47,9 +47,6 @@ function AppHeader() {
           <Link to="/en/emojis" onClick={() => setIsOpen(false)}>
             Emoji library
           </Link>
-          <a href="#privacy" onClick={() => setIsOpen(false)}>
-            Privacy
-          </a>
         </nav>
       </div>
     </header>
