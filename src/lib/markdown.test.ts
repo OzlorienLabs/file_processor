@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { countText, markdownToHtml, sampleMarkdown, sanitizeHtmlDocument, wrapHtmlDocument } from './markdown';
+import { countText, markdownToHtml, markdownToPdf, sampleMarkdown, sanitizeHtmlDocument, wrapHtmlDocument } from './markdown';
 
 describe('markdownToHtml', () => {
   it('renders GitHub-flavoured Markdown and escapes raw HTML', async () => {
@@ -55,5 +55,24 @@ describe('countText', () => {
   it('counts words, characters, and lines', () => {
     expect(countText('')).toEqual({ words: 0, characters: 0, lines: 0 });
     expect(countText('one two\nthree ')).toEqual({ words: 3, characters: 14, lines: 2 });
+  });
+});
+
+describe('markdownToPdf', () => {
+  it('converts markdown to a valid PDF byte array', async () => {
+    const bytes = await markdownToPdf('# Markdown Title\n\nThis is a paragraph with **bold** text.');
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    const raw = new TextDecoder('latin1').decode(bytes);
+    expect(raw.startsWith('%PDF')).toBe(true);
+    expect(raw).toContain('Markdown Title');
+    expect(raw).toContain('This is a paragraph with bold text.');
+  });
+
+  it('handles empty markdown producing placeholder page', async () => {
+    const bytes = await markdownToPdf('');
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    const raw = new TextDecoder('latin1').decode(bytes);
+    expect(raw.startsWith('%PDF')).toBe(true);
+    expect(raw).toContain('no extractable text');
   });
 });

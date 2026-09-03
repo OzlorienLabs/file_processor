@@ -4,12 +4,13 @@ import { z } from 'zod';
 
 import { MarkdownPreview } from '../../components/MarkdownPreview/MarkdownPreview';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
-import { copyText, downloadText } from '../../lib/download';
+import { copyText, downloadBlob, downloadText } from '../../lib/download';
 import { createValueStore } from '../../lib/local-store';
 import {
   applyMarkdownFormat,
   countText,
   markdownToHtml,
+  markdownToPdf,
   sampleMarkdown,
   wrapHtmlDocument,
   type MarkdownFormat,
@@ -81,6 +82,11 @@ export function MarkdownWorkspace() {
     downloadText(html, 'document.html', 'text/html;charset=utf-8');
   };
 
+  const downloadPdf = async () => {
+    const bytes = await markdownToPdf(draft.markdown);
+    downloadBlob(new Blob([Uint8Array.from(bytes)], { type: 'application/pdf' }), 'document.pdf');
+  };
+
   return (
     <div className="ed markdown-workspace">
       <div className="ed-bar g">
@@ -119,6 +125,9 @@ export function MarkdownWorkspace() {
         </button>
         <button className="button button-secondary" type="button" onClick={downloadHtml}>
           <Download aria-hidden="true" size={15} /> Download .html
+        </button>
+        <button className="button button-secondary" type="button" onClick={downloadPdf}>
+          <Download aria-hidden="true" size={15} /> Download PDF
         </button>
         <button className="button button-secondary" type="button" onClick={() => setMarkdown(sampleMarkdown)}>
           <RotateCcw aria-hidden="true" size={15} /> Sample

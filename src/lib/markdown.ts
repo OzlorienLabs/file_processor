@@ -48,6 +48,15 @@ export async function markdownToHtml(markdown: string): Promise<string> {
   return String(file);
 }
 
+/** Converts Markdown to PDF bytes using the document block layout. */
+export async function markdownToPdf(markdown: string): Promise<Uint8Array> {
+  const html = await markdownToHtml(markdown);
+  const { htmlToBlocks } = await import('./doc-blocks');
+  const { renderBlocksToPdf } = await import('./blocks-to-pdf');
+  const blocks = htmlToBlocks(html);
+  return renderBlocksToPdf(blocks);
+}
+
 /** Minimal Clay/Ivory stylesheet used by exported documents and the HTML preview frame. */
 /**
  * Broadsheet in literal inks, for exported documents and the sandboxed HTML preview: a

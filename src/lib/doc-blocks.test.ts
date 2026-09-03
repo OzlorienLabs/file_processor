@@ -46,6 +46,17 @@ describe('htmlToBlocks', () => {
       { kind: 'list-item', level: 0, text: 'Item' },
     ]);
   });
+
+  it('extracts pre code blocks and direct blockquotes', () => {
+    const blocks = htmlToBlocks(`
+      <pre><code>const x = 1;\nconsole.log(x);</code></pre>
+      <blockquote>Direct quote without p tag</blockquote>
+    `);
+    expect(blocks).toEqual([
+      { kind: 'paragraph', level: 0, text: 'const x = 1;\nconsole.log(x);' },
+      { kind: 'paragraph', level: 0, text: 'Direct quote without p tag' },
+    ]);
+  });
 });
 
 describe('textToBlocks', () => {

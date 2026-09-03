@@ -23,8 +23,8 @@ export function htmlToBlocks(html: string): DocBlock[] {
       if (text) blocks.push({ kind: 'heading', level: Number(headingMatch[1]), text });
       return;
     }
-    if (tag === 'p' || tag === 'td' || tag === 'th') {
-      const text = collapseWhitespace(element.textContent ?? '');
+    if (tag === 'p' || tag === 'td' || tag === 'th' || tag === 'pre' || (tag === 'blockquote' && !element.querySelector('p'))) {
+      const text = tag === 'pre' ? (element.textContent ?? '').trim() : collapseWhitespace(element.textContent ?? '');
       if (text) blocks.push({ kind: 'paragraph', level: 0, text });
       return;
     }

@@ -2,12 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { copyText, downloadText } from '../../lib/download';
+import { copyText, downloadBlob, downloadText } from '../../lib/download';
 import { MarkdownWorkspace } from './MarkdownWorkspace';
 
 vi.mock('../../lib/download', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../lib/download')>();
-  return { ...actual, downloadText: vi.fn(), copyText: vi.fn().mockResolvedValue(true) };
+  return { ...actual, downloadBlob: vi.fn(), downloadText: vi.fn(), copyText: vi.fn().mockResolvedValue(true) };
 });
 
 beforeEach(() => vi.clearAllMocks());
@@ -69,6 +69,11 @@ describe('MarkdownWorkspace', () => {
         expect.stringContaining('html'),
       ),
     );
+
+    await user.click(screen.getByRole('button', { name: /download pdf/i }));
+    await waitFor(() =>
+      expect(downloadBlob).toHaveBeenLastCalledWith(expect.any(Blob), 'document.pdf'),
+    );
   });
 
   it('does not flash the copied state when the clipboard is unavailable', async () => {
@@ -90,5 +95,16 @@ describe('MarkdownWorkspace', () => {
     setItem.mockRestore();
     await user.type(screen.getByLabelText(/^markdown$/i), '!');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('applies formatting from the toolbar buttons', async () => {
+    const user = userEvent.setup();
+    render(<MarkdownWorkspace />);
+    await user.click(screen.getByRole('button', { name: /^clear$/i }));
+    const textarea = screen.getByLabelText(/^markdown$/i) as HTMLTextAreaElement;
+    await user.type(textarea, 'hello');
+    textarea.setSelectionRange(0, 5);
+    await user.click(screen.getByRole('button', { name: /^bold$/i }));
+    expect(textarea.value).toBe('**hello**');
   });
 });
