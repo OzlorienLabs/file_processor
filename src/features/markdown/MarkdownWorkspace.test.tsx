@@ -45,23 +45,23 @@ describe('MarkdownWorkspace', () => {
     expect((screen.getByLabelText(/^markdown$/i) as HTMLTextAreaElement).value).toContain('# Markdown live preview');
   });
 
-  it('copies Markdown or HTML and downloads both formats', async () => {
+  it('copies Markdown or HTML and downloads all formats', async () => {
     const user = userEvent.setup();
     render(<MarkdownWorkspace />);
     await user.click(screen.getByRole('button', { name: /^clear$/i }));
     await user.type(screen.getByLabelText(/^markdown$/i), '# Title');
 
-    await user.click(screen.getByRole('button', { name: /copy markdown/i }));
+    await user.click(screen.getByRole('button', { name: /^markdown$/i }));
     expect(copyText).toHaveBeenLastCalledWith('# Title');
     expect(await screen.findByRole('button', { name: /^copied$/i })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /copy html/i }));
+    await user.click(screen.getByRole('button', { name: /^html$/i }));
     await waitFor(() => expect(copyText).toHaveBeenLastCalledWith('<h1>Title</h1>'));
 
-    await user.click(screen.getByRole('button', { name: /download \.md/i }));
+    await user.click(screen.getByRole('button', { name: /^\.md$/i }));
     expect(downloadText).toHaveBeenLastCalledWith('# Title', 'document.md', expect.stringContaining('markdown'));
 
-    await user.click(screen.getByRole('button', { name: /download \.html/i }));
+    await user.click(screen.getByRole('button', { name: /^\.html$/i }));
     await waitFor(() =>
       expect(downloadText).toHaveBeenLastCalledWith(
         expect.stringContaining('<h1>Title</h1>'),
@@ -70,7 +70,7 @@ describe('MarkdownWorkspace', () => {
       ),
     );
 
-    await user.click(screen.getByRole('button', { name: /download pdf/i }));
+    await user.click(screen.getByRole('button', { name: /^\.pdf$/i }));
     await waitFor(() =>
       expect(downloadBlob).toHaveBeenLastCalledWith(expect.any(Blob), 'document.pdf'),
     );
@@ -80,7 +80,7 @@ describe('MarkdownWorkspace', () => {
     vi.mocked(copyText).mockResolvedValue(false);
     const user = userEvent.setup();
     render(<MarkdownWorkspace />);
-    await user.click(screen.getByRole('button', { name: /copy markdown/i }));
+    await user.click(screen.getByRole('button', { name: /^markdown$/i }));
     expect(screen.queryByRole('button', { name: /^copied$/i })).not.toBeInTheDocument();
   });
 

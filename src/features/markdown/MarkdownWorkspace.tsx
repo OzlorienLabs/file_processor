@@ -110,24 +110,24 @@ export function MarkdownWorkspace() {
         <span className="spacer" />
         <button className="button button-secondary" type="button" onClick={copyMarkdown}>
           {copied === 'markdown' ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
-          {copied === 'markdown' ? 'Copied' : 'Copy Markdown'}
+          {copied === 'markdown' ? 'Copied' : 'Markdown'}
         </button>
         <button className="button button-secondary" type="button" onClick={copyHtml}>
           {copied === 'html' ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
-          {copied === 'html' ? 'Copied' : 'Copy HTML'}
+          {copied === 'html' ? 'Copied' : 'HTML'}
         </button>
         <button
           className="button button-secondary"
           type="button"
           onClick={() => downloadText(draft.markdown, 'document.md', 'text/markdown;charset=utf-8')}
         >
-          <Download aria-hidden="true" size={15} /> Download .md
+          <Download aria-hidden="true" size={15} /> .md
         </button>
         <button className="button button-secondary" type="button" onClick={downloadHtml}>
-          <Download aria-hidden="true" size={15} /> Download .html
+          <Download aria-hidden="true" size={15} /> .html
         </button>
         <button className="button button-secondary" type="button" onClick={downloadPdf}>
-          <Download aria-hidden="true" size={15} /> Download PDF
+          <Download aria-hidden="true" size={15} /> .pdf
         </button>
         <button className="button button-secondary" type="button" onClick={() => setMarkdown(sampleMarkdown)}>
           <RotateCcw aria-hidden="true" size={15} /> Sample
