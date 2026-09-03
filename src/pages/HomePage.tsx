@@ -4,12 +4,6 @@ import { toolCounts, toolsInCategory, type ToolDefinition } from '../app/tool-ca
 import { ToolMark } from '../components/ToolMark/ToolMark';
 import { usePressLean } from '../hooks/usePressLean';
 
-const whereItRuns: Record<ToolDefinition['processing'], string> = {
-  browser: 'Runs locally',
-  'browser-and-provider': 'Local + your AI provider',
-  'browser-or-provider': 'On-device AI or your key',
-};
-
 function PlateHeadline({ text }: { text: string }) {
   const press = usePressLean();
   return (
@@ -56,7 +50,6 @@ function ToolCard({ tool }: { tool: ToolDefinition }) {
       </span>
       <strong>{tool.shortName}</strong>
       <span>{tool.description}</span>
-      <small>{tool.storage === 'local' ? 'Saved in this browser' : whereItRuns[tool.processing]}</small>
     </Link>
   );
 }
