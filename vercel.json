@@ -3,6 +3,110 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "snippets.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/snippets",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "snippet-generator.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/snippet-generator",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "convert.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/convert",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "compress.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/compress",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "summarize.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/summarize",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "merge.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/merge",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "ocr.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/ocr",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "audio-to-text.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/audio-to-text",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "split.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/split",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "word-to-pdf.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/word-to-pdf",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "pdf-to-word.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/pdf-to-word",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "diagram.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/diagram",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "mermaid.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/mermaid",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "diff.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/diff",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "notepad.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/notepad",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "markdown.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/markdown",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "emojis.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/emojis",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
