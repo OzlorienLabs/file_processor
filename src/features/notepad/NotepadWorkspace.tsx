@@ -226,24 +226,45 @@ export function NotepadWorkspace() {
           </button>
         </div>
 
-        <div className="ed-grid note-panes" data-panes="split" data-view={layoutView === 'edit' ? 'editor' : layoutView}>
-          <div className="ed-pane note-pane">
-            <label className="sr-only" htmlFor="note-body">
-              Note
-            </label>
+        <div
+          className="ed-grid note-panes"
+          data-panes={showPreview ? 'split' : 'single'}
+          data-view={showPreview ? (layoutView === 'edit' ? 'editor' : layoutView) : undefined}
+        >
+          <div className="ed-pane note-pane" data-mode={current.mode}>
+            <div className="note-pane-head">
+              <label className="panel-label" htmlFor="note-body">
+                Note
+              </label>
+              <span className="ed-pill gi">
+                {current.mode === 'markdown' ? 'Markdown editor' : current.mode === 'html' ? 'HTML editor' : 'Plain text'}
+              </span>
+            </div>
             <textarea
               ref={textareaRef}
-              className="note-body scroll"
+              className={`note-body note-edit-box scroll ${current.mode !== 'plain' ? 'is-code' : ''}`}
               id="note-body"
               value={current.body}
-              placeholder={current.mode === 'plain' ? 'Write anything…' : current.mode === 'markdown' ? '# Write Markdown…' : '<h1>Write HTML…</h1>'}
+              placeholder={
+                current.mode === 'plain'
+                  ? 'Write anything…'
+                  : current.mode === 'markdown'
+                    ? '# Write Markdown…'
+                    : '<h1>Write HTML…</h1>'
+              }
               spellCheck={current.mode !== 'html'}
               onChange={(event) => change({ body: event.target.value })}
             />
           </div>
           {showPreview ? (
-            <div className="ed-pane note-pane">
-              <div className="ed-prose scroll">
+            <div className="ed-pane note-pane" data-mode={current.mode}>
+              <div className="note-pane-head">
+                <h3 className="panel-label">Preview</h3>
+                <span className="ed-pill gi">
+                  {current.mode === 'markdown' ? 'Rendered Markdown' : 'Rendered HTML'}
+                </span>
+              </div>
+              <div className="note-preview-box ed-prose scroll">
                 {current.mode === 'markdown' ? <MarkdownPreview markdown={current.body} /> : <HtmlPreview html={current.body} />}
               </div>
             </div>
