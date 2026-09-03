@@ -109,24 +109,14 @@ describe('application routes', () => {
     expect(screen.getByText(/nothing leaves this device/i)).toBeInTheDocument();
   });
 
-  it('opens and closes the mobile navigation menu', async () => {
-    const user = userEvent.setup();
+  it('keeps the header focused on the brand and workspace action without unneeded links', () => {
     renderAt('/en');
 
-    const toggle = screen.getByRole('button', { name: /open navigation/i });
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-
-    await user.click(toggle);
-    expect(screen.getByRole('button', { name: /close navigation/i })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    );
-
-    const primaryNav = screen.getByRole('navigation', { name: /primary navigation/i });
-    await user.click(within(primaryNav).getByRole('link', { name: /all tools/i }));
-    expect(screen.getByRole('button', { name: /open navigation/i })).toHaveAttribute(
-      'aria-expanded',
-      'false',
-    );
+    expect(screen.getByRole('link', { name: /filekit home/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /open the workspace/i })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: /primary navigation/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /open navigation/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^editors$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^how it works$/i })).not.toBeInTheDocument();
   });
 });

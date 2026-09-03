@@ -1,5 +1,5 @@
-import { ArrowRight, Menu, X } from 'lucide-react';
-import { lazy, Suspense, useState, type ReactNode } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import {
   BrowserRouter,
   Link,
@@ -16,43 +16,15 @@ import { coreTools } from './tool-catalog';
 const EmojiPage = lazy(() => import('../pages/EmojiPage'));
 
 function AppHeader() {
-  const [isOpen, setIsOpen] = useState(false);
-  const close = () => setIsOpen(false);
   return (
     <header className="site-header g2">
-      <Link className="brand" to="/en" aria-label="FileKit home" onClick={close}>
+      <Link className="brand" to="/en" aria-label="FileKit home">
         <span className="brand-mark">
           <ToolMark tool="brand" />
         </span>
         <span>FileKit</span>
       </Link>
-      <button
-        className="nav-toggle"
-        type="button"
-        aria-expanded={isOpen}
-        aria-controls="primary-navigation"
-        aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
-        onClick={() => setIsOpen((value) => !value)}
-      >
-        {isOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
-      </button>
-      <nav
-        className="primary-nav"
-        data-open={isOpen ? 'true' : 'false'}
-        id="primary-navigation"
-        aria-label="Primary navigation"
-      >
-        <Link to="/en#tools" onClick={close}>
-          All tools
-        </Link>
-        <Link to="/en#create" onClick={close}>
-          Editors
-        </Link>
-        <Link to="/en#how" onClick={close}>
-          How it works
-        </Link>
-      </nav>
-      <Link className="button button-primary header-cta" to={coreTools[0].path} onClick={close}>
+      <Link className="button button-primary header-cta" to={coreTools[0].path}>
         Open the workspace <ArrowRight aria-hidden="true" size={16} />
       </Link>
     </header>
