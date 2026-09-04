@@ -2,11 +2,16 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   countDrawn,
+  createDiagramDocCollection,
   createExcalidrawIo,
   createSceneStore,
   diagramFilename,
+  DIAGRAM_KEY,
+  displayDiagramDocTitle,
   hasDrawing,
+  isBlankDiagramDoc,
   loadExcalidrawIo,
+  searchDiagramDocs,
 } from './diagram-scene';
 
 vi.mock('@excalidraw/excalidraw', () => ({
@@ -37,6 +42,36 @@ describe('scene store and helpers', () => {
   it('names exports by date', () => {
     expect(diagramFilename('png', new Date('2026-09-01T10:00:00Z'))).toBe('diagram-2026-09-01.png');
     expect(diagramFilename('excalidraw')).toMatch(/^diagram-\d{4}-\d{2}-\d{2}\.excalidraw$/);
+  });
+
+  it('manages diagram doc collection and migration', () => {
+    const storage = new Map<string, string>();
+    storage.set(DIAGRAM_KEY, JSON.stringify({ json: '{"type":"excalidraw"}', savedAt: 1 }));
+    const mockStorage = {
+      getItem: (k: string) => storage.get(k) ?? null,
+      setItem: (k: string, v: string) => storage.set(k, v),
+      removeItem: (k: string) => storage.delete(k),
+    };
+    const collection = createDiagramDocCollection(mockStorage);
+    const items = collection.list();
+    expect(items).toHaveLength(1);
+    expect(items[0].title).toBe('Saved diagram');
+    expect(items[0].json).toBe('{"type":"excalidraw"}');
+    expect(displayDiagramDocTitle(items[0])).toBe('Saved diagram');
+    expect(searchDiagramDocs(items, 'saved')).toHaveLength(1);
+    expect(searchDiagramDocs(items, 'other')).toHaveLength(0);
+    expect(isBlankDiagramDoc({ ...items[0], title: '', json: '' })).toBe(true);
+    expect(isBlankDiagramDoc(items[0])).toBe(false);
+
+    const blankStorage = new Map<string, string>();
+    blankStorage.set(DIAGRAM_KEY, JSON.stringify({ json: '   ', savedAt: 1 }));
+    const blankMock = {
+      getItem: (k: string) => blankStorage.get(k) ?? null,
+      setItem: (k: string, v: string) => blankStorage.set(k, v),
+      removeItem: (k: string) => blankStorage.delete(k),
+    };
+    const emptyCol = createDiagramDocCollection(blankMock);
+    expect(emptyCol.list()).toHaveLength(0);
   });
 });
 

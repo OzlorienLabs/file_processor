@@ -1,8 +1,75 @@
 import { z } from 'zod';
 
-import { createValueStore, type ValueStore } from './local-store';
+import { createCollection, createValueStore, stampNew, storedRecordSchema, type Collection, type ValueStore } from './local-store';
 
 export const DIAGRAM_KEY = 'filekit.diagram.v1';
+export const DIAGRAM_DOCS_KEY = 'filekit.diagram.docs.v1';
+export const MAX_DIAGRAM_DOCS = 100;
+
+export const savedDiagramDocSchema = storedRecordSchema.extend({
+  title: z.string().max(200),
+  json: z.string().max(20_000_000),
+});
+export type SavedDiagramDoc = z.infer<typeof savedDiagramDocSchema>;
+
+export function createDiagramDoc(title = '', json = ''): SavedDiagramDoc {
+  return { ...stampNew(), title, json };
+}
+
+export function displayDiagramDocTitle(doc: Pick<SavedDiagramDoc, 'title'>): string {
+  return doc.title.trim() || 'Untitled diagram';
+}
+
+export function searchDiagramDocs(docs: SavedDiagramDoc[], query: string): SavedDiagramDoc[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return docs;
+  return docs.filter((doc) => doc.title.toLowerCase().includes(needle));
+}
+
+export function createDiagramDocCollection(
+  storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> = localStorage,
+): Collection<SavedDiagramDoc> {
+  const collection = createCollection<SavedDiagramDoc>({
+    key: DIAGRAM_DOCS_KEY,
+    schema: savedDiagramDocSchema,
+    max: MAX_DIAGRAM_DOCS,
+    storage,
+  });
+
+  const migrateLegacy = () => {
+    try {
+      const rawCollection = storage.getItem(DIAGRAM_DOCS_KEY);
+      if (!rawCollection) {
+        const legacyRaw = storage.getItem(DIAGRAM_KEY);
+        if (legacyRaw) {
+          const legacy = JSON.parse(legacyRaw) as { json?: string };
+          if (legacy.json && legacy.json.trim()) {
+            collection.upsert(createDiagramDoc('Saved diagram', legacy.json));
+          }
+        }
+      }
+    } catch {
+      // Ignore migration failure
+    }
+  };
+
+  migrateLegacy();
+
+  return {
+    ...collection,
+    list: () => {
+      migrateLegacy();
+      return collection.list();
+    },
+  };
+}
+
+export const diagramDocCollection = createDiagramDocCollection();
+
+export function isBlankDiagramDoc(doc: SavedDiagramDoc): boolean {
+  return !doc.title.trim() && !doc.json.trim();
+}
+
 /** Fonts are self-hosted here so the CSP's `font-src 'self'` holds (see vite.config.ts). */
 export const EXCALIDRAW_ASSET_PATH = '/excalidraw/';
 
