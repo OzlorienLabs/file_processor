@@ -148,19 +148,6 @@ export function NotepadWorkspace() {
           <p className="inline-note">{store.items.length ? 'No notes match that search.' : 'Notes you write appear here and stay in this browser.'}</p>
         )}
 
-        <div className="side-tools-section">
-          <p className="side-section-label">Tools to refer to</p>
-          <button
-            className="button button-secondary side-tool-button"
-            type="button"
-            aria-label="Emoji library reference tool"
-            aria-expanded={emojiPanelOpen}
-            onClick={() => setEmojiPanelOpen((open) => !open)}
-          >
-            <Smile aria-hidden="true" size={15} /> Emoji library
-          </button>
-        </div>
-
         <div className="side-actions">
           <button className="button button-secondary" type="button" disabled={!store.items.length} onClick={exportAll}>
             <FolderDown aria-hidden="true" size={15} /> Export all (.zip)
