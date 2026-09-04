@@ -10,6 +10,19 @@
       content="Private, client-first tools to merge, split, compress, convert, summarize, OCR, and transcribe your files."
     />
     <title>FileKit — useful file tools, without the upload anxiety</title>
+    <script>
+      // Suppress upstream browser/DevTools VM instrumentation bug (Chromium #543499029)
+      // where Chrome's auto-injected soft navigation tracker crashes on undefined entry.startTime.
+      window.addEventListener('error', function (event) {
+        if (
+          event.message &&
+          event.message.includes("reading 'startTime'") &&
+          (!event.filename || event.filename.includes('VM') || event.filename.includes('<anonymous>'))
+        ) {
+          event.preventDefault();
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
