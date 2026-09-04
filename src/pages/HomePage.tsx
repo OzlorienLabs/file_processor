@@ -76,9 +76,7 @@ export function HomePage() {
               <PlateHeadline text="Result out." />
             </h1>
             <p className="lede fu d2">
-              {counts.total} tools for the small jobs — convert, compress, merge, split, read,
-              transcribe, draw, diff, write, keep code. The work happens in this browser, on this
-              device, and then it is over.
+              The work happens on this device, and then it is over.
             </p>
             <div className="hero-actions fu d3">
               <Link className="button button-primary" to={fileTools[0].path}>
