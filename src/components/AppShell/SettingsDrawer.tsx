@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 
+import { AiSettingsPanel } from '../AiSettings/AiSettingsPanel';
 import {
-  clearAiSettings,
   loadAiSettings,
   saveAiSettings,
   type AiSettings,
@@ -40,7 +40,6 @@ const toggles: { field: keyof UiSettings; title: string; note: string }[] = [
 /** Right-hand drawer over a scrim: the four chrome switches plus the AI key controls. */
 export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerProps) {
   const titleId = useId();
-  const keyId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const drawer = useRef<HTMLElement>(null);
   const [ai, setAi] = useState<AiSettings>(() => loadAiSettings());
@@ -72,15 +71,9 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  function setApiKey(apiKey: string) {
-    const next = { ...ai, apiKey };
+  function handleAiChange(next: AiSettings) {
     setAi(next);
     saveAiSettings(next);
-  }
-
-  function forgetKey() {
-    clearAiSettings();
-    setAi(loadAiSettings());
   }
 
   return (
@@ -118,22 +111,8 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
 
         <hr className="settings-rule" />
 
-        <div className="settings-key">
-          <label className="panel-label" htmlFor={keyId}>
-            AI provider key
-          </label>
-          <input
-            id={keyId}
-            type="password"
-            autoComplete="off"
-            spellCheck={false}
-            placeholder="sk-… (stays on this device)"
-            value={ai.apiKey}
-            onChange={(event) => setApiKey(event.target.value)}
-          />
-          <button className="button button-forget" type="button" onClick={forgetKey}>
-            Forget key on this device
-          </button>
+        <div className="settings-ai-section">
+          <AiSettingsPanel settings={ai} onChange={handleAiChange} />
         </div>
 
         <p className="settings-note">

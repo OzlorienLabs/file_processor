@@ -16,6 +16,9 @@ const groups: { category: ToolCategory; label: string }[] = [
 ];
 
 function RailItem({ tool, labels }: { tool: ToolDefinition; labels: boolean }) {
+  const requiresAi = tool.processing !== 'browser';
+  const displayName = requiresAi ? `${tool.shortName} ✨` : tool.shortName;
+
   return (
     // `end` matters: /en/convert is a prefix of /en/convert/word/pdf, and without it both
     // rail items would claim aria-current on the nested routes.
@@ -23,8 +26,8 @@ function RailItem({ tool, labels }: { tool: ToolDefinition; labels: boolean }) {
       <span className="rail-mark">
         <ToolMark tool={tool.id} />
       </span>
-      {labels ? <span className="rail-name">{tool.shortName}</span> : null}
-      {labels ? null : <span className="sr-only">{tool.shortName}</span>}
+      {labels ? <span className="rail-name">{displayName}</span> : null}
+      {labels ? null : <span className="sr-only">{displayName}</span>}
     </NavLink>
   );
 }

@@ -38,6 +38,12 @@ export function AppShell({ tool, children }: { tool: ToolDefinition; children: R
     if (openFullscreen) enter();
   }, [openFullscreen, enter]);
 
+  useEffect(() => {
+    const handleOpenSettings = () => setSettingsOpen(true);
+    window.addEventListener('open-settings', handleOpenSettings);
+    return () => window.removeEventListener('open-settings', handleOpenSettings);
+  }, []);
+
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">

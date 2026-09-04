@@ -8,7 +8,9 @@ import {
   effectiveModel,
   isValidModelId,
   loadAiSettings,
+  providerLabel,
   saveAiSettings,
+  subscribeAiSettings,
 } from './ai-settings';
 
 describe('ai provider catalog', () => {
@@ -72,5 +74,30 @@ describe('settings persistence', () => {
     saveAiSettings({ ...defaultAiSettings, apiKey: 'sk-test' });
     clearAiSettings();
     expect(loadAiSettings()).toEqual(defaultAiSettings);
+  });
+
+  it('notifies subscribers on save and clear, and unsubscribes cleanly', () => {
+    let calls = 0;
+    const unsubscribe = subscribeAiSettings(() => {
+      calls += 1;
+    });
+    saveAiSettings({ ...defaultAiSettings, apiKey: 'new-key', remember: true });
+    expect(calls).toBe(1);
+    window.dispatchEvent(new Event('storage'));
+    expect(calls).toBe(2);
+    clearAiSettings();
+    expect(calls).toBe(3);
+    unsubscribe();
+    saveAiSettings({ ...defaultAiSettings, apiKey: 'another-key', remember: true });
+    expect(calls).toBe(3);
+  });
+});
+
+describe('providerLabel', () => {
+  it('returns friendly label for known providers or falls back', () => {
+    expect(providerLabel('openai')).toBe('OpenAI');
+    expect(providerLabel('google')).toBe('Google Gemini');
+    expect(providerLabel('anthropic')).toBe('Anthropic');
+    expect(providerLabel('unknown' as never)).toBe('unknown');
   });
 });

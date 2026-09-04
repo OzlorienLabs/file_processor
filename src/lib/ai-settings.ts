@@ -51,6 +51,10 @@ export function isValidModelId(model: string): boolean {
   return MODEL_ID_PATTERN.test(model);
 }
 
+export function providerLabel(provider: AiProvider): string {
+  return aiProviders[provider]?.label ?? provider;
+}
+
 export interface AiSettings {
   provider: AiProvider;
   model: string;
@@ -92,18 +96,36 @@ export function loadAiSettings(storage: Pick<Storage, 'getItem'> = localStorage)
   }
 }
 
+export const AI_SETTINGS_EVENT = 'filekit-ai-settings-changed';
+
+function notifyAiSettingsChanged(): void {
+  window.dispatchEvent(new CustomEvent(AI_SETTINGS_EVENT));
+}
+
 export function saveAiSettings(
   settings: AiSettings,
   storage: Pick<Storage, 'setItem' | 'removeItem'> = localStorage,
 ): void {
   if (!settings.remember) {
     storage.removeItem(STORAGE_KEY);
+    notifyAiSettingsChanged();
     return;
   }
   const { provider, model, customModel, apiKey } = settings;
   storage.setItem(STORAGE_KEY, JSON.stringify({ provider, model, customModel, apiKey }));
+  notifyAiSettingsChanged();
 }
 
 export function clearAiSettings(storage: Pick<Storage, 'removeItem'> = localStorage): void {
   storage.removeItem(STORAGE_KEY);
+  notifyAiSettingsChanged();
+}
+
+export function subscribeAiSettings(callback: () => void): () => void {
+  window.addEventListener(AI_SETTINGS_EVENT, callback);
+  window.addEventListener('storage', callback);
+  return () => {
+    window.removeEventListener(AI_SETTINGS_EVENT, callback);
+    window.removeEventListener('storage', callback);
+  };
 }

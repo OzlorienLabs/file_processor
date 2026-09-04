@@ -57,7 +57,8 @@ describe('AppShell', () => {
     expect(within(rail).getByRole('list', { name: /files/i })).toBeInTheDocument();
     expect(within(rail).getAllByRole('listitem')).toHaveLength(coreTools.length);
     for (const tool of toolsInCategory('create')) {
-      expect(within(rail).getByRole('link', { name: tool.shortName })).toHaveAttribute('href', tool.path);
+      const expectedName = tool.processing !== 'browser' ? `${tool.shortName} ✨` : tool.shortName;
+      expect(within(rail).getByRole('link', { name: expectedName })).toHaveAttribute('href', tool.path);
     }
   });
 
@@ -160,12 +161,12 @@ describe('AppShell', () => {
     renderShell();
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
 
-    await user.type(screen.getByLabelText(/ai provider key/i), 'sk-test');
+    await user.type(screen.getByLabelText(/^api key$/i), 'sk-test');
     expect(localStorage.getItem('filekit.ai.v1')).toContain('sk-test');
 
     await user.click(screen.getByRole('button', { name: /forget key on this device/i }));
     expect(localStorage.getItem('filekit.ai.v1')).toBeNull();
-    expect(screen.getByLabelText(/ai provider key/i)).toHaveValue('');
+    expect(screen.getByLabelText(/^api key$/i)).toHaveValue('');
   });
 
   it('hides the fullscreen control when the browser has no Fullscreen API', () => {
