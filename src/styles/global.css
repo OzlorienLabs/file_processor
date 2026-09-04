@@ -1244,6 +1244,81 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
 /* Mermaid */
 .mermaid-samples { flex: 0 0 auto; }
 .mermaid-samples select { min-height: 38px; padding: 5px 9px; font-size: 13px; }
+.mermaid-editor-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-3);
+  gap: var(--space-2);
+}
+.mermaid-source-box {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+}
+.mermaid-source-box:hover {
+  border-color: var(--color-neutral-500);
+}
+.mermaid-source-box:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-100), inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.mermaid-highlight-layer,
+.mermaid-textarea {
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+  line-height: 1.7;
+  tab-size: 2;
+  padding: 16px 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+  margin: 0;
+}
+.mermaid-highlight-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: transparent;
+  color: var(--color-text);
+}
+.mermaid-highlight-layer code {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.mermaid-textarea {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--color-text);
+  -webkit-text-fill-color: transparent;
+}
+.mermaid-textarea::selection {
+  background: rgba(0, 136, 176, 0.28);
+}
+.mm-comment { color: var(--color-neutral-600); font-style: italic; }
+.mm-string { color: var(--color-accent-2-700); }
+.mm-keyword { color: var(--color-accent-800); font-weight: 600; }
+.mm-arrow { color: var(--color-accent-700); font-weight: bold; }
+.mm-node { color: var(--color-accent-2-800); }
+.mm-number { color: var(--color-accent-600); }
 .mermaid-saved {
   flex: 0 0 auto; max-height: 30%; overflow-y: auto;
   display: grid; gap: 6px; padding: var(--space-2) var(--space-3);

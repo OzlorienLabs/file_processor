@@ -161,4 +161,45 @@ describe('MermaidWorkspace', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /save diagram/i })).toBeDisabled();
   });
+
+  it('supports search, new diagram, clear all, and renders syntax tokens', async () => {
+    const user = userEvent.setup();
+    render(<MermaidWorkspace />);
+    await screen.findByRole('img');
+
+    // Check syntax highlight layer renders keywords, comments, strings, numbers, and handles scroll
+    fireEvent.change(editor(), { target: { value: '%% comment\nflowchart TD\n  A["Node 123"] -->|"text"| B\n  linkStyle 0 stroke:2px;' } });
+    expect(document.querySelector('.mm-comment')).toHaveTextContent('%% comment');
+    expect(document.querySelector('.mm-keyword')).toHaveTextContent('flowchart');
+    expect(document.querySelector('.mm-arrow')).toHaveTextContent('-->');
+    expect(document.querySelector('.mm-node')).toBeInTheDocument();
+    expect(document.querySelector('.mm-string')).toBeInTheDocument();
+    expect(document.querySelector('.mm-number')).toBeInTheDocument();
+
+    fireEvent.scroll(editor(), { target: { scrollTop: 40, scrollLeft: 10 } });
+
+    // Save diagram
+    await user.click(screen.getByRole('button', { name: /save diagram/i }));
+    await user.type(screen.getByLabelText(/diagram name/i), 'Flow1{enter}');
+    expect(within(list()).getByRole('button', { name: /flow1/i })).toBeInTheDocument();
+
+    // Start new diagram
+    await user.click(screen.getByRole('button', { name: /new diagram/i }));
+    expect(screen.getByText(/started a new diagram/i)).toBeInTheDocument();
+
+    // Search filter
+    await user.type(screen.getByLabelText(/search diagrams/i), 'Flow1');
+    expect(within(list()).getByRole('button', { name: /flow1/i })).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/search diagrams/i), 'zzz');
+    expect(screen.getByText(/no diagrams match that search/i)).toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/search diagrams/i));
+
+    // Clear all
+    await user.click(screen.getByRole('button', { name: /clear all/i }));
+    await user.click(screen.getByRole('button', { name: /keep them/i }));
+    expect(within(list()).getByRole('button', { name: /flow1/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /clear all/i }));
+    await user.click(screen.getByRole('button', { name: /yes, delete all/i }));
+    expect(screen.getByText(/all diagrams were removed/i)).toBeInTheDocument();
+  });
 });
