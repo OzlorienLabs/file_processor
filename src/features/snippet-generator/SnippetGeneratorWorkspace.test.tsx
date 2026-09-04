@@ -1,7 +1,8 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { saveAiSettings } from '../../lib/ai-settings';
 import { checkChromeAi } from '../../lib/chrome-ai';
 import { copyText, downloadText } from '../../lib/download';
 import { generateSnippet } from '../../lib/snippet-generate';
@@ -72,9 +73,10 @@ describe('SnippetGeneratorWorkspace', () => {
     expect(screen.getByText(/on-device model is not ready here/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('radio', { name: /^cloud provider with your api key/i }));
-    expect(screen.getByText(/add your provider api key/i)).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText(/ai provider/i), 'google');
-    await user.type(screen.getByLabelText(/^api key$/i), 'g-key');
+    expect(screen.getByText(/add your provider api key in settings/i)).toBeInTheDocument();
+    act(() => {
+      saveAiSettings({ provider: 'google', model: 'gemini-2.5-flash', customModel: '', apiKey: 'g-key', remember: true });
+    });
     await user.selectOptions(screen.getByLabelText(/^language$/i), 'python');
     await user.click(screen.getByLabelText(/include a short explanation/i));
     await user.click(screen.getByLabelText(/add context/i));
@@ -150,9 +152,54 @@ describe('SnippetGeneratorWorkspace', () => {
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
     expect(within(historyList()).getAllByRole('listitem')).toHaveLength(1);
 
+    // Switch to cloud provider engine
+    await user.click(screen.getByRole('radio', { name: /^cloud provider/i }));
+
+    // Test Open Settings button
+    const openSettingsListener = vi.fn();
+    window.addEventListener('open-settings', openSettingsListener);
+    await user.click(screen.getByRole('button', { name: /open settings/i }));
+    expect(openSettingsListener).toHaveBeenCalled();
+    window.removeEventListener('open-settings', openSettingsListener);
+
+    // Test switching engine radio back to Chrome
+    await user.click(screen.getByRole('radio', { name: /^chrome built-in ai/i }));
+    expect(screen.queryByRole('button', { name: /open settings/i })).not.toBeInTheDocument();
+
+    // Start new generation
+    await user.click(screen.getByRole('button', { name: /new generation/i }));
+    expect(screen.getByLabelText(/describe the snippet/i)).toHaveValue('');
+
+    // Import invalid JSON
+    await user.upload(screen.getByLabelText(/import history json/i), new File(['not json'], 'bad.json', { type: 'application/json' }));
+    expect(await screen.findByText(/not valid json/i)).toBeInTheDocument();
+
+    // Import valid JSON
+    const historyPayload = JSON.stringify({
+      key: 'filekit.generated.v1',
+      version: 1,
+      items: [
+        {
+          id: 'gen-imp-1',
+          description: 'imported idea',
+          language: 'python',
+          context: '',
+          explain: true,
+          engine: 'google',
+          model: 'gemini',
+          code: 'def imp(): pass',
+          explanation: '',
+          createdAt: 1000,
+          updatedAt: 2000,
+        },
+      ],
+    });
+    await user.upload(screen.getByLabelText(/import history json/i), new File([historyPayload], 'hist.json', { type: 'application/json' }));
+    expect(await screen.findByText(/imported 1 snippet generation/i)).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: /clear history/i }));
     await user.click(screen.getByRole('button', { name: /^keep$/i }));
-    expect(within(historyList()).getAllByRole('listitem')).toHaveLength(1);
+    expect(within(historyList()).getAllByRole('listitem')).toHaveLength(2);
     await user.click(screen.getByRole('button', { name: /clear history/i }));
     await user.click(screen.getByRole('button', { name: /yes, clear/i }));
     expect(screen.getByText(/history cleared/i)).toBeInTheDocument();

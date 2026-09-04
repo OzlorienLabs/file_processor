@@ -1,11 +1,11 @@
-import { BookmarkPlus, Check, Copy, Download, FolderDown, Search, Trash2, WandSparkles } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { BookmarkPlus, Check, Copy, Download, FolderDown, Search, Settings, Trash2, Upload, WandSparkles } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { z } from 'zod';
 
-import { AiSettingsPanel } from '../../components/AiSettings/AiSettingsPanel';
 import { CodeBlock } from '../../components/CodeBlock/CodeBlock';
+import { useAiSettings } from '../../hooks/useAiSettings';
 import { useLocalCollection } from '../../hooks/useLocalCollection';
-import { effectiveModel, isValidModelId, loadAiSettings, saveAiSettings, type AiSettings } from '../../lib/ai-settings';
+import { effectiveModel, isValidModelId, providerLabel } from '../../lib/ai-settings';
 import { checkChromeAi, chromeAiHints, type ChromeAiAvailability } from '../../lib/chrome-ai';
 import { copyText, downloadText, formatWhen } from '../../lib/download';
 import { errorMessage, isAbortError } from '../../lib/errors';
@@ -34,7 +34,7 @@ const generationLanguages = languageOptions.filter((option) => option.id !== 'pl
 export function SnippetGeneratorWorkspace() {
   const store = useLocalCollection(history);
   const [prefs, setPrefs] = useState(() => prefsStore.load());
-  const [ai, setAi] = useState<AiSettings>(() => loadAiSettings());
+  const { ai } = useAiSettings();
   const [availability, setAvailability] = useState<ChromeAiAvailability | 'checking'>('checking');
   const [description, setDescription] = useState('');
   const [context, setContext] = useState('');
@@ -70,11 +70,6 @@ export function SnippetGeneratorWorkspace() {
     } catch {
       // Preferences are a convenience; generation still works without persisting them.
     }
-  };
-
-  const updateAi = (next: AiSettings) => {
-    setAi(next);
-    saveAiSettings(next);
   };
 
   const model = effectiveModel(ai);
@@ -119,6 +114,15 @@ export function SnippetGeneratorWorkspace() {
     }
   };
 
+  const startNew = () => {
+    setResult(undefined);
+    setDescription('');
+    setContext('');
+    setShowContext(false);
+    setMessage('');
+    setError('');
+  };
+
   const openHistory = (item: GeneratedSnippet) => {
     setResult(item);
     setDescription(item.description);
@@ -149,7 +153,10 @@ export function SnippetGeneratorWorkspace() {
 
   const deleteFromHistory = (item: GeneratedSnippet) => {
     store.remove(item.id);
-    if (result?.id === item.id) setResult(undefined);
+    if (result?.id === item.id) {
+      setResult(undefined);
+    }
+    setMessage('Removed from history.');
   };
 
   const clearHistory = () => {
@@ -159,28 +166,152 @@ export function SnippetGeneratorWorkspace() {
     setMessage('History cleared from this browser.');
   };
 
+  const importHistoryFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const result = store.importJson(text);
+      if (result) {
+        const first = history.list()[0];
+        if (first) openHistory(first);
+        setMessage(`Imported ${result.imported} snippet generations.`);
+        setError('');
+      }
+    } catch (reason) {
+      setError(errorMessage(reason, `${file.name} could not be read.`));
+    }
+  };
+
   return (
-    <div className="ed-grid generator" data-panes="generator">
+    <div className="ed-grid generator" data-panes="note">
+      <aside className="ed-pane g side-list" data-pad="true" aria-label="Generation history">
+        <button className="button button-primary" type="button" onClick={startNew}>
+          <WandSparkles aria-hidden="true" size={16} /> New generation
+        </button>
+        <label className="field-label" htmlFor="history-search">
+          <span className="sr-only">Search history</span>
+          <span className="input-with-suffix">
+            <input
+              id="history-search"
+              value={query}
+              placeholder="Search history"
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <Search aria-hidden="true" size={15} />
+          </span>
+        </label>
+        {visible.length ? (
+          <ul>
+            {visible.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  aria-current={result?.id === item.id ? 'true' : undefined}
+                  onClick={() => openHistory(item)}
+                >
+                  <strong>{generatedTitle(item.description)}</strong>
+                  <small>
+                    {item.language} · {item.engine === 'chrome' ? 'on-device' : item.model} · {formatWhen(item.updatedAt)}
+                  </small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="inline-note">
+            {store.items.length ? 'Nothing in history matches that search.' : 'Generated snippets are kept here, in this browser only.'}
+          </p>
+        )}
+        <div className="side-actions">
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={!store.items.length}
+            onClick={() => downloadText(history.exportJson(), 'filekit-generated-snippets.json', 'application/json')}
+          >
+            <FolderDown aria-hidden="true" size={15} /> Export history
+          </button>
+          <label className="button button-secondary">
+            <Upload aria-hidden="true" size={15} /> Import JSON
+            <input
+              className="sr-only"
+              type="file"
+              accept="application/json,.json"
+              aria-label="Import history JSON"
+              onChange={(event) => void importHistoryFile(event)}
+            />
+          </label>
+          {confirmingClear ? (
+            <span className="option-row">
+              <span>Delete {store.items.length} entries?</span>
+              <button className="button button-secondary" type="button" onClick={clearHistory}>
+                Yes, clear
+              </button>
+              <button className="button button-secondary" type="button" onClick={() => setConfirmingClear(false)}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <button
+              className="button button-secondary"
+              type="button"
+              disabled={!store.items.length}
+              onClick={() => setConfirmingClear(true)}
+            >
+              <Trash2 aria-hidden="true" size={15} /> Clear history
+            </button>
+          )}
+        </div>
+      </aside>
+
       <section className="ed-pane g generator-main" data-pad="true" aria-label="Snippet generator" aria-busy={isWorking}>
         <fieldset className="choice-group engine-choice" disabled={isWorking}>
           <legend>Where the model runs</legend>
           <label>
-            <input type="radio" name="engine" checked={prefs.engine === 'chrome'} onChange={() => updatePrefs({ engine: 'chrome' })} />
+            <input
+              type="radio"
+              name="engine"
+              checked={prefs.engine === 'chrome'}
+              onChange={() => updatePrefs({ engine: 'chrome' })}
+            />
             <span>
               <strong>Chrome built-in AI (on this device)</strong>
               <small>{availability === 'checking' ? 'Checking availability…' : chromeAiHints[availability]}</small>
             </span>
           </label>
           <label>
-            <input type="radio" name="engine" checked={prefs.engine === 'provider'} onChange={() => updatePrefs({ engine: 'provider' })} />
+            <input
+              type="radio"
+              name="engine"
+              checked={prefs.engine === 'provider'}
+              onChange={() => updatePrefs({ engine: 'provider' })}
+            />
             <span>
               <strong>Cloud provider with your API key</strong>
-              <small>OpenAI, Anthropic, or Google Gemini through FileKit's stateless proxy. Only the prompt is sent.</small>
+              <small>Configured in Settings (OpenAI, Anthropic, or Google Gemini). Uses your API key through FileKit's stateless proxy.</small>
             </span>
           </label>
         </fieldset>
 
-        {prefs.engine === 'provider' ? <AiSettingsPanel settings={ai} onChange={updateAi} disabled={isWorking} /> : null}
+        {prefs.engine === 'provider' ? (
+          <div className="generator-ai-status">
+            <div className="option-row">
+              <span>
+                Active model: <strong>{providerLabel(ai.provider)} · {model}</strong>
+                {ai.apiKey.trim() ? ' (API key ready)' : ' (No API key set)'}
+              </span>
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-settings'))}
+              >
+                <Settings aria-hidden="true" size={14} /> Open Settings
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <div className="workflow-controls">
           <label className="field-label" htmlFor="generator-description">
@@ -197,7 +328,12 @@ export function SnippetGeneratorWorkspace() {
           <div className="ed-bar-inline">
             <label className="field-label" htmlFor="generator-language">
               Language
-              <select id="generator-language" value={prefs.language} disabled={isWorking} onChange={(event) => updatePrefs({ language: event.target.value })}>
+              <select
+                id="generator-language"
+                value={prefs.language}
+                disabled={isWorking}
+                onChange={(event) => updatePrefs({ language: event.target.value })}
+              >
                 {generationLanguages.map((option) => (
                   <option key={option.id} value={option.id}>
                     {option.label}
@@ -207,11 +343,21 @@ export function SnippetGeneratorWorkspace() {
             </label>
             <div className="option-row">
               <label>
-                <input type="checkbox" checked={prefs.explain} disabled={isWorking} onChange={(event) => updatePrefs({ explain: event.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={prefs.explain}
+                  disabled={isWorking}
+                  onChange={(event) => updatePrefs({ explain: event.target.checked })}
+                />
                 Include a short explanation
               </label>
               <label>
-                <input type="checkbox" checked={showContext} disabled={isWorking} onChange={(event) => setShowContext(event.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={showContext}
+                  disabled={isWorking}
+                  onChange={(event) => setShowContext(event.target.checked)}
+                />
                 Add context (types, existing code, constraints)
               </label>
             </div>
@@ -248,109 +394,57 @@ export function SnippetGeneratorWorkspace() {
             <p className="ed-note">
               {prefs.engine === 'chrome'
                 ? "Chrome's on-device model is not ready here. Switch to a cloud provider or enable the built-in AI."
-                : 'Add your provider API key above to enable generating.'}
+                : 'Add your provider API key in Settings to enable generating.'}
             </p>
           ) : null}
         </div>
 
-        <p className="panel-label">Recent</p>
-        <aside className="generator-history scroll" aria-label="Generation history">
-          <label className="field-label" htmlFor="history-search">
-            <span className="sr-only">Search history</span>
-            <span className="input-with-suffix">
-              <input id="history-search" value={query} placeholder="Search history" onChange={(event) => setQuery(event.target.value)} />
-              <Search aria-hidden="true" size={15} />
-            </span>
-          </label>
-        {visible.length ? (
-          <ul>
-            {visible.map((item) => (
-              <li key={item.id}>
-                <button type="button" aria-current={result?.id === item.id ? 'true' : undefined} onClick={() => openHistory(item)}>
-                  <strong>{generatedTitle(item.description)}</strong>
-                  <small>
-                    {item.language} · {item.engine === 'chrome' ? 'on-device' : item.model} · {formatWhen(item.updatedAt)}
-                  </small>
+        <section className="generator-stage" aria-label="Generated snippet">
+          {isWorking ? (
+            <div className="generator-busy">
+              <span className="generator-spinner spin" aria-hidden="true" />
+              <p role="status">{progress || 'Generating…'}</p>
+            </div>
+          ) : result ? (
+            <article className="generator-result fi">
+              <div className="control-heading">
+                <div>
+                  <strong>{generatedTitle(result.description)}</strong>
+                  <p>
+                    {result.language} · {result.engine === 'chrome' ? 'Chrome on-device model' : result.model} · {formatWhen(result.updatedAt)}
+                  </p>
+                </div>
+                <span>{result.engine === 'chrome' ? 'Stayed on device' : 'Via your key'}</span>
+              </div>
+              <CodeBlock code={result.code} language={result.language} />
+              {result.explanation ? <p className="inline-note generator-explanation">{result.explanation}</p> : null}
+              <div className="ed-bar-inline">
+                <button className="button button-secondary" type="button" onClick={() => copyCode(result)}>
+                  {copied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
+                  {copied ? 'Copied' : 'Copy code'}
                 </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="inline-note">{store.items.length ? 'Nothing in history matches that search.' : 'Generated snippets are kept here, in this browser only.'}</p>
-        )}
-        <div className="side-actions">
-          <button
-            className="button button-secondary"
-            type="button"
-            disabled={!store.items.length}
-            onClick={() => downloadText(history.exportJson(), 'filekit-generated-snippets.json', 'application/json')}
-          >
-            <FolderDown aria-hidden="true" size={15} /> Export history
-          </button>
-          {confirmingClear ? (
-            <span className="option-row">
-              <span>Delete {store.items.length} entries?</span>
-              <button className="button button-secondary" type="button" onClick={clearHistory}>
-                Yes, clear
-              </button>
-              <button className="button button-secondary" type="button" onClick={() => setConfirmingClear(false)}>
-                Keep
-              </button>
-            </span>
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  onClick={() => downloadText(result.code, snippetFilename({ title: generatedTitle(result.description), language: result.language }))}
+                >
+                  <Download aria-hidden="true" size={15} /> Download
+                </button>
+                <button className="button button-secondary" type="button" onClick={() => saveToSnippets(result)}>
+                  <BookmarkPlus aria-hidden="true" size={15} /> Save to snippets
+                </button>
+                <button className="button button-secondary" type="button" onClick={() => deleteFromHistory(result)}>
+                  <Trash2 aria-hidden="true" size={15} /> Remove from history
+                </button>
+              </div>
+            </article>
           ) : (
-            <button className="button button-secondary" type="button" disabled={!store.items.length} onClick={() => setConfirmingClear(true)}>
-              <Trash2 aria-hidden="true" size={15} /> Clear history
-            </button>
+            <p className="ed-note">
+              Describe the snippet you need and click Generate. Saved generations appear in the history on the left.
+            </p>
           )}
-        </div>
-        </aside>
         </section>
 
-        <section className="ed-pane g generator-stage" data-pad="true" aria-label="Generated snippet">
-        {isWorking ? (
-          <div className="generator-busy">
-            <span className="generator-spinner spin" aria-hidden="true" />
-            <p role="status">{progress || 'Generating…'}</p>
-          </div>
-        ) : result ? (
-          <article className="generator-result fi">
-            <div className="control-heading">
-              <div>
-                <strong>{generatedTitle(result.description)}</strong>
-                <p>
-                  {result.language} · {result.engine === 'chrome' ? 'Chrome on-device model' : result.model} · {formatWhen(result.updatedAt)}
-                </p>
-              </div>
-              <span>{result.engine === 'chrome' ? 'Stayed on device' : 'Via your key'}</span>
-            </div>
-            <CodeBlock code={result.code} language={result.language} />
-            {result.explanation ? <p className="inline-note generator-explanation">{result.explanation}</p> : null}
-            <div className="ed-bar-inline">
-              <button className="button button-secondary" type="button" onClick={() => copyCode(result)}>
-                {copied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
-                {copied ? 'Copied' : 'Copy code'}
-              </button>
-              <button
-                className="button button-secondary"
-                type="button"
-                onClick={() => downloadText(result.code, snippetFilename({ title: generatedTitle(result.description), language: result.language }))}
-              >
-                <Download aria-hidden="true" size={15} /> Download
-              </button>
-              <button className="button button-secondary" type="button" onClick={() => saveToSnippets(result)}>
-                <BookmarkPlus aria-hidden="true" size={15} /> Save to snippets
-              </button>
-              <button className="button button-secondary" type="button" onClick={() => deleteFromHistory(result)}>
-                <Trash2 aria-hidden="true" size={15} /> Remove from history
-              </button>
-            </div>
-          </article>
-        ) : (
-          <p className="ed-note">
-            Describe the snippet you need on the left. The result appears here and is kept in
-            this browser only.
-          </p>
-        )}
         {store.error ? (
           <p className="field-error" role="alert">
             {store.error}
@@ -365,3 +459,4 @@ export function SnippetGeneratorWorkspace() {
     </div>
   );
 }
+

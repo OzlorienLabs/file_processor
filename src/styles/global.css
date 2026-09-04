@@ -1216,6 +1216,11 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
 .generator-main { display: grid; align-content: start; gap: var(--space-4); }
 .generator-description { min-height: 120px; font-family: var(--font-body); font-size: 15px; }
 .generator-context { min-height: 120px; }
+.generator-ai-status {
+  padding: 10px 14px; background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--color-neutral-300); border-radius: var(--radius-md);
+  font-size: 13.5px;
+}
 .generator-history { display: grid; gap: 6px; align-content: start; max-height: 40vh; overflow-y: auto; }
 .generator-history ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; }
 .generator-history li button {
