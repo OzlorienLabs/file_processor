@@ -93,7 +93,7 @@ describe('DiffWorkspace', () => {
     await user.click(screen.getByLabelText(/wrap lines/i));
     expect(screen.getByRole('table')).toHaveAttribute('data-wrap', 'false');
 
-    await user.click(screen.getByRole('button', { name: /clear/i }));
+    await user.click(screen.getByRole('button', { name: /^clear$/i }));
     expect(screen.getByLabelText(/original text/i)).toHaveValue('');
     expect(screen.queryByRole('region', { name: /comparison result/i })).not.toBeInTheDocument();
   });
@@ -165,4 +165,107 @@ describe('DiffWorkspace', () => {
     await user.click(await screen.findByRole('button', { name: /find difference/i }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/at most 50,000 lines/);
   });
+
+  it('manages comparison history: new, rename, switch, search, delete, clear all, and import', async () => {
+    const user = userEvent.setup();
+    render(<DiffWorkspace />);
+
+    // Type a title and texts
+    const titleInput = screen.getByLabelText(/comparison title/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'First Diff');
+    await fillBoth(user, 'first left', 'first right');
+    await user.click(screen.getByRole('button', { name: /find difference/i }));
+
+    expect(screen.getByRole('button', { name: /First Diff/i })).toBeInTheDocument();
+
+    // Create a new comparison
+    await user.click(screen.getByRole('button', { name: /new comparison/i }));
+    expect(screen.getByLabelText(/comparison title/i)).toHaveValue('');
+    expect(screen.getByLabelText(/original text/i)).toHaveValue('');
+
+    // Fill second comparison
+    await user.type(screen.getByLabelText(/comparison title/i), 'Second Diff');
+    await fillBoth(user, 'second left', 'second right');
+    await user.click(screen.getByRole('button', { name: /swap/i }));
+    expect(screen.getByLabelText(/original text/i)).toHaveValue('second right');
+
+    // Switch back to First Diff
+    await user.click(screen.getByRole('button', { name: /First Diff/i }));
+    expect(screen.getByLabelText(/comparison title/i)).toHaveValue('First Diff');
+    expect(screen.getByLabelText(/original text/i)).toHaveValue('first left');
+
+    // Search
+    const searchInput = screen.getByPlaceholderText(/search comparisons/i);
+    await user.type(searchInput, 'Second');
+    expect(screen.queryByRole('button', { name: /First Diff/i })).not.toBeInTheDocument();
+    await user.clear(searchInput);
+    await user.type(searchInput, 'zzz');
+    expect(screen.getByText(/no comparisons match that search/i)).toBeInTheDocument();
+    await user.clear(searchInput);
+
+    // Delete current comparison (First Diff)
+    await user.click(screen.getByRole('button', { name: /delete comparison/i }));
+    expect(screen.queryByRole('button', { name: /First Diff/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/comparison deleted/i)).toBeInTheDocument();
+
+    // Export history (when items present)
+    await user.click(screen.getByRole('button', { name: /export history/i }));
+    expect(downloadText).toHaveBeenCalledWith(expect.any(String), 'filekit-diff-history.json', 'application/json');
+
+    // Clear all with "Keep them" first
+    await user.click(screen.getByRole('button', { name: /clear all/i }));
+    expect(screen.getByText(/delete 1 comparisons\?/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /keep them/i }));
+    expect(screen.queryByText(/delete 1 comparisons\?/i)).not.toBeInTheDocument();
+
+    // Clear all confirmation
+    await user.click(screen.getByRole('button', { name: /clear all/i }));
+    expect(screen.getByText(/delete 1 comparisons\?/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /yes, delete all/i }));
+    expect(screen.getByText(/all comparisons were removed/i)).toBeInTheDocument();
+
+    // Export history (when empty, disabled)
+    expect(screen.getByRole('button', { name: /export history/i })).toBeDisabled();
+
+    // Import invalid JSON
+    const badFile = new File(['not-json'], 'bad.json', { type: 'application/json' });
+    await user.upload(screen.getByLabelText(/import diffs json/i), badFile);
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+
+    // Import JSON
+    const validJson = JSON.stringify([
+      {
+        id: 'imported-1',
+        title: 'Imported Comparison',
+        original: 'import A',
+        changed: 'import B',
+        ignoreWhitespace: false,
+        ignoreCase: false,
+        view: 'split',
+        createdAt: 1000,
+        updatedAt: 2000,
+      },
+      {
+        id: 'imported-2',
+        title: 'Blank Comparison',
+        original: '',
+        changed: '',
+        ignoreWhitespace: false,
+        ignoreCase: false,
+        view: 'split',
+        createdAt: 1001,
+        updatedAt: 2001,
+      },
+    ]);
+    const file = new File([validJson], 'diffs.json', { type: 'application/json' });
+    await user.upload(screen.getByLabelText(/import diffs json/i), file);
+    expect(await screen.findByRole('button', { name: /Imported Comparison/i })).toBeInTheDocument();
+
+    // Switch to Blank Comparison
+    await user.click(screen.getByRole('button', { name: /Blank Comparison/i }));
+    expect(screen.getByLabelText(/comparison title/i)).toHaveValue('Blank Comparison');
+    expect(screen.queryByRole('region', { name: /comparison result/i })).not.toBeInTheDocument();
+  });
 });
+
