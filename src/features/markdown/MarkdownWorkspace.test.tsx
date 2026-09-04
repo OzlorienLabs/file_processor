@@ -61,18 +61,20 @@ describe('MarkdownWorkspace', () => {
     await user.click(screen.getByRole('button', { name: /^\.md$/i }));
     expect(downloadText).toHaveBeenLastCalledWith('# Title', 'document.md', expect.stringContaining('markdown'));
 
+    // With title set
+    await user.type(screen.getByLabelText(/document title/i), 'Notes');
     await user.click(screen.getByRole('button', { name: /^\.html$/i }));
     await waitFor(() =>
       expect(downloadText).toHaveBeenLastCalledWith(
         expect.stringContaining('<h1>Title</h1>'),
-        'document.html',
+        'Notes.html',
         expect.stringContaining('html'),
       ),
     );
 
     await user.click(screen.getByRole('button', { name: /^\.pdf$/i }));
     await waitFor(() =>
-      expect(downloadBlob).toHaveBeenLastCalledWith(expect.any(Blob), 'document.pdf'),
+      expect(downloadBlob).toHaveBeenLastCalledWith(expect.any(Blob), 'Notes.pdf'),
     );
   });
 
@@ -81,6 +83,8 @@ describe('MarkdownWorkspace', () => {
     const user = userEvent.setup();
     render(<MarkdownWorkspace />);
     await user.click(screen.getByRole('button', { name: /^markdown$/i }));
+    expect(screen.queryByRole('button', { name: /^copied$/i })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^html$/i }));
     expect(screen.queryByRole('button', { name: /^copied$/i })).not.toBeInTheDocument();
   });
 
@@ -106,5 +110,66 @@ describe('MarkdownWorkspace', () => {
     textarea.setSelectionRange(0, 5);
     await user.click(screen.getByRole('button', { name: /^bold$/i }));
     expect(textarea.value).toBe('**hello**');
+  });
+
+  it('manages document history: creates new, searches, deletes, exports and imports', async () => {
+    const user = userEvent.setup();
+    render(<MarkdownWorkspace />);
+
+    await user.click(screen.getByRole('button', { name: /new document/i }));
+    await user.type(screen.getByLabelText(/document title/i), 'API Specs');
+    await user.type(screen.getByLabelText(/^markdown$/i), '# API Documentation');
+
+    expect(screen.getByText(/api specs/i)).toBeInTheDocument();
+
+    // Search documents
+    await user.type(screen.getByLabelText(/search documents/i), 'Specs');
+    await user.clear(screen.getByLabelText(/search documents/i));
+    await user.type(screen.getByLabelText(/search documents/i), 'zzz');
+    expect(screen.getByText(/no documents match that search/i)).toBeInTheDocument();
+    await user.clear(screen.getByLabelText(/search documents/i));
+
+    // Export zip
+    await user.click(screen.getByRole('button', { name: /export all/i }));
+    await waitFor(() => expect(downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'filekit-markdown-docs.zip'));
+
+    // Import JSON (single)
+    const singlePayload = JSON.stringify([
+      { id: 'single-md', createdAt: 1, updatedAt: 1, title: 'Single MD', markdown: '# Single', view: 'split' },
+    ]);
+    await user.upload(screen.getByLabelText(/import markdown json/i), new File([singlePayload], 's.json', { type: 'application/json' }));
+    expect(await screen.findByText(/imported 1 document; skipped 0/i)).toBeInTheDocument();
+
+    // Import JSON (multiple)
+    const payload = JSON.stringify([
+      { id: 'imp-md', createdAt: 2, updatedAt: 2, title: 'Imported MD', markdown: '# Hello', view: 'split' },
+      { id: 'imp-md-2', createdAt: 3, updatedAt: 3, title: 'Second Doc', markdown: '# Two', view: 'split' },
+    ]);
+    await user.upload(screen.getByLabelText(/import markdown json/i), new File([payload], 'm.json', { type: 'application/json' }));
+    expect(await screen.findByText(/imported 2 documents; skipped 0/i)).toBeInTheDocument();
+
+    // Open imported document by clicking it in the list
+    await user.click(screen.getByRole('button', { name: /imported md/i }));
+    expect(screen.getByLabelText(/document title/i)).toHaveValue('Imported MD');
+
+    // Delete document
+    await user.click(screen.getByRole('button', { name: /delete document/i }));
+    expect(screen.getByText(/document deleted/i)).toBeInTheDocument();
+
+    // Open API Specs, then blanking it removes it from store
+    await user.click(screen.getByRole('button', { name: /api specs/i }));
+    await user.clear(screen.getByLabelText(/document title/i));
+    await user.clear(screen.getByLabelText(/^markdown$/i));
+    expect(screen.queryByRole('button', { name: /api specs/i })).not.toBeInTheDocument();
+
+    // Import invalid JSON
+    await user.upload(screen.getByLabelText(/import markdown json/i), new File(['not json'], 'bad.json', { type: 'application/json' }));
+
+    // Clear all
+    await user.click(screen.getByRole('button', { name: /clear all/i }));
+    await user.click(screen.getByRole('button', { name: /keep them/i }));
+    await user.click(screen.getByRole('button', { name: /clear all/i }));
+    await user.click(screen.getByRole('button', { name: /yes, delete all/i }));
+    expect(screen.getByText(/all documents were removed/i)).toBeInTheDocument();
   });
 });
