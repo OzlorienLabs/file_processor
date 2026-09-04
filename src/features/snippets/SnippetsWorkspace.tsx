@@ -221,17 +221,26 @@ export function SnippetsWorkspace() {
       <section className="ed-pane g snippet-main" data-pad="true" aria-label={showForm ? 'Snippet form' : 'Snippet details'}>
         {showForm ? (
           <form className="snippet-form" onSubmit={(event) => void save(event)}>
-            <div className="ed-bar-inline">
-              <input
-                className="note-title"
-                aria-label="Snippet title"
-                value={form.title}
-                placeholder="Snippet title"
-                onChange={(event) => setForm({ ...form, title: event.target.value })}
-              />
-              <label className="field-label">
-                <span className="sr-only">Language</span>
-                <select aria-label="Language" value={form.language} onChange={(event) => setForm({ ...form, language: event.target.value })}>
+            <div className="snippet-title-bar">
+              <label className="field-label snippet-title-field" htmlFor="snippet-title">
+                <span className="snippet-field-title">Snippet title</span>
+                <input
+                  id="snippet-title"
+                  className="snippet-title-input"
+                  aria-label="Snippet title"
+                  value={form.title}
+                  placeholder="Snippet title"
+                  onChange={(event) => setForm({ ...form, title: event.target.value })}
+                />
+              </label>
+              <label className="field-label snippet-lang-field" htmlFor="snippet-language-select">
+                <span className="snippet-field-title">Language</span>
+                <select
+                  id="snippet-language-select"
+                  aria-label="Language"
+                  value={form.language}
+                  onChange={(event) => setForm({ ...form, language: event.target.value })}
+                >
                   <option value={AUTO_LANGUAGE}>Detect language</option>
                   {languageOptions.map((option) => (
                     <option key={option.id} value={option.id}>
