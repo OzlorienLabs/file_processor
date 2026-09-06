@@ -16,6 +16,7 @@ import { MarkdownPreview } from '../../components/MarkdownPreview/MarkdownPrevie
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useLocalCollection } from '../../hooks/useLocalCollection';
 import { copyText, downloadBlob, downloadText, formatWhen } from '../../lib/download';
+import { errorMessage } from '../../lib/errors';
 import { touch } from '../../lib/local-store';
 import {
   applyMarkdownFormat,
@@ -55,6 +56,7 @@ export function MarkdownWorkspace() {
   const [query, setQuery] = useState('');
   const [copied, setCopied] = useState<'markdown' | 'html' | ''>('');
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [confirmingClear, setConfirmingClear] = useState(false);
   const editor = useRef<HTMLTextAreaElement>(null);
 
@@ -76,12 +78,14 @@ export function MarkdownWorkspace() {
   const open = (doc: MarkdownDoc) => {
     setCurrent(doc);
     setMessage('');
+    setError('');
   };
 
   const startNew = () => {
     const fresh = createMarkdownDoc('', '', current.view);
     setCurrent(fresh);
     setMessage('');
+    setError('');
   };
 
   const deleteCurrent = () => {
@@ -89,6 +93,7 @@ export function MarkdownWorkspace() {
     const remaining = store.items.filter((item) => item.id !== current.id);
     setCurrent(remaining[0] ?? createMarkdownDoc('', '', current.view));
     setMessage('Document deleted.');
+    setError('');
   };
 
   const clearAll = () => {
@@ -96,6 +101,7 @@ export function MarkdownWorkspace() {
     setCurrent(createMarkdownDoc('', '', current.view));
     setConfirmingClear(false);
     setMessage('All documents were removed from this browser.');
+    setError('');
   };
 
   const format = (kind: MarkdownFormat) => {
@@ -145,6 +151,21 @@ export function MarkdownWorkspace() {
     const result = store.importJson(await file.text());
     if (result) {
       setMessage(`Imported ${result.imported} ${result.imported === 1 ? 'document' : 'documents'}; skipped ${result.skipped}.`);
+    }
+  };
+
+  const importMarkdownFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const title = file.name.replace(/\.[^.]+$/, '');
+      change({ title, markdown: text });
+      setMessage(`Imported ${file.name}.`);
+      setError('');
+    } catch (reason) {
+      setError(errorMessage(reason, `${file.name} could not be read.`));
     }
   };
 
@@ -256,6 +277,16 @@ export function MarkdownWorkspace() {
             ))}
           </div>
           <span className="spacer" />
+          <label className="button button-secondary">
+            <Upload aria-hidden="true" size={15} /> Import markdown
+            <input
+              className="sr-only"
+              type="file"
+              accept=".md,.markdown,.txt,text/markdown,text/plain"
+              aria-label="Import a markdown file"
+              onChange={(event) => void importMarkdownFile(event)}
+            />
+          </label>
           <button
             className="button button-secondary"
             type="button"
@@ -339,9 +370,9 @@ export function MarkdownWorkspace() {
             {store.items.length === 1 ? 'document' : 'documents'} in this browser
           </span>
           {message ? <span className="ed-pill gi">{message}</span> : null}
-          {store.error ? (
+          {error || store.error ? (
             <span className="field-error" role="alert">
-              {store.error}
+              {error || store.error}
             </span>
           ) : null}
         </div>

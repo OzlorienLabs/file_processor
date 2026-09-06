@@ -49,12 +49,12 @@ export function MermaidWorkspace() {
         if (!live) return;
         setPreview({ ...diagram, url: URL.createObjectURL(svgBlob(diagram.svg)), code: debounced });
         setError('');
+        setSettledFor(debounced);
       })
       .catch((reason: Error) => {
-        if (live) setError(reason.message);
-      })
-      .finally(() => {
-        if (live) setSettledFor(debounced);
+        if (!live) return;
+        setError(reason.message);
+        setSettledFor(debounced);
       });
     return () => {
       live = false;
@@ -100,7 +100,7 @@ export function MermaidWorkspace() {
   };
 
   const commitSave = (typedName?: string) => {
-    const name = (typedName !== undefined ? typedName : (saveName ?? '')).trim() || suggestDiagramName(code);
+    const name = (typedName ?? saveName ?? '').trim() || suggestDiagramName(code);
     const record = current ? touch<SavedDiagram>(current, { name, code }) : createSavedDiagram(name, code);
     if (store.upsert(record)) {
       setCurrentId(record.id);
@@ -144,6 +144,26 @@ export function MermaidWorkspace() {
     if (!file) return;
     const result = store.importJson(await file.text());
     if (result) setMessage(`Imported ${result.imported} ${result.imported === 1 ? 'diagram' : 'diagrams'}; skipped ${result.skipped}.`);
+  };
+
+  const importDiagramFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      changeCode(text);
+      const name = file.name.replace(/\.[^.]+$/, '').trim() || suggestDiagramName(text);
+      const record = current ? touch<SavedDiagram>(current, { name, code: text }) : createSavedDiagram(name, text);
+      if (store.upsert(record)) {
+        setCurrentId(record.id);
+        setSaveName(undefined);
+      }
+      setMessage(`Imported ${file.name}.`);
+      setError('');
+    } catch (reason) {
+      setError(errorMessage(reason, `${file.name} could not be read.`));
+    }
   };
 
   return (
@@ -282,6 +302,16 @@ export function MermaidWorkspace() {
             </select>
           </label>
           <span className="spacer" />
+          <label className="button button-secondary">
+            <Upload aria-hidden="true" size={15} /> Import diagram
+            <input
+              className="sr-only"
+              type="file"
+              accept=".mmd,.mermaid,.txt,text/plain"
+              aria-label="Import a Mermaid file"
+              onChange={(event) => void importDiagramFile(event)}
+            />
+          </label>
           <button className="button button-secondary" type="button" onClick={async () => (await copyText(code)) && flash('code')}>
             {copied === 'code' ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
             {copied === 'code' ? 'Copied' : 'Copy code'}

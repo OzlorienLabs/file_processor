@@ -3,6 +3,7 @@ import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 
 import { CodeBlock } from '../../components/CodeBlock/CodeBlock';
 import { useLocalCollection } from '../../hooks/useLocalCollection';
+import { errorMessage } from '../../lib/errors';
 import { touch } from '../../lib/local-store';
 import { copyText, downloadText, formatWhen } from '../../lib/download';
 import { AUTO_LANGUAGE, detectLanguage, languageLabel, languageOptions } from '../../lib/highlight';
@@ -41,6 +42,7 @@ export function SnippetsWorkspace() {
   const [language, setLanguage] = useState('');
   const [tag, setTag] = useState('');
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -54,11 +56,13 @@ export function SnippetsWorkspace() {
     setForm(emptyForm);
     setScreen({ kind: 'new' });
     setMessage('');
+    setError('');
   };
 
   const startEdit = (snippet: Snippet) => {
     setForm(toForm(snippet));
     setScreen({ kind: 'edit', id: snippet.id });
+    setError('');
   };
 
   const save = async (event: FormEvent) => {
@@ -77,6 +81,7 @@ export function SnippetsWorkspace() {
     if (store.upsert(record)) {
       setScreen({ kind: 'view', id: record.id });
       setMessage(screen.kind === 'edit' ? 'Snippet updated.' : 'Snippet saved in this browser.');
+      setError('');
     }
   };
 
@@ -84,6 +89,7 @@ export function SnippetsWorkspace() {
     store.remove(snippet.id);
     setScreen({ kind: 'list' });
     setMessage('Snippet deleted.');
+    setError('');
   };
 
   const copy = async (snippet: Snippet) => {
@@ -101,6 +107,50 @@ export function SnippetsWorkspace() {
     if (result) {
       setMessage(`Imported ${result.imported} ${result.imported === 1 ? 'snippet' : 'snippets'}; skipped ${result.skipped}.`);
       setScreen({ kind: 'list' });
+      setError('');
+    }
+  };
+
+async function resolveSnippetLanguage(filename: string, text: string, currentChoice = AUTO_LANGUAGE): Promise<string> {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  const matched = ext ? languageOptions.find((opt) => opt.extension === ext) : undefined;
+  if (matched) return matched.id;
+  if (currentChoice !== AUTO_LANGUAGE) return currentChoice;
+  return detectLanguage(text);
+}
+
+  const importSnippetFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const language = await resolveSnippetLanguage(file.name, text);
+      const title = file.name.replace(/\.[^.]+$/, '') || 'Untitled snippet';
+      const record = createSnippet({ title, language, tags: [], code: text });
+      if (store.upsert(record)) {
+        setScreen({ kind: 'view', id: record.id });
+        setMessage(`Imported ${file.name}.`);
+        setError('');
+      }
+    } catch (reason) {
+      setError(errorMessage(reason, `${file.name} could not be read.`));
+    }
+  };
+
+  const loadFormCodeFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const lang = await resolveSnippetLanguage(file.name, text, form.language);
+      const title = form.title.trim() || file.name.replace(/\.[^.]+$/, '');
+      setForm((prev) => ({ ...prev, title, code: text, language: lang }));
+      setMessage(`Loaded ${file.name}.`);
+      setError('');
+    } catch (reason) {
+      setError(errorMessage(reason, `${file.name} could not be read.`));
     }
   };
 
@@ -110,6 +160,7 @@ export function SnippetsWorkspace() {
     setScreen({ kind: 'new' });
     setForm(emptyForm);
     setMessage('All snippets were removed from this browser.');
+    setError('');
   };
 
   const showForm = screen.kind === 'new' || screen.kind === 'edit';
@@ -139,9 +190,21 @@ export function SnippetsWorkspace() {
       </section>
 
       <aside className="ed-pane g side-list" data-pad="true" aria-label="Saved snippets">
-        <button className="button button-primary" type="button" onClick={startNew}>
-          <FilePlus2 aria-hidden="true" size={16} /> New snippet
-        </button>
+        <div className="option-row">
+          <button className="button button-primary" type="button" onClick={startNew}>
+            <FilePlus2 aria-hidden="true" size={16} /> New snippet
+          </button>
+          <label className="button button-secondary">
+            <Upload aria-hidden="true" size={15} /> Import snippet
+            <input
+              className="sr-only"
+              type="file"
+              accept=".js,.ts,.tsx,.jsx,.py,.rb,.go,.rs,.java,.c,.cpp,.h,.hpp,.cs,.php,.html,.css,.scss,.json,.yaml,.yml,.xml,.sql,.sh,.bash,.md,.txt,text/plain,text/*"
+              aria-label="Import a code snippet file"
+              onChange={(event) => void importSnippetFile(event)}
+            />
+          </label>
+        </div>
         <div className="snippet-filters">
           <label className="field-label" htmlFor="snippet-search">
             <span className="sr-only">Search snippets</span>
@@ -259,17 +322,29 @@ export function SnippetsWorkspace() {
                 onChange={(event) => setForm({ ...form, tags: event.target.value })}
               />
             </label>
-            <label className="field-label" htmlFor="snippet-code">
-              Code
-              <textarea
-                className="code-editor"
-                id="snippet-code"
-                value={form.code}
-                spellCheck={false}
-                placeholder="Paste or type the snippet"
-                onChange={(event) => setForm({ ...form, code: event.target.value })}
-              />
-            </label>
+            <div className="control-heading" style={{ marginBottom: '6px' }}>
+              <label className="field-label" htmlFor="snippet-code" style={{ marginBottom: 0 }}>
+                Code
+              </label>
+              <label className="diff-file-label" style={{ cursor: 'pointer' }}>
+                <Upload aria-hidden="true" size={14} /> Upload file
+                <input
+                  className="sr-only"
+                  type="file"
+                  accept=".js,.ts,.tsx,.jsx,.py,.rb,.go,.rs,.java,.c,.cpp,.h,.hpp,.cs,.php,.html,.css,.scss,.json,.yaml,.yml,.xml,.sql,.sh,.bash,.md,.txt,text/plain,text/*"
+                  aria-label="Upload code from file"
+                  onChange={(event) => void loadFormCodeFile(event)}
+                />
+              </label>
+            </div>
+            <textarea
+              className="code-editor"
+              id="snippet-code"
+              value={form.code}
+              spellCheck={false}
+              placeholder="Paste or type the snippet"
+              onChange={(event) => setForm({ ...form, code: event.target.value })}
+            />
             <div className="workflow-actions">
               <button className="button button-primary" type="submit" disabled={!form.code.trim() || saving}>
                 {saving ? 'Saving…' : screen.kind === 'edit' ? 'Save changes' : 'Save snippet'}
@@ -326,9 +401,9 @@ export function SnippetsWorkspace() {
         ) : (
           <p className="ed-note">Pick a snippet from the list, or add a new one.</p>
         )}
-        {store.error ? (
+        {error || store.error ? (
           <p className="field-error" role="alert">
-            {store.error}
+            {error || store.error}
           </p>
         ) : null}
         <p className="ed-status" role="status">

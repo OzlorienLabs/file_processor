@@ -5,6 +5,7 @@ import { HtmlPreview } from '../../components/HtmlPreview/HtmlPreview';
 import { MarkdownPreview } from '../../components/MarkdownPreview/MarkdownPreview';
 import { useLocalCollection } from '../../hooks/useLocalCollection';
 import { copyText, downloadBlob, downloadText, formatWhen } from '../../lib/download';
+import { errorMessage } from '../../lib/errors';
 import { touch } from '../../lib/local-store';
 import { countText } from '../../lib/markdown';
 import {
@@ -34,6 +35,7 @@ export function NotepadWorkspace() {
   const [view, setView] = useState<View>('split');
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [emojiPanelOpen, setEmojiPanelOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -52,11 +54,13 @@ export function NotepadWorkspace() {
   const open = (note: Note) => {
     setCurrent(note);
     setMessage('');
+    setError('');
   };
 
   const startNew = () => {
     setCurrent(createNote(current.mode));
     setMessage('');
+    setError('');
   };
 
   const deleteCurrent = () => {
@@ -64,6 +68,7 @@ export function NotepadWorkspace() {
     const remaining = store.items.filter((note) => note.id !== current.id);
     setCurrent(remaining[0] ?? createNote(current.mode));
     setMessage('Note deleted.');
+    setError('');
   };
 
   const clearAll = () => {
@@ -71,6 +76,7 @@ export function NotepadWorkspace() {
     setCurrent(createNote(current.mode));
     setConfirmingClear(false);
     setMessage('All notes were removed from this browser.');
+    setError('');
   };
 
   const copyBody = async () => {
@@ -96,18 +102,38 @@ export function NotepadWorkspace() {
     if (result) setMessage(`Imported ${result.imported} ${result.imported === 1 ? 'note' : 'notes'}; skipped ${result.skipped}.`);
   };
 
-  const insertEmoji = (emoji: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      change({ body: current.body + emoji });
-      return;
+function inferNoteMode(filename: string): NoteMode {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  if (ext === 'md' || ext === 'markdown') return 'markdown';
+  if (ext === 'html' || ext === 'htm') return 'html';
+  return 'plain';
+}
+
+  const importNoteFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const mode = inferNoteMode(file.name);
+      const title = file.name.replace(/\.[^.]+$/, '');
+      const next = touch<Note>(current, { title, body: text, mode });
+      setCurrent(next);
+      store.upsert(next);
+      setMessage(`Imported ${file.name}.`);
+      setError('');
+    } catch (reason) {
+      setError(errorMessage(reason, `${file.name} could not be read.`));
     }
-    const start = textarea.selectionStart ?? current.body.length;
-    const end = textarea.selectionEnd ?? current.body.length;
+  };
+
+  const insertEmoji = (emoji: string) => {
+    const textarea = textareaRef.current!;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
     const before = current.body.substring(0, start);
     const after = current.body.substring(end);
-    const nextBody = before + emoji + after;
-    change({ body: nextBody });
+    change({ body: before + emoji + after });
 
     setTimeout(() => {
       textarea.focus();
@@ -211,6 +237,17 @@ export function NotepadWorkspace() {
           >
             <Smile aria-hidden="true" size={15} /> Emoji library
           </button>
+          <span className="spacer" />
+          <label className="button button-secondary">
+            <Upload aria-hidden="true" size={15} /> Import note
+            <input
+              className="sr-only"
+              type="file"
+              accept=".txt,.text,.md,.markdown,.html,.htm,text/plain,text/markdown,text/html"
+              aria-label="Import a note file"
+              onChange={(event) => void importNoteFile(event)}
+            />
+          </label>
         </div>
 
         <div
@@ -291,9 +328,9 @@ export function NotepadWorkspace() {
             </span>
             {message ? <span className="ed-pill gi">{message}</span> : null}
           </span>
-          {store.error ? (
+          {error || store.error ? (
             <span className="field-error" role="alert">
-              {store.error}
+              {error || store.error}
             </span>
           ) : null}
         </div>

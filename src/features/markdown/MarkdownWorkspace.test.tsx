@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -171,5 +171,35 @@ describe('MarkdownWorkspace', () => {
     await user.click(screen.getByRole('button', { name: /clear all/i }));
     await user.click(screen.getByRole('button', { name: /yes, delete all/i }));
     expect(screen.getByText(/all documents were removed/i)).toBeInTheDocument();
+  });
+
+  it('imports markdown files (.md, .txt) and handles read errors', async () => {
+    const user = userEvent.setup();
+    render(<MarkdownWorkspace />);
+
+    // Import a .md file
+    const mdFile = new File(['# Readme\n\nProject documentation'], 'README.md', { type: 'text/markdown' });
+    await user.upload(screen.getByLabelText(/import a markdown file/i), mdFile);
+    expect(await screen.findByText(/imported readme\.md/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/document title/i)).toHaveValue('README');
+    expect(screen.getByLabelText(/^markdown$/i)).toHaveValue('# Readme\n\nProject documentation');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Readme' })).toBeInTheDocument();
+
+    // Import a .txt file
+    const txtFile = new File(['Plain notes to convert'], 'notes.txt', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/import a markdown file/i), txtFile);
+    expect(await screen.findByText(/imported notes\.txt/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/document title/i)).toHaveValue('notes');
+    expect(screen.getByLabelText(/^markdown$/i)).toHaveValue('Plain notes to convert');
+
+    // Empty file selection
+    const input = screen.getByLabelText(/import a markdown file/i);
+    fireEvent.change(input, { target: { files: [] } });
+
+    // File read error
+    const brokenFile = new File(['bad'], 'corrupt.md', { type: 'text/markdown' });
+    vi.spyOn(brokenFile, 'text').mockRejectedValueOnce(new Error('Cannot read file'));
+    await user.upload(screen.getByLabelText(/import a markdown file/i), brokenFile);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/cannot read file/i);
   });
 });

@@ -214,4 +214,54 @@ describe('NotepadWorkspace', () => {
 
     vi.unstubAllGlobals();
   });
+
+  it('imports supported note files (.txt, .md, .html) and handles read errors', async () => {
+    const user = userEvent.setup();
+    render(<NotepadWorkspace />);
+
+    // Import a .txt file
+    const txtFile = new File(['Meeting notes\n- item 1\n- item 2'], 'meeting-agenda.txt', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/import a note file/i), txtFile);
+    expect(await screen.findByText(/imported meeting-agenda\.txt/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/note title/i)).toHaveValue('meeting-agenda');
+    expect(screen.getByLabelText(/^note$/i)).toHaveValue('Meeting notes\n- item 1\n- item 2');
+    expect(screen.getByLabelText(/note format/i)).toHaveValue('plain');
+    expect(within(list()).getByRole('button', { name: /meeting-agenda/i })).toBeInTheDocument();
+
+    // Import a .md file
+    const mdFile = new File(['# Project Plan\n\nDetailed markdown'], 'roadmap.md', { type: 'text/markdown' });
+    await user.upload(screen.getByLabelText(/import a note file/i), mdFile);
+    expect(await screen.findByText(/imported roadmap\.md/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/note title/i)).toHaveValue('roadmap');
+    expect(screen.getByLabelText(/note format/i)).toHaveValue('markdown');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Project Plan' })).toBeInTheDocument();
+
+    // Import a .html file
+    const htmlFile = new File(['<h1>Web Page</h1>'], 'index.html', { type: 'text/html' });
+    await user.upload(screen.getByLabelText(/import a note file/i), htmlFile);
+    expect(await screen.findByText(/imported index\.html/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/note title/i)).toHaveValue('index');
+    expect(screen.getByLabelText(/note format/i)).toHaveValue('html');
+
+    // Import a .markdown file
+    const markdownFile = new File(['## Heading'], 'doc.markdown', { type: 'text/markdown' });
+    await user.upload(screen.getByLabelText(/import a note file/i), markdownFile);
+    expect(await screen.findByText(/imported doc\.markdown/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/note format/i)).toHaveValue('markdown');
+
+    // Import a .htm file and empty body
+    const htmFile = new File([''], 'page.htm', { type: 'text/html' });
+    await user.upload(screen.getByLabelText(/import a note file/i), htmFile);
+    expect(await screen.findByText(/imported page\.htm/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/note format/i)).toHaveValue('html');
+
+    // Empty file selection (cancelling file picker)
+    fireEvent.change(screen.getByLabelText(/import a note file/i), { target: { files: [] } });
+
+    // File read error
+    const brokenFile = new File(['broken'], 'broken.txt', { type: 'text/plain' });
+    vi.spyOn(brokenFile, 'text').mockRejectedValueOnce(new Error('Disk read failed'));
+    await user.upload(screen.getByLabelText(/import a note file/i), brokenFile);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/disk read failed/i);
+  });
 });

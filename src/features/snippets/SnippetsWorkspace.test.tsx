@@ -160,4 +160,65 @@ describe('SnippetsWorkspace', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/out of local storage/i);
     setItem.mockRestore();
   });
+
+  it('imports code snippet files and loads code from file into the form', async () => {
+    const user = userEvent.setup();
+    render(<SnippetsWorkspace />);
+
+    // Import a Python code file via sidebar
+    const pyFile = new File(['def fib(n):\n    return n if n <= 1 else fib(n-1) + fib(n-2)'], 'fibonacci.py', { type: 'text/x-python' });
+    await user.upload(screen.getByLabelText(/import a code snippet file/i), pyFile);
+    expect(await screen.findByText(/imported fibonacci\.py/i)).toBeInTheDocument();
+    expect(within(list()).getByRole('button', { name: /fibonacci/i })).toBeInTheDocument();
+    expect(screen.getByText('Python')).toBeInTheDocument();
+
+    // Start editing or new snippet, and load code into form
+    await user.click(screen.getByRole('button', { name: /new snippet/i }));
+    const jsFile = new File(['export const add = (a, b) => a + b;'], 'math.js', { type: 'text/javascript' });
+    await user.upload(screen.getByLabelText(/upload code from file/i), jsFile);
+    expect(await screen.findByText(/loaded math\.js/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/snippet title/i)).toHaveValue('math');
+    expect(screen.getByLabelText(/^code$/i)).toHaveValue('export const add = (a, b) => a + b;');
+    expect(screen.getByLabelText(/^language$/i)).toHaveValue('javascript');
+
+    // Upload code into form when title is already set
+    await user.type(screen.getByLabelText(/snippet title/i), ' Custom Name');
+    const cssFile = new File(['body { color: red; }'], 'styles.css', { type: 'text/css' });
+    await user.upload(screen.getByLabelText(/upload code from file/i), cssFile);
+    expect(screen.getByLabelText(/snippet title/i)).toHaveValue('math Custom Name');
+    expect(screen.getByLabelText(/^code$/i)).toHaveValue('body { color: red; }');
+
+    // Upload file into form with custom language set and unknown file extension
+    await user.selectOptions(screen.getByLabelText(/^language$/i), 'ruby');
+    const customFile = new File(['puts "hi"'], 'script.custom', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/upload code from file/i), customFile);
+    expect(screen.getByLabelText(/^language$/i)).toHaveValue('ruby');
+
+    // Upload file into form with auto language and unknown extension
+    await user.selectOptions(screen.getByLabelText(/^language$/i), 'auto');
+    const autoUnknown = new File(['hello world'], 'main.custom', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/upload code from file/i), autoUnknown);
+    expect(screen.getByLabelText(/^language$/i)).toHaveValue('plaintext');
+
+    // Empty file selection
+    fireEvent.change(screen.getByLabelText(/import a code snippet file/i), { target: { files: [] } });
+    fireEvent.change(screen.getByLabelText(/upload code from file/i), { target: { files: [] } });
+
+    // File read error on sidebar import
+    const broken = new File(['bad'], 'broken.ts', { type: 'text/plain' });
+    vi.spyOn(broken, 'text').mockRejectedValueOnce(new Error('Cannot read file'));
+    await user.upload(screen.getByLabelText(/import a code snippet file/i), broken);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/cannot read file/i);
+
+    // File read error on form upload
+    const brokenForm = new File(['bad'], 'broken-form.ts', { type: 'text/plain' });
+    vi.spyOn(brokenForm, 'text').mockRejectedValueOnce(new Error('Form upload failed'));
+    await user.upload(screen.getByLabelText(/upload code from file/i), brokenForm);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/form upload failed/i);
+
+    // Import file with unknown extension and empty base name
+    const unknownFile = new File(['SELECT * FROM users;'], '.unknown', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/import a code snippet file/i), unknownFile);
+    expect(await screen.findByText(/imported \.unknown/i)).toBeInTheDocument();
+  });
 });

@@ -202,4 +202,42 @@ describe('MermaidWorkspace', () => {
     await user.click(screen.getByRole('button', { name: /yes, delete all/i }));
     expect(screen.getByText(/all diagrams were removed/i)).toBeInTheDocument();
   });
+
+  it('imports Mermaid script files (.mmd, .txt) and handles read errors', async () => {
+    const user = userEvent.setup();
+    render(<MermaidWorkspace />);
+    await screen.findByRole('img');
+
+    // Import a .mmd script file
+    const mmdFile = new File(['sequenceDiagram\n  Alice->>Bob: Hello'], 'chat-sequence.mmd', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/import a mermaid file/i), mmdFile);
+    expect(await screen.findByText(/imported chat-sequence\.mmd/i)).toBeInTheDocument();
+    expect(editor()).toHaveValue('sequenceDiagram\n  Alice->>Bob: Hello');
+    expect(within(list()).getByRole('button', { name: /chat-sequence/i })).toBeInTheDocument();
+
+    // Import another script while editing
+    const txtFile = new File(['classDiagram\n  class Animal'], 'animals.txt', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/import a mermaid file/i), txtFile);
+    expect(await screen.findByText(/imported animals\.txt/i)).toBeInTheDocument();
+    expect(editor()).toHaveValue('classDiagram\n  class Animal');
+
+    // Import a script with empty base name (.mmd)
+    const blankBaseFile = new File(['stateDiagram-v2\n  [*] --> First'], '.mmd', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/import a mermaid file/i), blankBaseFile);
+    expect(await screen.findByText(/imported \.mmd/i)).toBeInTheDocument();
+
+    // Empty file selection
+    fireEvent.change(screen.getByLabelText(/import a mermaid file/i), { target: { files: [] } });
+
+    // File read error
+    const brokenFile = new File(['bad'], 'corrupt.mmd', { type: 'text/plain' });
+    vi.spyOn(brokenFile, 'text').mockRejectedValueOnce(new Error('Cannot read file'));
+    await user.upload(screen.getByLabelText(/import a mermaid file/i), brokenFile);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/cannot read file/i);
+  });
+
+  it('handles unmount while rendering is pending', () => {
+    const { unmount } = render(<MermaidWorkspace />);
+    unmount();
+  });
 });
