@@ -206,3 +206,14 @@
 - [x] Syntax errors keep the last good preview; warnings are shown; a WebAssembly trap discards the engine instance.
 
 **Verification:** `npm run verify`, Playwright creator-tools flow under the production CSP
+
+## Task 18: Screen recorder and video to GIF
+
+**Acceptance criteria:**
+- [x] `/en/screen-recorder` records a tab, window, or screen — whole or a selected area — as WebM/MP4 with frame rate, bitrate, sound, microphone, pointer, countdown, pause/resume; WebM gets a real duration.
+- [x] Area cropping works frame-by-frame through insertable streams (background-safe), with a canvas fallback that says it needs the tab visible.
+- [x] `/en/video-to-gif` trims, crops, scales, retimes and encodes in the tab with per-frame palettes, unchanged-pixel transparency, optional dithering, and a 1,200-frame cap; cancellable progress.
+- [x] "Make a GIF" hands the recording over in memory; nothing is stored.
+- [x] Registration marks, OG cards, catalog entries, subdomain redirects, CSP `media-src`, `display-capture` policy.
+
+**Verification:** `npm run verify`, Playwright media-tools flow (record an area of the tab → GIF) under the production CSP

@@ -144,8 +144,8 @@ export function HomePage() {
             <h2 id="create-title">Editors that take the whole screen</h2>
           </div>
           <p>
-            {counts.editors} full-bleed workspaces. Your work stays in this browser and follows you
-            back.
+            {counts.editors} full-bleed workspaces. Editors keep your work in this browser; recordings
+            and GIFs stay in memory until you download them.
           </p>
         </div>
         <div className="tool-grid">

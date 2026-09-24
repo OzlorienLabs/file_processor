@@ -20,6 +20,8 @@ const requiredPaths = [
   '/en/markdown',
   '/en/snippets',
   '/en/snippet-generator',
+  '/en/screen-recorder',
+  '/en/video-to-gif',
 ];
 
 describe('tool catalog', () => {
@@ -42,10 +44,23 @@ describe('tool catalog', () => {
 
   it('groups editors separately from file tools and marks what they store', () => {
     const editors = toolsInCategory('create');
-    expect(editors.map((tool) => tool.id).sort()).toEqual(
-      ['diagram', 'diff', 'graphviz', 'markdown', 'mermaid', 'notepad', 'snippet-generator', 'snippets'],
-    );
-    expect(editors.every((tool) => tool.layout === 'wide' && tool.storage === 'local')).toBe(true);
+    expect(editors.map((tool) => tool.id).sort()).toEqual([
+      'diagram',
+      'diff',
+      'graphviz',
+      'markdown',
+      'mermaid',
+      'notepad',
+      'screen-recorder',
+      'snippet-generator',
+      'snippets',
+      'video-to-gif',
+    ]);
+    expect(editors.every((tool) => tool.layout === 'wide')).toBe(true);
+    // Recordings and GIFs are files like any other: they stay in memory, never in storage.
+    const media = ['screen-recorder', 'video-to-gif'];
+    expect(editors.filter((tool) => !media.includes(tool.id)).every((tool) => tool.storage === 'local')).toBe(true);
+    expect(editors.filter((tool) => media.includes(tool.id)).some((tool) => tool.storage)).toBe(false);
     expect(toolsInCategory('files')).toHaveLength(9);
     expect(toolsInCategory('files').some((tool) => tool.storage)).toBe(false);
   });

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke-width="1.7">
+  <title>Video to GIF</title>
+  <rect x="3.2" y="5" width="10.4" height="14" fill="none" stroke="#0088b0"/>
+  <path d="M3.2 8.6h10.4M3.2 15.4h10.4" fill="none" stroke="#201e1d" stroke-width="1.1"/>
+  <path d="M16.4 7.8a4.4 4.4 0 1 1 0 8.4" fill="none" stroke="#d6006c"/>
+  <path d="m18.2 14.6-1.8 1.6 1.6 1.9" fill="none" stroke="#d6006c"/>
+</svg>
