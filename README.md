@@ -3,9 +3,10 @@
 Free online tools for everyday files: merge, split, compress, convert, OCR, summarize,
 transcribe, and a complete emoji library, plus a set of local-first editors — whiteboard
 diagrams, Mermaid, Graphviz, diff checking, notes, Markdown, code snippets, and an AI snippet
-generator. No login, no database, no tracking. File tools work in browser memory and forget
-everything on refresh; the editors keep your work in this browser's localStorage only, with
-export and clear controls on every page.
+generator — and two media tools, a screen recorder and a video-to-GIF converter. No login, no
+database, no tracking. File tools work in browser memory and forget everything on refresh; the
+editors keep your work in this browser's localStorage only, with export and clear controls on
+every page.
 
 ## Tools
 
@@ -35,6 +36,13 @@ export and clear controls on every page.
 | `/en/snippets` | Code snippet manager with detection, highlighting, tags, search, JSON export/import | `filekit.snippets.v1` |
 | `/en/snippet-generator` | Generate snippets with Chrome's built-in model (on device) or your OpenAI/Anthropic/Gemini key; searchable history | `filekit.generated.v1`, `filekit.generator.v1` |
 
+### Media tools (memory only, never stored)
+
+| Route | What it does |
+|---|---|
+| `/en/screen-recorder` | Record a browser tab, a window, or the whole screen — all of it or a dragged/typed area — as WebM or MP4 (whatever `MediaRecorder` offers); frame rate, bitrate, tab/system sound, microphone voice-over (mixed with Web Audio), pointer, countdown, pause/resume. WebM files get their missing duration written in so they seek. "Make a GIF" hands the take straight to the converter. |
+| `/en/video-to-gif` | Turn MP4/WebM/MOV (or a handed-over recording) into a GIF: trim, crop, width, frame rate, speed, 32–256 colours, optional dithering, loop. Each frame gets its own palette and only changed pixels are redrawn (transparent over the previous frame), so screen text stays crisp and files stay small. Encoded with gifenc in the tab. |
+
 AI keys are yours: they are sent per-request in a header through a stateless Vercel
 function that stores and logs nothing. Model/key preferences live in your browser's
 localStorage with a one-click "Forget key on this device" control.
@@ -44,8 +52,8 @@ localStorage with a one-click "Forget key on this device" control.
 Vite + React 19 + TypeScript SPA, native CSS (warm Clay/Ivory light theme), React Router
 for stable `/en/...` URLs, deployed on Vercel with three Node functions (`api/ai/*`) used
 only for AI provider calls. Heavy engines — pdf-lib, PDF.js, Tesseract, mammoth, jsPDF,
-docx, JSZip, transformers.js, Excalidraw, Mermaid, Graphviz (`@viz-js/viz` WebAssembly), the remark/rehype Markdown pipeline,
-and lowlight — are dynamic imports or route-level chunks, kept out of the initial bundle.
+docx, JSZip, transformers.js, Excalidraw, Mermaid, Graphviz (`@viz-js/viz` WebAssembly), gifenc,
+fix-webm-duration, the remark/rehype Markdown pipeline, and lowlight — are dynamic imports or route-level chunks, kept out of the initial bundle.
 Untrusted content (Markdown, model output, highlighted code) is rendered as React elements
 from syntax trees, never as injected HTML; user HTML previews live in a sandboxed iframe.
 

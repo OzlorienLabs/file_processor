@@ -26,7 +26,9 @@ export type ToolId =
   | 'notepad'
   | 'markdown'
   | 'snippets'
-  | 'snippet-generator';
+  | 'snippet-generator'
+  | 'screen-recorder'
+  | 'video-to-gif';
 
 /** One choice in a file tool's "2 · Settings" panel. */
 export interface ToolOutput {
@@ -62,7 +64,10 @@ export interface ToolDefinition {
   category: ToolCategory;
   /** Editors get a wider workspace than the single-file tools. */
   layout?: 'wide';
-  /** Set when the tool keeps user content in this browser's localStorage. */
+  /**
+   * Set when the tool keeps user content in this browser's localStorage. The media tools
+   * (screen recorder, video to GIF) are editors that deliberately keep nothing.
+   */
   storage?: 'local';
   accept: string[];
   maxSize: string;
@@ -487,6 +492,42 @@ export const coreTools: ToolDefinition[] = [
       'Describe the snippet and choose a language.',
       'Generate with Chrome\'s on-device model or your provider key.',
       'Copy it, save it to your snippets, or find it later in history.',
+    ],
+  },
+  {
+    id: 'screen-recorder',
+    path: '/en/screen-recorder',
+    name: 'Screen recorder',
+    shortName: 'Screen recorder',
+    description: 'Record a browser tab, a window, your whole screen, or just part of it as a video.',
+    processing: 'browser',
+    category: 'create',
+    layout: 'wide',
+    accept: ['Browser tab', 'Window', 'Entire screen', 'Selected area'],
+    maxSize: 'Kept in memory, never uploaded',
+    howTo: 'How to record your screen',
+    steps: [
+      'Pick a tab, window, or screen, and record all of it or an area.',
+      'Pause and resume as you go; stop here or from the browser bar.',
+      'Download the WebM or MP4 video, or turn it into a GIF.',
+    ],
+  },
+  {
+    id: 'video-to-gif',
+    path: '/en/video-to-gif',
+    name: 'Video to GIF',
+    shortName: 'Video to GIF',
+    description: 'Turn a clip or a screen recording into a sharp, looping GIF.',
+    processing: 'browser',
+    category: 'create',
+    layout: 'wide',
+    accept: ['MP4', 'WebM', 'MOV', 'Screen recordings'],
+    maxSize: 'Up to 1 GB',
+    howTo: 'How to convert a video to GIF',
+    steps: [
+      'Choose a video, or bring a screen recording straight over.',
+      'Trim and crop it, then set the size, frame rate, and colours.',
+      'Create the GIF in your browser and download it.',
     ],
   },
 ];

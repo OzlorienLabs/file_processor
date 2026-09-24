@@ -19,6 +19,7 @@ The initial release provides these public routes:
 - `/en/emojis` — searchable list of every fully-qualified Unicode Emoji 17.0 sequence
 - `/en/diagram`, `/en/mermaid`, `/en/graphviz`, `/en/diff`, `/en/notepad`, `/en/markdown`, `/en/snippets`,
   `/en/snippet-generator` — local-first editors (see "Creator tools" below)
+- `/en/screen-recorder`, `/en/video-to-gif` — media tools in the Creation & development group (see "Media tools" below)
 
 Root and unknown language-prefixed routes redirect safely to `/en` or show a useful not-found state. There is no login, database, pricing, trust badge, testimonial, or long marketing section.
 
@@ -241,6 +242,32 @@ Seven editors join the file tools. Design record: `docs/superpowers/specs/2026-0
   explains why and offers the provider path.
 - Excalidraw fonts are self-hosted at `/excalidraw/fonts` (copied from the package at build
   time by a Vite plugin) so the `font-src 'self'` CSP holds.
+
+## Media tools (added 2026-09-24)
+
+Two tools join the Creation & development group. Like the file tools they keep nothing:
+recordings and GIFs live in memory until downloaded, and the tools carry no `storage` flag.
+
+- **Screen recorder** (`/en/screen-recorder`). `getDisplayMedia` with a preferred surface
+  (tab, window, screen) as a picker hint; "All of it" starts recording as soon as the share
+  begins, "Part of it" shows the live share with a drag-to-select crop box plus pixel fields.
+  Cropping uses insertable streams (`MediaStreamTrackProcessor` → `VideoFrame` `visibleRect`
+  → `MediaStreamTrackGenerator`) where available, so it keeps running while the tab is hidden;
+  elsewhere a timed canvas redraw, with a note to keep the tab visible. Options: frame rate
+  (15/24/30/60), bitrate (2.5/6/12 Mbps), WebM or MP4 (only formats `MediaRecorder` reports),
+  tab/system sound, microphone (mixed through Web Audio), pointer, 3-second countdown; pause
+  and resume; the browser's own "Stop sharing" ends the take. WebM output gets its duration
+  written by `fix-webm-duration`. Browsers without screen sharing (phones) get an explanation.
+- **Video to GIF** (`/en/video-to-gif`). Accepts MP4, M4V, WebM, MOV, OGV, MKV up to 1 GB, or
+  a recording handed over in memory by the recorder's "Make a GIF". Trim (sliders and "at
+  playhead"), crop (same selector), width (never upscaled, ≤1920), 5–30 fps, 0.5–3× speed,
+  32–256 colours, dithering, loop. Frames are read by seeking a private `<video>` and drawing
+  onto a canvas; gifenc quantizes a palette per frame from the changed pixels only, unchanged
+  pixels are written transparent over the previous frame (disposal 1), identical frames merge
+  into longer delays, and delay rounding is carried so the total length stays exact. Limit
+  1,200 frames. Progress per frame, cancellable.
+- CSP adds `media-src 'self' blob:` for playing recordings and loaded videos; the
+  Permissions-Policy allows `display-capture=(self)`.
 
 ## Open questions
 

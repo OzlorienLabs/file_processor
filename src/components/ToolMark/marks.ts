@@ -206,6 +206,23 @@ export const marks: Record<MarkId, MarkDefinition> = {
       { kind: 'path', d: 'M18.4 3 19.6 6l3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z', fill: 'accent-2' },
     ],
   },
+  'screen-recorder': {
+    title: 'Screen recorder',
+    shapes: [
+      { kind: 'rect', x: 3.2, y: 4.4, width: 17.6, height: 12, stroke: 'accent' },
+      { kind: 'path', d: 'M8.8 20h6.4M12 16.4V20', stroke: 'text', strokeWidth: 1.2 },
+      { kind: 'circle', cx: 12, cy: 10.4, r: 2.7, fill: 'accent-2' },
+    ],
+  },
+  'video-to-gif': {
+    title: 'Video to GIF',
+    shapes: [
+      { kind: 'rect', x: 3.2, y: 5, width: 10.4, height: 14, stroke: 'accent' },
+      { kind: 'path', d: 'M3.2 8.6h10.4M3.2 15.4h10.4', stroke: 'text', strokeWidth: 1.1 },
+      { kind: 'path', d: 'M16.4 7.8a4.4 4.4 0 1 1 0 8.4', stroke: 'accent-2' },
+      { kind: 'path', d: 'm18.2 14.6-1.8 1.6 1.6 1.9', stroke: 'accent-2' },
+    ],
+  },
 };
 
 export const markIds = Object.keys(marks) as MarkId[];

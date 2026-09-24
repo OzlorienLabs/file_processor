@@ -1,6 +1,6 @@
 # FileKit — client-first file tools
 
-Private, no-login file utilities (merge, split, compress, convert, OCR, summarize, transcribe, emoji library) served as a Vite + React SPA on Vercel. Files are processed in browser memory whenever possible; only explicit AI tasks call out through stateless `api/` functions using the user's own key.
+Private, no-login file utilities (merge, split, compress, convert, OCR, summarize, transcribe, emoji library, screen recording, video to GIF) served as a Vite + React SPA on Vercel. Files are processed in browser memory whenever possible; only explicit AI tasks call out through stateless `api/` functions using the user's own key.
 
 The product contract lives in `tasks/spec.md`; the phased plan in `tasks/plan.md` and `tasks/todo.md`. Read the spec before changing behavior.
 
@@ -21,7 +21,7 @@ npm run audit           # npm audit --audit-level=high; must be clean before rel
 - Routes are `/en/...` (see `src/app/tool-catalog.ts`); Vercel rewrites all non-asset paths to `index.html`.
 - Processing code lives in `src/lib/` as small pure functions that take `File`/`ArrayBuffer` and return bytes/`Blob`/text. **Processing modules never import React.**
 - Each tool gets one folder in `src/features/` with a `*Workspace.tsx` component and a colocated test. `ToolPage` maps tool id → workspace.
-- Heavy engines (pdf-lib, pdf.js, tesseract, mammoth, jspdf, docx, jszip, transformers) are **dynamic imports at the action boundary**, never in the initial chunk.
+- Heavy engines (pdf-lib, pdf.js, tesseract, mammoth, jspdf, docx, jszip, transformers, gifenc, fix-webm-duration) are **dynamic imports at the action boundary**, never in the initial chunk.
 - `api/` functions are stateless proxies to allowlisted AI provider endpoints only. Never log bodies, filenames, or keys; always respond `Cache-Control: no-store` with the shared `{ error: { code, message } }` shape.
 - User AI preferences (provider/model/key) persist in one versioned localStorage key with a visible clear control. Files and results never touch persistent storage.
 - Untrusted data (file content, extracted text, model output) is rendered only as escaped text — no `dangerouslySetInnerHTML`.
@@ -30,13 +30,13 @@ npm run audit           # npm audit --audit-level=high; must be clean before rel
 
 - Named exports, one responsibility per file, colocated `*.test.ts(x)`.
 - Task flow state in workspaces: `idle → working (progress, cancellable via AbortController) → success | error`. Always release object URLs, canvases, and workers.
-- New tools: add to `coreTools` in `tool-catalog.ts` (routes, rail entries, landing cards and the how-to steps all derive from it), register the workspace in `ToolPage`'s map, and add its mark to `marks.ts`. File tools (`category: 'files'`) supply a `flow` block and render through `FileToolFlow`, which owns the source → settings → result column; only ship a `flow` option the engine can actually deliver. Editors (`category: 'create'`) are `lazy()` entries with `layout: 'wide'` and `storage: 'local'` and build their own full-viewport layout on the `.ed-*` classes.
+- New tools: add to `coreTools` in `tool-catalog.ts` (routes, rail entries, landing cards and the how-to steps all derive from it), register the workspace in `ToolPage`'s map, and add its mark to `marks.ts`. File tools (`category: 'files'`) supply a `flow` block and render through `FileToolFlow`, which owns the source → settings → result column; only ship a `flow` option the engine can actually deliver. Editors (`category: 'create'`) are `lazy()` entries with `layout: 'wide'` and `storage: 'local'` and build their own full-viewport layout on the `.ed-*` classes. The two media tools (screen recorder, video to GIF) are editors without `storage`: recordings and GIFs stay in memory like any file, and the recorder hands a take to the GIF tool through `media-handoff.ts` (module memory, not storage).
 - Persisted user content goes through `src/lib/local-store.ts` (`createCollection` / `createValueStore`, one `filekit.<tool>.v1` key each, zod-validated, capped) and the `useLocalCollection` hook; every such page offers export and clear controls.
 - Untrusted text becomes React elements, never HTML strings: Markdown via `MarkdownPreview` (react-markdown), code via `CodeBlock` (lowlight hast → JSX), author HTML only inside `HtmlPreview`'s sandboxed iframe, Mermaid SVG through an `<img>` blob URL.
 - UI theme: the Broadsheet tokens are ported into `:root` in `src/styles/global.css` (`--color-bg #f3f2f2`, `--color-text #201e1d`, cyan `--color-accent #0088b0`, magenta `--color-accent-2 #d6006c`, press yellow `--color-process-yellow`). Take every colour, space, radius and shadow from those custom properties — never hand-type a hex. Cyan is the interactive colour, magenta the rare second spot, the yellow is for press treatments only, and body-size cyan text uses `--color-accent-700`. Light theme only — no dark default.
 - Type is Source Serif 4 everywhere, self-hosted through `@fontsource/source-serif-4` (imported by `main.tsx`) so `font-src 'self'` holds. Monospace only inside code, diff and Markdown editors.
 - Surfaces come from the glass layer: `.g` panels, `.g2` chrome, `.gi` pills and insets, with an `@supports` fallback plus `.flat` and `.calm` escape hatches on `<html>` driven by the `filekit.ui.v1` settings.
-- Tool identity comes from the 18 registration marks in `src/components/ToolMark/marks.ts`. `public/marks/*.svg` and `public/og/*.png` are generated from that one definition by `node scripts/generate-marks.ts`, and a test fails if they drift.
+- Tool identity comes from the 20 registration marks in `src/components/ToolMark/marks.ts`. `public/marks/*.svg` and `public/og/*.png` are generated from that one definition by `node scripts/generate-marks.ts`, and a test fails if they drift.
 - Tests mock the heavy engines at the module boundary (`vi.mock` on `src/lib/*`), and lib tests inject adapters (see `RasterAdapter`, `OpenPdfRasterDocument`) instead of touching canvas/workers.
 
 ## Gotchas
@@ -45,6 +45,8 @@ npm run audit           # npm audit --audit-level=high; must be clean before rel
 - Excalidraw resolves fonts from `window.EXCALIDRAW_ASSET_PATH` and otherwise falls back to a CDN the CSP blocks. `DiagramWorkspace` sets it to `/excalidraw/`; the `excalidrawAssets` Vite plugin serves the package fonts in dev and copies them into `dist/excalidraw/fonts` on build. Keep both in sync.
 - Even with that path set, production logs `securitypolicyviolation` for `font-src https://esm.sh/@excalidraw/...`: Excalidraw *appends* its CDN fallback to the same `@font-face src:` list, and Chrome reports every entry the CSP refuses. The fonts still load from `/excalidraw/fonts/` (200, nothing leaves the device) — it is console noise, not breakage. `vite preview` sends no CSP header, so the e2e suite cannot see this class of problem; check it against the deployed site.
 - `mermaid.render` appends a scratch `<div id="d<id>">` and leaves it behind on parse errors; `renderMermaid` removes it. Preview goes through `<img>` so `htmlLabels: false` matters for consistent PNG export.
+- MediaRecorder WebM has no duration (players show `Infinity` and cannot seek). The recorder writes it with `fix-webm-duration`; `openVideo` in `video-frames.ts` still settles an unknown duration by seeking past the end, for WebM files from elsewhere.
+- Headless Chromium crashes tearing down a tab capture unless launched with `--use-fake-ui-for-media-stream`; `e2e/media-tools.spec.ts` sets it with the auto-accept tab-capture flags.
 - `@testing-library/user-event` honours an input's `accept` list: to test the "unsupported file" branch pass `userEvent.setup({ applyAccept: false })`.
 
 - `pdfjs-dist` v6: worker via `?url` import; destroy through the loading task; jsdom has no canvas — keep pdf.js behind injectable adapters.

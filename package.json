@@ -28,6 +28,8 @@
     "diff": "^9.0.0",
     "docx": "^9.7.1",
     "dompurify": "^3.4.14",
+    "fix-webm-duration": "^1.0.6",
+    "gifenc": "^1.0.3",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "jspdf": "^4.2.1",
     "jszip": "^3.10.1",

@@ -1418,6 +1418,101 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
 .diagram-message { color: var(--color-accent-800); }
 .diagram-loading { display: grid; height: 100%; place-items: center; }
 
+/* Crop box over a video — shared by the screen recorder and video to GIF */
+.region-stage {
+  position: relative; width: 100%; margin-inline: auto;
+  max-width: calc(var(--region-max-h, 58vh) * var(--region-ratio));
+  aspect-ratio: var(--region-ratio);
+}
+.region-stage > video { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; object-fit: contain; }
+.region-layer { position: absolute; inset: 0; overflow: hidden; cursor: crosshair; touch-action: none; user-select: none; }
+.region-box {
+  position: absolute; cursor: move;
+  outline: 2px solid var(--color-accent); outline-offset: 0;
+  border: 1px dashed color-mix(in srgb, var(--color-bg) 85%, transparent);
+  box-shadow: 0 0 0 100vmax color-mix(in srgb, var(--color-text) 52%, transparent);
+}
+.region-layer[data-dragging="draw"] .region-box { cursor: crosshair; }
+.region-size {
+  position: absolute; left: 6px; top: 6px; padding: 2px 8px; border-radius: var(--radius-pill);
+  font-size: 12px; color: var(--color-accent-800); white-space: nowrap; pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.region-fields { display: grid; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
+.region-fields legend { margin-bottom: 8px; padding: 0; font-size: 14px; color: var(--color-neutral-800); }
+.region-fields-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
+.region-fields .button { justify-self: start; min-height: 38px; padding: 6px 11px; font-size: 13.5px; }
+
+/* Screen recorder */
+.recorder-selects { display: grid; gap: var(--space-2); }
+.recorder-toggles { display: grid; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
+.recorder-toggles legend { margin-bottom: 8px; padding: 0; font-size: 14px; color: var(--color-neutral-800); }
+.screen-recorder .flow-options, .screen-recorder .recorder-toggles { flex: none; }
+.recorder-stage {
+  flex: 1; min-height: 240px; display: grid; place-items: center;
+  padding: var(--space-3); overflow: hidden; background: rgba(255, 255, 255, 0.3);
+}
+.recorder-stage > .region-stage { --region-max-h: 56vh; }
+.recorder-video {
+  display: block; max-width: 100%; max-height: 62vh;
+  border-radius: var(--radius-md); background: var(--color-neutral-900); box-shadow: var(--shadow-md);
+}
+.recorder-live { position: relative; display: grid; place-items: center; min-width: 0; min-height: 0; }
+.recorder-count {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-family: var(--font-heading); font-size: clamp(72px, 12vw, 168px); line-height: 1;
+  color: var(--color-bg); text-shadow: 0 2px 18px color-mix(in srgb, var(--color-text) 60%, transparent);
+  background: color-mix(in srgb, var(--color-text) 28%, transparent); border-radius: var(--radius-md);
+}
+.recorder-empty {
+  display: grid; justify-items: center; gap: var(--space-3); max-width: 48ch;
+  text-align: center; color: var(--color-neutral-700);
+}
+.recorder-empty strong { font-family: var(--font-heading); font-size: 21px; color: var(--color-text); }
+.recorder-empty p { margin: 0; font-size: 14.5px; line-height: 1.5; }
+.recorder-clock { font-variant-numeric: tabular-nums; font-size: 13px; }
+.recorder-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-neutral-500); }
+.recorder-clock[data-state="recording"] { color: var(--color-accent-2-700); }
+.recorder-clock[data-state="recording"] .recorder-dot { background: var(--color-accent-2); animation: blink 1.6s steps(1) infinite; }
+.calm .recorder-dot { animation: none; }
+.recorder-region { flex: none; padding: var(--space-2) var(--space-3) 0; }
+.recorder-bar { margin: var(--space-2) var(--space-3); }
+.recorder-message { margin: 0 var(--space-3) var(--space-2); }
+
+/* Video to GIF */
+.gif-main { min-height: 0; }
+.gif-main > .ed-head .flow-file-name { flex: 1 1 220px; }
+.gif-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); }
+.gif-stage {
+  flex: none; display: grid; place-items: center; padding: var(--space-2);
+  border-radius: var(--radius-lg); background: rgba(255, 255, 255, 0.3);
+}
+.gif-stage > .region-stage { --region-max-h: 50vh; }
+.gif-video { display: block; max-width: 100%; max-height: 50vh; background: var(--color-neutral-900); border-radius: var(--radius-md); }
+.gif-trim { flex: none; display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.gif-trim legend { margin-bottom: 6px; padding: 0; font-size: 14px; color: var(--color-neutral-800); }
+.gif-trim-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 58px auto; align-items: center; gap: var(--space-2); font-size: 14px; }
+.gif-trim-row input[type="range"] { width: 100%; accent-color: var(--color-accent); }
+.gif-trim-row strong { color: var(--color-accent-700); font-variant-numeric: tabular-nums; font-weight: 400; }
+.gif-trim-row .button { min-height: 36px; padding: 5px 10px; font-size: 13px; }
+.gif-estimate { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--color-neutral-800); }
+.gif-estimate.is-over { color: var(--color-accent-2-700); }
+.gif-working { display: grid; gap: var(--space-2); }
+.gif-working .button { justify-self: start; }
+.gif-result { flex: none; display: grid; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-lg); }
+.gif-result-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.gif-result-head strong { font-family: var(--font-heading); font-size: 18px; }
+.gif-result-head span[role="status"] { font-size: 13px; color: var(--color-neutral-700); }
+.gif-result-head .spacer { flex: 1 1 auto; }
+.gif-result-image {
+  display: grid; place-items: center; padding: var(--space-3); border-radius: var(--radius-md);
+  background: repeating-conic-gradient(var(--color-neutral-200) 0 25%, var(--color-neutral-100) 0 50%) 0 0 / 18px 18px;
+}
+.gif-result-image img { max-width: 100%; height: auto; box-shadow: var(--shadow-sm); }
+.gif-drop { flex: 1; min-height: 0; margin: var(--space-3); flex-direction: column; gap: var(--space-3); }
+.gif-record-link { align-self: center; }
+.gif-message { margin: 0 var(--space-3) var(--space-3); }
+
 /* ==========================================================================
    Responsive
    ========================================================================== */
@@ -1453,6 +1548,14 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
   /* The diagram chrome reflows to static rows, and the inset shrinks with it. */
   .diagram-canvas { --dg-left: 16px; --dg-right: 16px; --dg-top: 150px; --dg-bottom: 60px; }
   .diagram-status { position: static; transform: none; margin: var(--space-2); white-space: normal; }
+  /* The media tools stack at full height and the page column scrolls instead of each pane. */
+  .ed-grid.screen-recorder, .ed-grid.video-to-gif { grid-auto-rows: max-content; }
+  .screen-recorder > .ed-pane, .video-to-gif > .ed-pane { min-height: min-content; overflow: visible; }
+  .gif-body { flex: none; overflow: visible; }
+  /* Stacked, the video comes before its settings. */
+  .video-to-gif > .gif-main { order: -1; }
+  .gif-trim-row { grid-template-columns: 40px minmax(0, 1fr) 58px; }
+  .gif-trim-row .button { grid-column: 2 / -1; justify-self: start; }
 }
 
 @media (max-width: 860px) {

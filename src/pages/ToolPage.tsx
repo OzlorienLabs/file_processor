@@ -33,6 +33,10 @@ const workspaces: Record<ToolId, ComponentType> = {
   'snippet-generator': lazy(() =>
     import('../features/snippet-generator/SnippetGeneratorWorkspace').then((m) => ({ default: m.SnippetGeneratorWorkspace })),
   ),
+  'screen-recorder': lazy(() =>
+    import('../features/screen-recorder/ScreenRecorderWorkspace').then((m) => ({ default: m.ScreenRecorderWorkspace })),
+  ),
+  'video-to-gif': lazy(() => import('../features/video-to-gif/VideoToGifWorkspace').then((m) => ({ default: m.VideoToGifWorkspace }))),
 };
 
 function WorkspaceLoading({ name }: { name: string }) {
