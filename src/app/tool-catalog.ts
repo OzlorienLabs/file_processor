@@ -21,6 +21,7 @@ export type ToolId =
   | 'convert'
   | 'diagram'
   | 'mermaid'
+  | 'graphviz'
   | 'diff'
   | 'notepad'
   | 'markdown'
@@ -429,6 +430,25 @@ export const coreTools: ToolDefinition[] = [
       'Write Mermaid syntax or start from a sample.',
       'The preview updates live as you type.',
       'Save the diagram here or export it as SVG or PNG.',
+    ],
+  },
+  {
+    id: 'graphviz',
+    path: '/en/graphviz',
+    name: 'Graphviz editor',
+    shortName: 'Graphviz',
+    description: 'Render DOT graphs with every Graphviz layout engine and save them as files.',
+    processing: 'browser',
+    category: 'create',
+    layout: 'wide',
+    storage: 'local',
+    accept: ['DOT / .gv', '11 layout engines', 'SVG, PNG, PDF', 'JSON, xdot, PS'],
+    maxSize: 'Saved in this browser',
+    howTo: 'How to render a Graphviz graph',
+    steps: [
+      'Write DOT, import a .gv file, or start from a sample.',
+      'Pick a layout engine; the preview updates as you type.',
+      'Save the graph here or create an SVG, PNG, PDF, or Graphviz file.',
     ],
   },
   {

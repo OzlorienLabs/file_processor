@@ -181,6 +181,15 @@ export const marks: Record<MarkId, MarkDefinition> = {
       { kind: 'path', d: 'M10.4 7.8 7.4 15.4M13.6 7.8l3 7.6', stroke: 'text', strokeWidth: 1.2 },
     ],
   },
+  graphviz: {
+    title: 'Graphviz editor',
+    shapes: [
+      { kind: 'rect', x: 3.6, y: 3.4, width: 6.4, height: 4.4, stroke: 'accent' },
+      { kind: 'circle', cx: 17.2, cy: 5.6, r: 2.4, stroke: 'accent-2' },
+      { kind: 'circle', cx: 12, cy: 18.2, r: 2.8, stroke: 'accent' },
+      { kind: 'path', d: 'M6.8 7.8 10.7 15.7M16.3 7.8l-3.2 7.8M10 5.6h4.8', stroke: 'text', strokeWidth: 1.2 },
+    ],
+  },
   snippets: {
     title: 'Code snippets',
     shapes: [

@@ -195,3 +195,14 @@
 - [x] Excalidraw canvas autosaves, imports/exports `.excalidraw`/PNG/SVG, fonts self-hosted for the CSP.
 
 **Verification:** `npm run verify && npm run test:e2e && npm run audit`
+
+## Task 17: Graphviz editor
+
+**Acceptance criteria:**
+- [x] `/en/graphviz` renders DOT live through `@viz-js/viz` (Graphviz 16, WebAssembly, lazy chunk) with every layout engine: dot, neato, fdp, sfdp, circo, twopi, osage, patchwork, nop, nop1, nop2; a `layout=` in the source still wins.
+- [x] Samples cover each engine plus clusters, records/ports, HTML-like labels, every node shape, arrowheads, colours/gradients, rank constraints, strict graphs and pinned positions.
+- [x] Syntax-highlighted DOT editor; `.gv`/`.dot` import; saved graphs with engine, search, JSON export/import, clear.
+- [x] File creator: SVG, PNG, PDF, the source as `.gv`, and Graphviz's own text formats (DOT with layout, canon, xdot, plain, plain-ext, json, json0, dot_json, xdot_json, eps, ps, ps2, fig, pic, pov, tk, cmapx, imap).
+- [x] Syntax errors keep the last good preview; warnings are shown; a WebAssembly trap discards the engine instance.
+
+**Verification:** `npm run verify`, Playwright creator-tools flow under the production CSP

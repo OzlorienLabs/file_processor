@@ -14,6 +14,7 @@ const requiredPaths = [
   '/en/convert',
   '/en/diagram',
   '/en/mermaid',
+  '/en/graphviz',
   '/en/diff',
   '/en/notepad',
   '/en/markdown',
@@ -42,7 +43,7 @@ describe('tool catalog', () => {
   it('groups editors separately from file tools and marks what they store', () => {
     const editors = toolsInCategory('create');
     expect(editors.map((tool) => tool.id).sort()).toEqual(
-      ['diagram', 'diff', 'markdown', 'mermaid', 'notepad', 'snippet-generator', 'snippets'],
+      ['diagram', 'diff', 'graphviz', 'markdown', 'mermaid', 'notepad', 'snippet-generator', 'snippets'],
     );
     expect(editors.every((tool) => tool.layout === 'wide' && tool.storage === 'local')).toBe(true);
     expect(toolsInCategory('files')).toHaveLength(9);

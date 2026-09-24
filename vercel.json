@@ -84,6 +84,12 @@
     },
     {
       "source": "/(.*)",
+      "has": [{ "type": "host", "value": "graphviz.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/graphviz",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "diff.filekit.ozlorienlabs.com" }],
       "destination": "https://filekit.ozlorienlabs.com/en/diff",
       "permanent": false

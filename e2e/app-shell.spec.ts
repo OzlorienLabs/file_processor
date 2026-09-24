@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import { coreTools, toolCounts } from '../src/app/tool-catalog';
+import { withProductionCsp } from './production-csp';
 
 const UI_KEY = 'filekit.ui.v1';
 
@@ -80,8 +81,8 @@ test.describe('app shell', () => {
   });
 
   test('glass off draws the flat fallback panels', async ({ page }) => {
-    await page.goto('/en/markdown');
-    const bar = page.locator('.ed-bar').first();
+    await page.goto('/en/diff');
+    const bar = page.locator('.ed-bar.g').first();
     const glass = await bar.evaluate((node) => getComputedStyle(node).backdropFilter);
 
     await openSettings(page);
@@ -92,6 +93,15 @@ test.describe('app shell', () => {
     expect(flat).toBe('none');
     expect(flat).not.toBe(glass);
     await expect(bar).toHaveCSS('background-color', 'rgb(248, 244, 244)');
+  });
+
+  test('the landing page and every tool route load under the production CSP', async ({ page }) => {
+    const violations = await withProductionCsp(page);
+    for (const path of ['/en', ...coreTools.map((tool) => tool.path)]) {
+      await page.goto(path, { waitUntil: 'networkidle' });
+      await expect(page.getByRole('main')).toBeVisible();
+    }
+    expect(violations).toEqual([]);
   });
 
   test('the full screen control reports the browser state', async ({ page }) => {

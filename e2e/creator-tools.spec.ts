@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { withProductionCsp } from './production-csp';
+
 test.describe('creator tools', () => {
   test('diff checker compares two texts in the browser', async ({ page }) => {
     await page.goto('/en/diff');
@@ -46,6 +48,28 @@ test.describe('creator tools', () => {
     await expect(page.getByRole('alert')).toContainText(/showing the last diagram/i, { timeout: 10_000 });
   });
 
+  test('graphviz editor renders under the production CSP, switches engines, and creates files', async ({ page }) => {
+    const violations = await withProductionCsp(page);
+    await page.goto('/en/graphviz');
+    const preview = page.getByRole('img', { name: /rendered graphviz graph/i });
+    await expect(preview).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('status')).toContainText(/graph up to date/i);
+    expect(await preview.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(100);
+
+    await page.getByLabel('Start from a sample').selectOption('radial');
+    await expect(page.getByLabel('Layout engine')).toHaveValue('twopi');
+    await expect(page.getByRole('status')).toContainText(/graph up to date/i);
+
+    await page.getByLabel('File format').selectOption('json');
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: /create file/i }).click();
+    expect((await download).suggestedFilename()).toBe('radial.json');
+
+    await page.getByLabel('Graphviz DOT code').fill('digraph { a -> }');
+    await expect(page.getByRole('alert')).toContainText(/syntax error in line 1.*showing the last graph/i, { timeout: 10_000 });
+    expect(violations).toEqual([]);
+  });
+
   test('snippet manager saves highlighted code locally', async ({ page }) => {
     await page.goto('/en/snippets');
     await page.getByLabel('Snippet title').fill('Hello');
@@ -73,8 +97,17 @@ test.describe('creator tools', () => {
     await page.goto('/en/snippet-generator');
     await expect(page.getByRole('radio', { name: /chrome built-in ai/i })).toBeVisible();
     await page.getByRole('radio', { name: /^cloud provider with your api key/i }).check();
-    await page.getByLabel('API key', { exact: true }).fill('sk-e2e');
     await page.getByLabel(/describe the snippet/i).fill('a hello world');
+    await expect(page.getByText(/no api key set/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /generate snippet/i })).toBeDisabled();
+
+    // The key lives in the shared Settings dialog, which the generator opens for you.
+    await page.getByRole('button', { name: /open settings/i }).click();
+    const settings = page.getByRole('dialog', { name: /settings/i });
+    await settings.getByLabel(/^api key/i).fill('sk-e2e');
+    await settings.getByRole('button', { name: /^close$/i }).click();
+
+    await expect(page.getByText(/api key ready/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /generate snippet/i })).toBeEnabled();
   });
 });

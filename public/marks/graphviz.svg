@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke-width="1.7">
+  <title>Graphviz editor</title>
+  <rect x="3.6" y="3.4" width="6.4" height="4.4" fill="none" stroke="#0088b0"/>
+  <circle cx="17.2" cy="5.6" r="2.4" fill="none" stroke="#d6006c"/>
+  <circle cx="12" cy="18.2" r="2.8" fill="none" stroke="#0088b0"/>
+  <path d="M6.8 7.8 10.7 15.7M16.3 7.8l-3.2 7.8M10 5.6h4.8" fill="none" stroke="#201e1d" stroke-width="1.2"/>
+</svg>

@@ -29,6 +29,7 @@ const workspaces: Record<ToolId, ComponentType> = {
   notepad: lazy(() => import('../features/notepad/NotepadWorkspace').then((m) => ({ default: m.NotepadWorkspace }))),
   snippets: lazy(() => import('../features/snippets/SnippetsWorkspace').then((m) => ({ default: m.SnippetsWorkspace }))),
   mermaid: lazy(() => import('../features/mermaid/MermaidWorkspace').then((m) => ({ default: m.MermaidWorkspace }))),
+  graphviz: lazy(() => import('../features/graphviz/GraphvizWorkspace').then((m) => ({ default: m.GraphvizWorkspace }))),
   'snippet-generator': lazy(() =>
     import('../features/snippet-generator/SnippetGeneratorWorkspace').then((m) => ({ default: m.SnippetGeneratorWorkspace })),
   ),

@@ -1350,6 +1350,17 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
 .mermaid-fit { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; font-size: 13px; cursor: pointer; }
 .mermaid-fit input { accent-color: var(--color-accent); }
 
+/* Graphviz — shares the Mermaid editor layout; adds DOT tokens and the file row */
+.gv-attr { color: var(--color-accent-700); }
+.gv-html { color: var(--color-accent-2-800); }
+.graphviz-file { flex: 0 0 auto; flex-wrap: nowrap; gap: var(--space-2); }
+.graphviz-file .mermaid-samples { flex: 1 1 auto; min-width: 0; }
+.graphviz-file select { width: 100%; }
+.graphviz-file .button { flex: none; }
+.graphviz-warnings { margin: 0; }
+/* Keep the top of the graph clear of the floating export bar. */
+.graphviz .mermaid-preview { padding-top: 68px; }
+
 /* Diagram — full-bleed canvas with floating glass chrome */
 .diagram-canvas {
   /* The gutters the floating chrome occupies; drawings are fitted inside them. */
@@ -1435,6 +1446,9 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
     overflow-y: auto;
   }
   .ed-grid[data-panes="snippets"] > .snippet-tags { display: flex; }
+  /* Stacked, the Mermaid/Graphviz source and preview keep their height instead of collapsing under the footer. */
+  .mermaid-main { min-height: min-content; }
+  .mermaid-main > .ed-grid { flex: none; }
   .note-panes { grid-auto-rows: minmax(260px, auto); }
   /* The diagram chrome reflows to static rows, and the inset shrinks with it. */
   .diagram-canvas { --dg-left: 16px; --dg-right: 16px; --dg-top: 150px; --dg-bottom: 60px; }
