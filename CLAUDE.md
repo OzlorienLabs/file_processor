@@ -36,7 +36,7 @@ npm run audit           # npm audit --audit-level=high; must be clean before rel
 - UI theme: the Broadsheet tokens are ported into `:root` in `src/styles/global.css` (`--color-bg #f3f2f2`, `--color-text #201e1d`, cyan `--color-accent #0088b0`, magenta `--color-accent-2 #d6006c`, press yellow `--color-process-yellow`). Take every colour, space, radius and shadow from those custom properties — never hand-type a hex. Cyan is the interactive colour, magenta the rare second spot, the yellow is for press treatments only, and body-size cyan text uses `--color-accent-700`. Light theme only — no dark default.
 - Type is Source Serif 4 everywhere, self-hosted through `@fontsource/source-serif-4` (imported by `main.tsx`) so `font-src 'self'` holds. Monospace only inside code, diff and Markdown editors.
 - Surfaces come from the glass layer: `.g` panels, `.g2` chrome, `.gi` pills and insets, with an `@supports` fallback plus `.flat` and `.calm` escape hatches on `<html>` driven by the `filekit.ui.v1` settings.
-- Tool identity comes from the 17 registration marks in `src/components/ToolMark/marks.ts`. `public/marks/*.svg` and `public/og/*.png` are generated from that one definition by `node scripts/generate-marks.ts`, and a test fails if they drift.
+- Tool identity comes from the 18 registration marks in `src/components/ToolMark/marks.ts`. `public/marks/*.svg` and `public/og/*.png` are generated from that one definition by `node scripts/generate-marks.ts`, and a test fails if they drift.
 - Tests mock the heavy engines at the module boundary (`vi.mock` on `src/lib/*`), and lib tests inject adapters (see `RasterAdapter`, `OpenPdfRasterDocument`) instead of touching canvas/workers.
 
 ## Gotchas

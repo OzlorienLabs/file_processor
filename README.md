@@ -2,7 +2,7 @@
 
 Free online tools for everyday files: merge, split, compress, convert, OCR, summarize,
 transcribe, and a complete emoji library, plus a set of local-first editors — whiteboard
-diagrams, Mermaid, diff checking, notes, Markdown, code snippets, and an AI snippet
+diagrams, Mermaid, Graphviz, diff checking, notes, Markdown, code snippets, and an AI snippet
 generator. No login, no database, no tracking. File tools work in browser memory and forget
 everything on refresh; the editors keep your work in this browser's localStorage only, with
 export and clear controls on every page.
@@ -28,6 +28,7 @@ export and clear controls on every page.
 |---|---|---|
 | `/en/diagram` | Excalidraw whiteboard: shapes, arrows, text, images; PNG/SVG/`.excalidraw` export and import | `filekit.diagram.v1` |
 | `/en/mermaid` | Mermaid editor with live preview, samples, saved diagrams, SVG/PNG export | `filekit.mermaid.v1`, `filekit.mermaid-draft.v1` |
+| `/en/graphviz` | Graphviz DOT editor: all 11 layout engines (dot, neato, fdp, sfdp, circo, twopi, osage, patchwork, nop, nop1, nop2), 20 samples, `.gv` import, saved graphs; SVG/PNG/PDF plus 18 Graphviz output formats (DOT, canon, xdot, plain, JSON, PostScript, …) | `filekit.graphviz.v1`, `filekit.graphviz-draft.v1` |
 | `/en/diff` | Side-by-side or unified text/file diff with word-level highlights and `.patch` export | `filekit.diff.v1` |
 | `/en/notepad` | Notes with history, plain/Markdown/HTML preview, per-note or ZIP export, JSON import | `filekit.notes.v1` |
 | `/en/markdown` | Markdown live previewer (GFM), copy/download Markdown or standalone HTML | `filekit.markdown.v1` |
@@ -43,7 +44,7 @@ localStorage with a one-click "Forget key on this device" control.
 Vite + React 19 + TypeScript SPA, native CSS (warm Clay/Ivory light theme), React Router
 for stable `/en/...` URLs, deployed on Vercel with three Node functions (`api/ai/*`) used
 only for AI provider calls. Heavy engines — pdf-lib, PDF.js, Tesseract, mammoth, jsPDF,
-docx, JSZip, transformers.js, Excalidraw, Mermaid, the remark/rehype Markdown pipeline,
+docx, JSZip, transformers.js, Excalidraw, Mermaid, Graphviz (`@viz-js/viz` WebAssembly), the remark/rehype Markdown pipeline,
 and lowlight — are dynamic imports or route-level chunks, kept out of the initial bundle.
 Untrusted content (Markdown, model output, highlighted code) is rendered as React elements
 from syntax trees, never as injected HTML; user HTML previews live in a sandboxed iframe.

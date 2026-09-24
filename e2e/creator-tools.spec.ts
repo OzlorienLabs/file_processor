@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from '@playwright/test';
 
 test.describe('creator tools', () => {
@@ -44,6 +46,40 @@ test.describe('creator tools', () => {
 
     await page.getByLabel('Mermaid code').fill('flowchart TD\n  A --> ');
     await expect(page.getByRole('alert')).toContainText(/showing the last diagram/i, { timeout: 10_000 });
+  });
+
+  test('graphviz editor renders under the production CSP, switches engines, and creates files', async ({ page }) => {
+    // vite preview sends no CSP; apply the deployed one so the WebAssembly engine is checked against it.
+    const headers = JSON.parse(readFileSync('vercel.json', 'utf8')).headers.flatMap((rule: { headers: { key: string; value: string }[] }) => rule.headers);
+    const csp = headers.find((header: { key: string }) => header.key === 'Content-Security-Policy').value;
+    const violations: string[] = [];
+    page.on('console', (message) => {
+      // index.html's inline DevTools shim is refused on every route; this test watches what Graphviz loads.
+      if (/content security policy/i.test(message.text()) && !/inline script/i.test(message.text())) violations.push(message.text());
+    });
+    await page.route('**/en/graphviz', async (route) => {
+      const response = await route.fetch();
+      await route.fulfill({ response, headers: { ...response.headers(), 'content-security-policy': csp } });
+    });
+
+    await page.goto('/en/graphviz');
+    const preview = page.getByRole('img', { name: /rendered graphviz graph/i });
+    await expect(preview).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('status')).toContainText(/graph up to date/i);
+    expect(await preview.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(100);
+
+    await page.getByLabel('Start from a sample').selectOption('radial');
+    await expect(page.getByLabel('Layout engine')).toHaveValue('twopi');
+    await expect(page.getByRole('status')).toContainText(/graph up to date/i);
+
+    await page.getByLabel('File format').selectOption('json');
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: /create file/i }).click();
+    expect((await download).suggestedFilename()).toBe('radial.json');
+
+    await page.getByLabel('Graphviz DOT code').fill('digraph { a -> }');
+    await expect(page.getByRole('alert')).toContainText(/syntax error in line 1.*showing the last graph/i, { timeout: 10_000 });
+    expect(violations).toEqual([]);
   });
 
   test('snippet manager saves highlighted code locally', async ({ page }) => {

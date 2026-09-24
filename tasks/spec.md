@@ -17,7 +17,7 @@ The initial release provides these public routes:
 - `/en/convert/pdf/word` — PDF to editable DOCX
 - `/en/convert` — practical browser-supported file conversions
 - `/en/emojis` — searchable list of every fully-qualified Unicode Emoji 17.0 sequence
-- `/en/diagram`, `/en/mermaid`, `/en/diff`, `/en/notepad`, `/en/markdown`, `/en/snippets`,
+- `/en/diagram`, `/en/mermaid`, `/en/graphviz`, `/en/diff`, `/en/notepad`, `/en/markdown`, `/en/snippets`,
   `/en/snippet-generator` — local-first editors (see "Creator tools" below)
 
 Root and unknown language-prefixed routes redirect safely to `/en` or show a useful not-found state. There is no login, database, pricing, trust badge, testimonial, or long marketing section.
@@ -235,7 +235,7 @@ Seven editors join the file tools. Design record: `docs/superpowers/specs/2026-0
   errors show a friendly message; corrupt data degrades to an empty state.
 - Untrusted text is never injected as HTML: Markdown and highlighted code become React
   elements from syntax trees; Mermaid SVG is shown through an `<img>` (blob URL) with
-  `securityLevel: 'strict'`; author HTML previews render inside an `<iframe sandbox>` after
+  `securityLevel: 'strict'`; Graphviz SVG is likewise only shown through an `<img>` blob URL; author HTML previews render inside an `<iframe sandbox>` after
   DOMPurify sanitisation; model output is displayed as text/highlighted code only.
 - Chrome's built-in Prompt API (`LanguageModel`) is feature-detected; when absent the tool
   explains why and offers the provider path.
