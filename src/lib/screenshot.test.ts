@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  blobToCaptureData,
   captureFrame,
   copyImageToClipboard,
   dataUrlToBlob,
+  getImageBlobFromPasteEvent,
+  readImageFromClipboard,
   screenshotFileName,
   type CaptureCanvasAdapter,
 } from './screenshot';
@@ -209,5 +212,108 @@ describe('copyImageToClipboard', () => {
       URL.revokeObjectURL = originalRevokeObjectURL;
       vi.restoreAllMocks();
     }
+  });
+});
+
+describe('readImageFromClipboard', () => {
+  it('throws when navigator.clipboard.read is missing', async () => {
+    const originalClipboard = navigator.clipboard;
+    // @ts-expect-error test override
+    delete navigator.clipboard;
+    try {
+      await expect(readImageFromClipboard()).rejects.toThrow('not supported');
+    } finally {
+      Object.defineProperty(navigator, 'clipboard', { value: originalClipboard, configurable: true });
+    }
+  });
+
+  it('reads image blob from clipboard items', async () => {
+    const testBlob = new Blob(['clip-img'], { type: 'image/png' });
+    const mockItem = {
+      types: ['text/plain', 'image/png'],
+      getType: vi.fn().mockResolvedValue(testBlob),
+    };
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { read: vi.fn().mockResolvedValue([mockItem]) },
+      configurable: true,
+    });
+
+    const result = await readImageFromClipboard();
+    expect(result).toBe(testBlob);
+    expect(mockItem.getType).toHaveBeenCalledWith('image/png');
+  });
+
+  it('throws when no image type is in clipboard', async () => {
+    const mockItem = {
+      types: ['text/plain'],
+      getType: vi.fn(),
+    };
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { read: vi.fn().mockResolvedValue([mockItem]) },
+      configurable: true,
+    });
+
+    await expect(readImageFromClipboard()).rejects.toThrow('No image found');
+  });
+});
+
+describe('blobToCaptureData', () => {
+  it('extracts dimensions, dataUrl, and format from blob', async () => {
+    const originalImage = window.Image;
+    // @ts-expect-error test mock
+    window.Image = class {
+      naturalWidth = 640;
+      naturalHeight = 480;
+      set src(_val: string) {
+        setTimeout(() => this.onload?.(), 0);
+      }
+      onload?: () => void;
+      onerror?: () => void;
+    };
+
+    try {
+      const blob = new Blob(['test-data'], { type: 'image/png' });
+      const data = await blobToCaptureData(blob);
+      expect(data.width).toBe(640);
+      expect(data.height).toBe(480);
+      expect(data.format).toBe('png');
+      expect(data.sizeBytes).toBe(9);
+      expect(data.dataUrl).toContain('data:image/png;base64,');
+    } finally {
+      window.Image = originalImage;
+    }
+  });
+});
+
+describe('getImageBlobFromPasteEvent', () => {
+  it('extracts image blob from clipboard data items', () => {
+    const file = new File(['img'], 'test.png', { type: 'image/png' });
+    const fakeEvent = {
+      clipboardData: {
+        items: [
+          {
+            type: 'image/png',
+            getAsFile: () => file,
+          },
+        ],
+      },
+    } as unknown as ClipboardEvent;
+
+    expect(getImageBlobFromPasteEvent(fakeEvent)).toBe(file);
+  });
+
+  it('returns null if no image in clipboard items', () => {
+    const fakeEvent = {
+      clipboardData: {
+        items: [
+          {
+            type: 'text/plain',
+            getAsFile: () => null,
+          },
+        ],
+      },
+    } as unknown as ClipboardEvent;
+
+    expect(getImageBlobFromPasteEvent(fakeEvent)).toBeNull();
   });
 });

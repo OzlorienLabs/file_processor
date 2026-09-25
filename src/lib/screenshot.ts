@@ -17,6 +17,14 @@ export interface CapturedScreenshot {
   format: 'png' | 'jpeg';
 }
 
+export interface CaptureImageData {
+  dataUrl: string;
+  width: number;
+  height: number;
+  sizeBytes: number;
+  format: 'png' | 'jpeg';
+}
+
 function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
@@ -71,8 +79,8 @@ export async function captureFrame(
   const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
   const quality = Math.max(0.1, Math.min(1.0, options.quality ?? 0.92));
 
-  const sourceWidth = options.frameWidth || video.videoWidth || 1920;
-  const sourceHeight = options.frameHeight || video.videoHeight || 1080;
+  const sourceWidth = video.videoWidth || options.frameWidth || 1920;
+  const sourceHeight = video.videoHeight || options.frameHeight || 1080;
 
   const rect =
     options.region && !isFullRegion(options.region)
@@ -151,4 +159,73 @@ export async function copyImageToClipboard(blob: Blob): Promise<boolean> {
 
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
   return true;
+}
+
+/**
+ * Reads an image Blob from the system clipboard using the asynchronous Clipboard API.
+ */
+export async function readImageFromClipboard(): Promise<Blob> {
+  if (typeof navigator === 'undefined' || !navigator.clipboard?.read) {
+    throw new Error('Clipboard reading is not supported in this browser.');
+  }
+
+  let items: ClipboardItems;
+  try {
+    items = await navigator.clipboard.read();
+  } catch (err) {
+    throw new Error((err as Error)?.message || 'Clipboard access was denied.', { cause: err });
+  }
+
+  for (const item of items) {
+    const imageType = item.types.find((type) => type.startsWith('image/'));
+    if (imageType) {
+      return await item.getType(imageType);
+    }
+  }
+  throw new Error('No image found in system clipboard.');
+}
+
+/**
+ * Converts an image Blob to data URL, pixel dimensions, and format details for history storage.
+ */
+export async function blobToCaptureData(blob: Blob): Promise<CaptureImageData> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('Failed to read image data.'));
+    reader.readAsDataURL(blob);
+  });
+
+  const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth || img.width || 800, height: img.naturalHeight || img.height || 600 });
+    img.onerror = () => reject(new Error('Failed to decode image.'));
+    img.src = dataUrl;
+  });
+
+  const format: 'png' | 'jpeg' = blob.type.includes('jpeg') || blob.type.includes('jpg') ? 'jpeg' : 'png';
+
+  return {
+    dataUrl,
+    width: dimensions.width,
+    height: dimensions.height,
+    sizeBytes: blob.size,
+    format,
+  };
+}
+
+/**
+ * Extracts an image Blob from a ClipboardEvent (e.g., from a paste event).
+ */
+export function getImageBlobFromPasteEvent(event: ClipboardEvent): Blob | null {
+  const items = event.clipboardData?.items;
+  if (!items) return null;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) return file;
+    }
+  }
+  return null;
 }

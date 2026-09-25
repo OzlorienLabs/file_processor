@@ -406,6 +406,7 @@ body::after {
 }
 .input-with-suffix input { border: 0; border-radius: 0; background: transparent; }
 .input-with-suffix > span { padding-inline: 11px; color: var(--color-neutral-700); font-size: 13px; }
+.input-with-suffix > svg { margin-right: 11px; color: var(--color-neutral-700); pointer-events: none; }
 .inline-icon-button { display: grid; place-items: center; min-width: 44px; padding: 0 11px; border: 0; background: transparent; color: var(--color-neutral-700); cursor: pointer; }
 .inline-icon-button:hover { color: var(--color-text); }
 
@@ -1464,6 +1465,8 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
 }
 .capture-actions-row { display: flex; gap: 6px; }
 .capture-actions-row .button { flex: 1; }
+.capture-start-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.capture-empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .recorder-stage {
   flex: 1; min-height: 240px; display: grid; place-items: center;
   padding: var(--space-3); overflow: hidden; background: rgba(255, 255, 255, 0.3);

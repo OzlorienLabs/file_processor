@@ -31,9 +31,12 @@ import {
   type CaptureSurface,
 } from '../../lib/screen-recording';
 import {
+  blobToCaptureData,
   captureFrame,
   copyImageToClipboard,
   dataUrlToBlob,
+  getImageBlobFromPasteEvent,
+  readImageFromClipboard,
   screenshotFileName,
 } from '../../lib/screenshot';
 
@@ -136,6 +139,8 @@ export function ScreenCaptureWorkspace({
 
   // Start screen share picker
   const startStream = async () => {
+    stopActiveStream();
+    setActiveCapture(undefined);
     setMessage(undefined);
     setPhase('starting');
     try {
@@ -175,23 +180,71 @@ export function ScreenCaptureWorkspace({
     }
   };
 
-  // Connect video element to stream
-  useEffect(() => {
-    if (videoRef.current && capture) {
-      videoRef.current.srcObject = capture.display;
+  // Helper to import an image blob directly into history and display it
+  const importImageBlob = useCallback(
+    async (blob: Blob, successNotice: string) => {
+      try {
+        const imageInfo = await blobToCaptureData(blob);
+        const filename = screenshotFileName(imageInfo.format);
+        const record = await store.save({
+          name: filename,
+          format: imageInfo.format,
+          width: imageInfo.width,
+          height: imageInfo.height,
+          sizeBytes: imageInfo.sizeBytes,
+          dataUrl: imageInfo.dataUrl,
+        });
+
+        stopActiveStream();
+        setActiveCapture(record);
+        setPhase('viewing');
+        setMessage(successNotice);
+        void refreshHistory();
+      } catch (err) {
+        setMessage((err as Error)?.message || 'Could not process clipboard image.');
+      }
+    },
+    [store, stopActiveStream, refreshHistory],
+  );
+
+  // Copy from clipboard button action
+  const copyFromClipboard = async () => {
+    setMessage(undefined);
+    try {
+      const blob = await readImageFromClipboard();
+      await importImageBlob(blob, 'Image copied from clipboard and saved to history.');
+    } catch (err) {
+      setMessage((err as Error)?.message || 'No image found on system clipboard.');
     }
-  }, [capture, phase]);
+  };
+
+  // Listen for global Cmd+V / Ctrl+V paste containing an image
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      const blob = getImageBlobFromPasteEvent(event);
+      if (blob) {
+        event.preventDefault();
+        void importImageBlob(blob, 'Image pasted from clipboard and saved to history.');
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => {
+      window.removeEventListener('paste', handlePaste);
+    };
+  }, [importImageBlob]);
 
   // Execute snapshot grab
   const executeSnap = useCallback(async () => {
     if (!videoRef.current) return;
     try {
-      const snap = await captureFrame(videoRef.current, {
+      const video = videoRef.current;
+      const snap = await captureFrame(video, {
         region: area === 'region' ? region : undefined,
         format,
         quality,
-        frameWidth: frameDimensions.width,
-        frameHeight: frameDimensions.height,
+        frameWidth: video.videoWidth || frameDimensions.width,
+        frameHeight: video.videoHeight || frameDimensions.height,
       });
 
       const filename = screenshotFileName(format);
@@ -313,6 +366,28 @@ export function ScreenCaptureWorkspace({
     item.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
+  const liveVideo = (
+    <video
+      ref={(node) => {
+        videoRef.current = node;
+        if (node && capture?.display && node.srcObject !== capture.display) {
+          node.srcObject = capture.display;
+        }
+      }}
+      onLoadedMetadata={(e) => {
+        const v = e.currentTarget;
+        if (v.videoWidth && v.videoHeight) {
+          setFrameDimensions({ width: v.videoWidth, height: v.videoHeight });
+        }
+      }}
+      autoPlay
+      playsInline
+      muted
+      className="recorder-video"
+      aria-label="Screen video feed"
+    />
+  );
+
   return (
     <div className="ed-grid screen-capture" data-panes="side">
       {/* Sidebar: Mode Tabs & Options */}
@@ -323,7 +398,14 @@ export function ScreenCaptureWorkspace({
             role="tab"
             aria-selected={tab === 'capture'}
             className={`button ${tab === 'capture' ? 'button-primary' : 'button-secondary'}`}
-            onClick={() => setTab('capture')}
+            onClick={() => {
+              setTab('capture');
+              if (phase === 'viewing') {
+                stopActiveStream();
+                setActiveCapture(undefined);
+                setPhase('idle');
+              }
+            }}
           >
             Capture
           </button>
@@ -446,31 +528,44 @@ export function ScreenCaptureWorkspace({
               </label>
             </fieldset>
 
-            {phase === 'idle' && (
-              <button
-                type="button"
-                className="button button-primary"
-                onClick={startStream}
-                disabled={!canCapture}
-              >
-                <Camera size={16} /> Choose screen to capture
-              </button>
+            {(phase === 'idle' || phase === 'viewing') && (
+              <div className="capture-start-actions">
+                <button
+                  type="button"
+                  className="button button-primary"
+                  onClick={startStream}
+                  disabled={!canCapture}
+                >
+                  <Camera size={16} /> Choose screen to capture
+                </button>
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  onClick={copyFromClipboard}
+                  title="Copy an image from system clipboard into history"
+                >
+                  <Copy size={16} /> Copy from clipboard
+                </button>
+              </div>
             )}
           </>
         ) : (
           <>
-            {/* History List */}
-            <div className="filter-input-wrap">
-              <Search size={14} className="filter-icon" aria-hidden="true" />
-              <input
-                type="search"
-                className="ctl"
-                placeholder="Search captures…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                aria-label="Search capture history"
-              />
-            </div>
+            {/* History Search with cleanly aligned suffix icon */}
+            <label className="field-label" htmlFor="capture-search">
+              <span className="sr-only">Search captures</span>
+              <span className="input-with-suffix">
+                <input
+                  id="capture-search"
+                  type="search"
+                  placeholder="Search captures…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  aria-label="Search capture history"
+                />
+                <Search size={15} aria-hidden="true" />
+              </span>
+            </label>
 
             {filteredHistory.length === 0 ? (
               <p className="hint">No captures saved yet.</p>
@@ -605,9 +700,14 @@ export function ScreenCaptureWorkspace({
                 Take a high-resolution screenshot of your entire screen, an application window, or a browser tab.
                 Crop to any custom area and save as PNG or JPEG.
               </p>
-              <button type="button" className="button button-primary" onClick={startStream}>
-                <Camera size={16} /> Choose what to capture
-              </button>
+              <div className="capture-empty-actions">
+                <button type="button" className="button button-primary" onClick={startStream}>
+                  <Camera size={16} /> Choose what to capture
+                </button>
+                <button type="button" className="button button-secondary" onClick={copyFromClipboard}>
+                  <Copy size={16} /> Copy from clipboard
+                </button>
+              </div>
             </div>
           ) : phase === 'starting' ? (
             <div className="recorder-empty">
@@ -619,35 +719,19 @@ export function ScreenCaptureWorkspace({
             </div>
           ) : (phase === 'selecting' || phase === 'countdown') ? (
             area === 'region' ? (
-              <div className="recorder-live">
-                <RegionSelect
-                  frameWidth={frameDimensions.width}
-                  frameHeight={frameDimensions.height}
-                  region={region}
-                  onChange={setRegion}
-                  label="Area to capture"
-                >
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="recorder-video"
-                    aria-label="Screen video feed"
-                  />
-                </RegionSelect>
+              <RegionSelect
+                frameWidth={frameDimensions.width}
+                frameHeight={frameDimensions.height}
+                region={region}
+                onChange={setRegion}
+                label="Area to capture"
+              >
+                {liveVideo}
                 {phase === 'countdown' && <span className="recorder-count">{countdown}</span>}
-              </div>
+              </RegionSelect>
             ) : (
               <div className="recorder-live">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="recorder-video"
-                  aria-label="Screen video feed"
-                />
+                {liveVideo}
                 {phase === 'countdown' && <span className="recorder-count">{countdown}</span>}
               </div>
             )
@@ -714,11 +798,13 @@ export function ScreenCaptureWorkspace({
                 type="button"
                 className="button button-secondary"
                 onClick={() => {
+                  stopActiveStream();
+                  setActiveCapture(undefined);
                   setTab('capture');
-                  void startStream();
+                  setPhase('idle');
                 }}
               >
-                <Camera size={16} /> New capture
+                <Camera size={16} /> Capture again
               </button>
               <button type="button" className="button button-secondary" onClick={deleteActive} title="Delete capture">
                 <Trash2 size={16} /> Delete

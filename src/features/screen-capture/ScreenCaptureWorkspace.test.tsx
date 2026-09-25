@@ -6,7 +6,12 @@ import { createMemoryCaptureStore, type CaptureRecord, type CaptureStore } from 
 import { downloadBlob } from '../../lib/download';
 import { CaptureCancelledError, startCapture, type Capture, type CaptureEnvironment } from '../../lib/screen-capture';
 import { isCaptureSupported } from '../../lib/screen-recording';
-import { captureFrame, copyImageToClipboard } from '../../lib/screenshot';
+import {
+  blobToCaptureData,
+  captureFrame,
+  copyImageToClipboard,
+  readImageFromClipboard,
+} from '../../lib/screenshot';
 import { ScreenCaptureWorkspace } from './ScreenCaptureWorkspace';
 
 vi.mock('../../lib/screen-recording', () => ({
@@ -28,6 +33,8 @@ vi.mock('../../lib/screenshot', async (importOriginal) => {
     ...actual,
     captureFrame: vi.fn(),
     copyImageToClipboard: vi.fn(),
+    readImageFromClipboard: vi.fn(),
+    blobToCaptureData: vi.fn(),
   };
 });
 
@@ -74,6 +81,14 @@ beforeEach(() => {
     format: 'png',
   });
   vi.mocked(copyImageToClipboard).mockResolvedValue(true);
+  vi.mocked(readImageFromClipboard).mockResolvedValue(new Blob(['clipboard-img'], { type: 'image/png' }));
+  vi.mocked(blobToCaptureData).mockResolvedValue({
+    dataUrl: `data:image/png;base64,${sampleBase64}`,
+    width: 800,
+    height: 600,
+    sizeBytes: 512,
+    format: 'png',
+  });
 });
 
 afterEach(() => {
@@ -97,6 +112,7 @@ describe('ScreenCaptureWorkspace', () => {
     expect(screen.getByRole('tab', { name: /^history/i })).toHaveAttribute('aria-selected', 'false');
     expect(screen.getByRole('button', { name: /choose what to capture/i })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /entire screen/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /copy from clipboard/i }).length).toBeGreaterThan(0);
   });
 
   it('allows switching between Capture and History tabs', async () => {
@@ -198,6 +214,143 @@ describe('ScreenCaptureWorkspace', () => {
     await user.click(screen.getByTitle(/delete capture/i));
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /choose what to capture/i })).toBeInTheDocument();
+    });
+  });
+
+  it('allows creating a new image by clicking Capture tab after an image is added', async () => {
+    const user = userEvent.setup();
+    renderCaptureWorkspace();
+
+    // Snap an image
+    await user.click(screen.getByRole('button', { name: /choose what to capture/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /snap screenshot/i })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: /snap screenshot/i }));
+
+    // Now viewing snapshot
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /capture again/i })).toBeInTheDocument();
+    });
+
+    // Sidebar should still have 'Choose screen to capture' button
+    expect(screen.getByRole('button', { name: /choose screen to capture/i })).toBeInTheDocument();
+
+    // Clicking Capture tab resets view to idle and presents 'Choose what to capture'
+    const captureTab = screen.getByRole('tab', { name: /^capture$/i });
+    await user.click(captureTab);
+
+    expect(screen.getByRole('button', { name: /choose what to capture/i })).toBeInTheDocument();
+
+    // Start a new capture
+    await user.click(screen.getByRole('button', { name: /choose what to capture/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /snap screenshot/i })).toBeInTheDocument();
+    });
+  });
+
+  it('allows creating a new image by clicking Capture again button', async () => {
+    const user = userEvent.setup();
+    renderCaptureWorkspace();
+
+    await user.click(screen.getByRole('button', { name: /choose what to capture/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /snap screenshot/i })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: /snap screenshot/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /capture again/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /capture again/i }));
+    expect(screen.getByRole('button', { name: /choose what to capture/i })).toBeInTheDocument();
+  });
+
+  it('copies image from clipboard and makes it available in history', async () => {
+    const user = userEvent.setup();
+    renderCaptureWorkspace();
+
+    // Click "Copy from clipboard"
+    const copyFromClipboardBtns = screen.getAllByRole('button', { name: /copy from clipboard/i });
+    await user.click(copyFromClipboardBtns[0]);
+
+    await waitFor(() => {
+      expect(readImageFromClipboard).toHaveBeenCalled();
+      expect(blobToCaptureData).toHaveBeenCalled();
+      expect(screen.getByText(/image copied from clipboard/i)).toBeInTheDocument();
+    });
+
+    // Check history has the new record
+    const historyList = await store.list();
+    expect(historyList.length).toBe(1);
+
+    // Switch to history tab and verify it appears
+    await user.click(screen.getByRole('tab', { name: /history/i }));
+    expect(screen.getByRole('button', { name: new RegExp(historyList[0].name, 'i') })).toBeInTheDocument();
+  });
+
+  it('shows an error message when clipboard copy fails', async () => {
+    vi.mocked(readImageFromClipboard).mockRejectedValueOnce(new Error('No image found in clipboard'));
+    const user = userEvent.setup();
+    renderCaptureWorkspace();
+
+    const copyFromClipboardBtns = screen.getAllByRole('button', { name: /copy from clipboard/i });
+    await user.click(copyFromClipboardBtns[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText(/no image found in clipboard/i)).toBeInTheDocument();
+    });
+  });
+
+  it('handles image paste event from system clipboard', async () => {
+    renderCaptureWorkspace();
+
+    const file = new File(['img-data'], 'clip.png', { type: 'image/png' });
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: {
+        items: [
+          {
+            type: 'image/png',
+            getAsFile: () => file,
+          },
+        ],
+      },
+    });
+
+    window.dispatchEvent(pasteEvent);
+
+    await waitFor(() => {
+      expect(blobToCaptureData).toHaveBeenCalledWith(file);
+      expect(screen.getByText(/image pasted from clipboard/i)).toBeInTheDocument();
+    });
+  });
+
+  it('supports Part of it region cropping and passes region to captureFrame', async () => {
+    const user = userEvent.setup();
+    renderCaptureWorkspace();
+
+    // Select "Part of it"
+    await user.click(screen.getByLabelText(/part of it/i));
+
+    // Start stream
+    await user.click(screen.getByRole('button', { name: /choose what to capture/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('group', { name: /area to capture/i })).toBeInTheDocument();
+    });
+
+    // Snap screenshot
+    await user.click(screen.getByRole('button', { name: /snap screenshot/i }));
+
+    await waitFor(() => {
+      expect(captureFrame).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          region: expect.objectContaining({ x: 0.15, y: 0.15, width: 0.7, height: 0.7 }),
+        }),
+      );
     });
   });
 
