@@ -28,7 +28,8 @@ export type ToolId =
   | 'snippets'
   | 'snippet-generator'
   | 'screen-recorder'
-  | 'video-to-gif';
+  | 'video-to-gif'
+  | 'screen-capture';
 
 /** One choice in a file tool's "2 · Settings" panel. */
 export interface ToolOutput {
@@ -341,6 +342,25 @@ export const coreTools: ToolDefinition[] = [
       runLabel: 'Create DOCX',
       out: 'DOCX',
     },
+  },
+  {
+    id: 'screen-capture',
+    path: '/en/screen-capture',
+    name: 'Screen capture',
+    shortName: 'Screen capture',
+    description: 'Take screenshot images of your screen, window, or tab — full or cropped — in PNG or JPEG.',
+    processing: 'browser',
+    category: 'files',
+    layout: 'wide',
+    storage: 'local',
+    accept: ['Entire screen', 'Window', 'Browser tab', 'Selected area'],
+    maxSize: 'Saved in this browser',
+    howTo: 'How to take a screen capture',
+    steps: [
+      'Choose a screen, window, or tab to capture.',
+      'Snap the full view or drag an area and pick PNG or JPEG.',
+      'Download the image and manage your captures in history.',
+    ],
   },
   {
     id: 'notepad',

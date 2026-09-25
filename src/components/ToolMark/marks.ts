@@ -214,6 +214,20 @@ export const marks: Record<MarkId, MarkDefinition> = {
       { kind: 'circle', cx: 12, cy: 10.4, r: 2.7, fill: 'accent-2' },
     ],
   },
+  'screen-capture': {
+    title: 'Screen capture',
+    shapes: [
+      { kind: 'rect', x: 3.2, y: 4.4, width: 17.6, height: 12, stroke: 'accent' },
+      { kind: 'path', d: 'M8.8 20h6.4M12 16.4V20', stroke: 'text', strokeWidth: 1.2 },
+      {
+        kind: 'path',
+        d: 'M7.5 7.5h2.5M7.5 7.5v2.5M16.5 7.5h-2.5M16.5 7.5v2.5M7.5 13.5h2.5M7.5 13.5v-2.5M16.5 13.5h-2.5M16.5 13.5v-2.5',
+        stroke: 'accent-2',
+        strokeWidth: 1.2,
+      },
+      { kind: 'circle', cx: 12, cy: 10.5, r: 1.5, stroke: 'text', strokeWidth: 1.1 },
+    ],
+  },
   'video-to-gif': {
     title: 'Video to GIF',
     shapes: [

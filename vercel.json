@@ -96,6 +96,12 @@
     },
     {
       "source": "/(.*)",
+      "has": [{ "type": "host", "value": "screen-capture.filekit.ozlorienlabs.com" }],
+      "destination": "https://filekit.ozlorienlabs.com/en/screen-capture",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "video-to-gif.filekit.ozlorienlabs.com" }],
       "destination": "https://filekit.ozlorienlabs.com/en/video-to-gif",
       "permanent": false

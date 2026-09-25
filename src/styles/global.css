@@ -1447,7 +1447,23 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
 .recorder-selects { display: grid; gap: var(--space-2); }
 .recorder-toggles { display: grid; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
 .recorder-toggles legend { margin-bottom: 8px; padding: 0; font-size: 14px; color: var(--color-neutral-800); }
-.screen-recorder .flow-options, .screen-recorder .recorder-toggles { flex: none; }
+.screen-recorder .flow-options, .screen-recorder .recorder-toggles, .screen-capture .flow-options { flex: none; }
+.capture-tab-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+.capture-tab-nav .button { min-height: 34px; padding: 4px 10px; font-size: 13.5px; }
+.capture-history-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; }
+.capture-history-thumb {
+  width: 44px; height: 32px; object-fit: cover; border-radius: var(--radius-sm);
+  background: var(--color-neutral-200); flex-shrink: 0; border: 1px solid var(--color-neutral-300);
+}
+.capture-history-info { display: flex; flex-direction: column; min-width: 0; overflow: hidden; flex: 1; }
+.capture-history-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.capture-history-info small { color: var(--color-neutral-600); font-size: 11.5px; }
+.capture-actions-footer {
+  display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-top: 10px;
+  border-top: 1px solid var(--color-neutral-200);
+}
+.capture-actions-row { display: flex; gap: 6px; }
+.capture-actions-row .button { flex: 1; }
 .recorder-stage {
   flex: 1; min-height: 240px; display: grid; place-items: center;
   padding: var(--space-3); overflow: hidden; background: rgba(255, 255, 255, 0.3);
@@ -1549,8 +1565,8 @@ button.flow-page[data-selected="true"] { border-color: var(--color-accent); }
   .diagram-canvas { --dg-left: 16px; --dg-right: 16px; --dg-top: 150px; --dg-bottom: 60px; }
   .diagram-status { position: static; transform: none; margin: var(--space-2); white-space: normal; }
   /* The media tools stack at full height and the page column scrolls instead of each pane. */
-  .ed-grid.screen-recorder, .ed-grid.video-to-gif { grid-auto-rows: max-content; }
-  .screen-recorder > .ed-pane, .video-to-gif > .ed-pane { min-height: min-content; overflow: visible; }
+  .ed-grid.screen-recorder, .ed-grid.screen-capture, .ed-grid.video-to-gif { grid-auto-rows: max-content; }
+  .screen-recorder > .ed-pane, .screen-capture > .ed-pane, .video-to-gif > .ed-pane { min-height: min-content; overflow: visible; }
   .gif-body { flex: none; overflow: visible; }
   /* Stacked, the video comes before its settings. */
   .video-to-gif > .gif-main { order: -1; }

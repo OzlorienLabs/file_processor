@@ -23,7 +23,7 @@ const WHERE: Record<string, string> = {
 const cards: Record<MarkId, { title: string; description: string; where: string }> = {
   brand: {
     title: 'FileKit',
-    description: 'Nineteen tools for the small jobs. The work happens in this browser, on this device, and then it is over.',
+    description: 'Twenty tools for the small jobs. The work happens in this browser, on this device, and then it is over.',
     where: 'No accounts · No uploads · Nothing left behind',
   },
 } as Record<MarkId, { title: string; description: string; where: string }>;

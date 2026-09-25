@@ -3,7 +3,7 @@
 ## Web App - [FileKit](https://filekit.ozlorienlabs.com/)
 
 Free online tools for everyday files: merge, split, compress, convert, OCR, summarize,
-transcribe, and a complete emoji library, plus a set of local-first editors — whiteboard
+transcribe, take screenshots, and a complete emoji library, plus a set of local-first editors — whiteboard
 diagrams, Mermaid, Graphviz, diff checking, notes, Markdown, code snippets, and an AI snippet
 generator — and two media tools, a screen recorder and a video-to-GIF converter. No login, no
 database, no tracking. File tools work in browser memory and forget everything on refresh; the
@@ -25,6 +25,7 @@ Release 1.0.1
 | `/en/ocr` | Read text from scans and images (15 languages) | Browser (Tesseract WASM) |
 | `/en/summarize` | Summarize PDF/DOCX/TXT/MD with your own OpenAI, Anthropic, or Gemini key | Browser + stateless proxy |
 | `/en/audiototext` | Transcribe recordings — on-device Whisper by default, or your OpenAI key | Browser (optionally + proxy) |
+| `/en/screen-capture` | Take screenshot images of screen, window, or tab (full or cropped) in PNG/JPEG with history | Browser (IndexedDB) |
 | `/en/emojis` | Every fully-qualified Unicode Emoji 17.0 sequence, searchable, click-to-copy | Browser |
 
 ### Editors (saved in this browser's localStorage)

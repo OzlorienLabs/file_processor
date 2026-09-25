@@ -12,6 +12,7 @@ const requiredPaths = [
   '/en/convert/word/pdf',
   '/en/convert/pdf/word',
   '/en/convert',
+  '/en/screen-capture',
   '/en/diagram',
   '/en/mermaid',
   '/en/graphviz',
@@ -61,12 +62,14 @@ describe('tool catalog', () => {
     const media = ['screen-recorder', 'video-to-gif'];
     expect(editors.filter((tool) => !media.includes(tool.id)).every((tool) => tool.storage === 'local')).toBe(true);
     expect(editors.filter((tool) => media.includes(tool.id)).some((tool) => tool.storage)).toBe(false);
-    expect(toolsInCategory('files')).toHaveLength(9);
-    expect(toolsInCategory('files').some((tool) => tool.storage)).toBe(false);
+    expect(toolsInCategory('files')).toHaveLength(10);
+    expect(toolsInCategory('files').filter((tool) => tool.id !== 'screen-capture').some((tool) => tool.storage)).toBe(false);
+    expect(toolsInCategory('files').find((tool) => tool.id === 'screen-capture')?.storage).toBe('local');
   });
 
   it('looks up normalized paths without accepting unrelated routes', () => {
     expect(getToolByPath('/en/merge/')?.id).toBe('merge');
+    expect(getToolByPath('/en/screen-capture')?.id).toBe('screen-capture');
     expect(getToolByPath('/en/not-a-tool')).toBeUndefined();
     expect(getToolByPath('/')).toBeUndefined();
   });

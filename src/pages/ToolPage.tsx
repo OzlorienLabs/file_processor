@@ -23,6 +23,9 @@ const workspaces: Record<ToolId, ComponentType> = {
   ocr: OcrWorkspace,
   summarize: SummarizeWorkspace,
   'audio-to-text': AudioToTextWorkspace,
+  'screen-capture': lazy(() =>
+    import('../features/screen-capture/ScreenCaptureWorkspace').then((m) => ({ default: m.ScreenCaptureWorkspace })),
+  ),
   diagram: lazy(() => import('../features/diagram/DiagramWorkspace').then((m) => ({ default: m.DiagramWorkspace }))),
   diff: lazy(() => import('../features/diff/DiffWorkspace').then((m) => ({ default: m.DiffWorkspace }))),
   markdown: lazy(() => import('../features/markdown/MarkdownWorkspace').then((m) => ({ default: m.MarkdownWorkspace }))),
@@ -50,8 +53,9 @@ function WorkspaceLoading({ name }: { name: string }) {
 /** Every tool route is the same shell around its own workspace. */
 export function ToolPage({ tool }: { tool: ToolDefinition }) {
   const Workspace = workspaces[tool.id];
+
   return (
-    <AppShell key={tool.id} tool={tool}>
+    <AppShell tool={tool}>
       <Suspense fallback={<WorkspaceLoading name={tool.shortName} />}>
         <Workspace />
       </Suspense>
