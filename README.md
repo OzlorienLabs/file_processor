@@ -10,7 +10,7 @@ database, no tracking. File tools work in browser memory and forget everything o
 editors keep your work in this browser's localStorage only, with export and clear controls on
 every page.
 
-Release 1.1.1
+Release 1.1.2
 
 ## Tools
 
