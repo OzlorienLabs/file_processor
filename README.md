@@ -1,5 +1,7 @@
 # FileKit — private, client-first file tools
 
+## Web App - [FileKit](https://filekit.ozlorienlabs.com/)
+
 Free online tools for everyday files: merge, split, compress, convert, OCR, summarize,
 transcribe, and a complete emoji library, plus a set of local-first editors — whiteboard
 diagrams, Mermaid, Graphviz, diff checking, notes, Markdown, code snippets, and an AI snippet
@@ -7,6 +9,8 @@ generator — and two media tools, a screen recorder and a video-to-GIF converte
 database, no tracking. File tools work in browser memory and forget everything on refresh; the
 editors keep your work in this browser's localStorage only, with export and clear controls on
 every page.
+
+Release 1.0.1
 
 ## Tools
 
