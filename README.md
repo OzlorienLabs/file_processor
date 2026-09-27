@@ -6,7 +6,7 @@ Free online tools for everyday files: merge, split, compress, convert, OCR, summ
 transcribe, take screenshots, and a complete emoji library, plus a set of local-first editors — whiteboard
 diagrams, Mermaid, Graphviz, diff checking, notes, Markdown, code snippets, and an AI snippet
 generator — and two media tools, a screen recorder and a video-to-GIF converter. No login, no
-database, no tracking. File tools work in browser memory and forget everything on refresh; the
+database, and only anonymous page-view analytics (never file names or content). File tools work in browser memory and forget everything on refresh; the
 editors keep your work in this browser's localStorage only, with export and clear controls on
 every page.
 
@@ -89,3 +89,17 @@ talks to its own origin, so the CSP is unchanged and the key never reaches a cli
 | `FEEDBACK_FROM` | no | Verified sender; defaults to Resend's shared `onboarding@resend.dev` |
 
 A supplied email becomes the message's `reply_to`. A hidden honeypot field drops bot posts.
+
+## Analytics
+
+Two page-view counters, neither of which ever sees a file, file name, text, or AI key:
+
+- **Google Analytics 4** — `VITE_GA_MEASUREMENT_ID` (committed in `.env.production` as
+  `G-KR73DJJHX5`; a Vercel dashboard value overrides it). `src/lib/analytics.ts` loads
+  `gtag.js` only in production builds away from localhost, turns off automatic page views, and
+  `PageViewTracker` sends one `page_view` per route with the path only — no query string or hash.
+- **Vercel Web Analytics** — `<Analytics />` from `@vercel/analytics` in `main.tsx`. It loads
+  from `/_vercel/insights` on the same origin. Turn on **Analytics** in the Vercel project.
+
+The CSP in `vercel.json` allows `googletagmanager.com` scripts and the Google Analytics
+collection endpoints; nothing else was widened.

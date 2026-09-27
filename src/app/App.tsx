@@ -11,6 +11,7 @@ import {
 import { FeedbackDialog } from '../components/FeedbackDialog/FeedbackDialog';
 import { ToolMark } from '../components/ToolMark/ToolMark';
 import { HomePage } from '../pages/HomePage';
+import { PageViewTracker } from './PageViewTracker';
 import { ToolPage } from '../pages/ToolPage';
 import { coreTools } from './tool-catalog';
 
@@ -131,6 +132,7 @@ export function AppRoutes() {
 export function App() {
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <AppRoutes />
     </BrowserRouter>
   );

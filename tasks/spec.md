@@ -165,7 +165,7 @@ Limits protect browser memory and function payloads; they are shown before uploa
 - MIME spoofing: extension plus MIME and magic-byte checks for supported binary formats.
 - Memory exhaustion: release object URLs/canvases/workers, process PDF pages sequentially, and expose cancel controls.
 - XSS from filenames/model output/DOCX: React escaping, sanitized Mammoth output, no `dangerouslySetInnerHTML` for untrusted data.
-- Key disclosure: no logs, no analytics, masked field, opt-in storage, clear control, no key in URL/error text.
+- Key disclosure: no logs, analytics limited to route-path page views (never keys, files, or text), masked field, opt-in storage, clear control, no key in URL/error text.
 - Anonymous proxy abuse: strict OpenAI-only upstream URLs, model allowlist/custom-ID validation, payload caps, request timeout, origin checks, and Vercel rate controls documented for production.
 - Prompt injection: the model receives document text as quoted source material and has no tools or authority; output remains display-only text.
 
@@ -217,7 +217,7 @@ Components use named exports, one responsibility, semantic HTML, and colocated t
 ## Success criteria
 
 - Every requested route exists, is linked from `/en`, has a working upload-to-download flow, and includes a concise three-step instruction section.
-- Files remain in browser memory except for explicit AI requests; no database or analytics is present.
+- Files remain in browser memory except for explicit AI requests; no database is present. Analytics (GA4 + Vercel Web Analytics, approved 2026-09-26) record route-path page views only.
 - Model/key preferences follow opt-in local-storage behavior and can be cleared.
 - Unicode Emoji 17.0's fully-qualified catalog is searchable and lazy-loaded.
 - Home and tool pages remain usable at 320 px without horizontal overflow and meet keyboard/accessibility checks.
