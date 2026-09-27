@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react';
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useState, type ReactNode } from 'react';
 import {
   BrowserRouter,
   Link,
@@ -8,6 +8,7 @@ import {
   Routes,
 } from 'react-router-dom';
 
+import { FeedbackDialog } from '../components/FeedbackDialog/FeedbackDialog';
 import { ToolMark } from '../components/ToolMark/ToolMark';
 import { HomePage } from '../pages/HomePage';
 import { ToolPage } from '../pages/ToolPage';
@@ -32,6 +33,9 @@ function AppHeader() {
 }
 
 function AppFooter() {
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const closeFeedback = useCallback(() => setFeedbackOpen(false), []);
+
   return (
     <footer className="site-footer">
       <Link className="brand" to="/en">
@@ -40,7 +44,14 @@ function AppFooter() {
         </span>
         <span>FileKit</span>
       </Link>
-      <p>Built with curiosity and care by Ozlorien Labs.</p>
+      <p>
+        Built with curiosity and care by{' '}
+        <button className="footer-link" type="button" onClick={() => setFeedbackOpen(true)}>
+          Ozlorien Labs
+        </button>
+        .
+      </p>
+      {feedbackOpen ? <FeedbackDialog onClose={closeFeedback} /> : null}
     </footer>
   );
 }

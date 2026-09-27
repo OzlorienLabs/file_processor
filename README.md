@@ -56,7 +56,7 @@ localStorage with a one-click "Forget key on this device" control.
 
 Vite + React 19 + TypeScript SPA, native CSS (warm Clay/Ivory light theme), React Router
 for stable `/en/...` URLs, deployed on Vercel with three Node functions (`api/ai/*`) used
-only for AI provider calls. Heavy engines — pdf-lib, PDF.js, Tesseract, mammoth, jsPDF,
+only for AI provider calls, plus `api/feedback` for the footer contact form. Heavy engines — pdf-lib, PDF.js, Tesseract, mammoth, jsPDF,
 docx, JSZip, transformers.js, Excalidraw, Mermaid, Graphviz (`@viz-js/viz` WebAssembly), gifenc,
 fix-webm-duration, the remark/rehype Markdown pipeline, and lowlight — are dynamic imports or route-level chunks, kept out of the initial bundle.
 Untrusted content (Markdown, model output, highlighted code) is rendered as React elements
@@ -75,3 +75,17 @@ node scripts/generate-emoji.ts   # regenerate public/emoji/catalog.json
 ```
 
 The product contract lives in `tasks/spec.md`; agent conventions in `CLAUDE.md`.
+
+## Footer feedback (Resend)
+
+The "Ozlorien Labs" link in the footer opens a modal with a free-text note and an optional
+reply email. `api/feedback.ts` validates it and relays it through Resend; the browser only
+talks to its own origin, so the CSP is unchanged and the key never reaches a client.
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `RESEND_API_KEY` | yes | Resend API key; without it the endpoint answers `503` and the modal says feedback isn't configured |
+| `FEEDBACK_TO` | no | Destination; defaults to `ozlorienlabs@gmail.com` |
+| `FEEDBACK_FROM` | no | Verified sender; defaults to Resend's shared `onboarding@resend.dev` |
+
+A supplied email becomes the message's `reply_to`. A hidden honeypot field drops bot posts.

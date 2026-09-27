@@ -369,6 +369,32 @@ body::after {
 .site-footer .brand { font-size: 18px; }
 .site-footer .brand-mark { width: 30px; height: 30px; }
 .site-footer p { margin: 0; color: var(--color-neutral-700); font-size: 15px; }
+.footer-link {
+  padding: 0; border: 0; background: none;
+  font: inherit; color: var(--color-accent-700);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.footer-link:hover { color: var(--color-accent-800); }
+
+/* Footer feedback modal */
+.feedback-scrim {
+  position: fixed; inset: 0; z-index: 40;
+  display: grid; place-items: center; padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-text) 22%, transparent);
+}
+.feedback-dialog {
+  width: min(520px, 100%); max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto; padding: var(--space-6);
+  color: var(--color-text);
+}
+.feedback-form, .feedback-thanks { display: grid; gap: var(--space-3); }
+.feedback-head h2, .feedback-thanks h2 { margin: 0; font-size: 25px; }
+.feedback-head p, .feedback-thanks p { margin: var(--space-1) 0 0; color: var(--color-neutral-700); font-size: 15px; }
+.feedback-form textarea { min-height: 140px; resize: vertical; font: inherit; font-size: 15px; }
+.feedback-form .field-error { margin: 0; }
+.feedback-honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.feedback-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+.feedback-thanks .button { justify-self: end; }
 
 /* ==========================================================================
    Buttons and controls

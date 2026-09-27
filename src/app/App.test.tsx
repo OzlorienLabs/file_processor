@@ -24,7 +24,20 @@ describe('application routes', () => {
     expect(screen.queryByRole('link', { name: /emoji library/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /source/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/log in/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/built with curiosity and care by ozlorien labs\./i)).toBeInTheDocument();
+    expect(screen.getByText(/built with curiosity and care by/i)).toHaveTextContent(
+      'Built with curiosity and care by Ozlorien Labs.',
+    );
+  });
+
+  it('opens the feedback modal from the Ozlorien Labs footer link', async () => {
+    const user = userEvent.setup();
+    renderAt('/en');
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^ozlorien labs$/i }));
+    expect(screen.getByRole('dialog', { name: /say hello to ozlorien labs/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /cancel/i }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('derives its counts from the catalog', () => {
