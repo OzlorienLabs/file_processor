@@ -88,33 +88,21 @@ export function HomePage() {
             </div>
           </div>
 
-          <aside className="privacy-card g fu d4" aria-labelledby="privacy-title">
-            <h2 className="panel-label" id="privacy-title">
-              Where the work runs
+          <aside className="process-card g fu d4" aria-labelledby="process-title">
+            <h2 className="panel-label" id="process-title">
+              Three steps to done
             </h2>
-            <ul className="runs-list">
-              <li>
-                <span className="runs-dot" data-ink="cyan" aria-hidden="true" />
-                <p>
-                  <strong>{counts.local} tools never leave the tab.</strong> No request is made with
-                  your file at all.
-                </p>
-              </li>
-              <li>
-                <span className="runs-dot" data-ink="magenta" aria-hidden="true" />
-                <p>
-                  <strong>{counts.ai} AI tools ask first,</strong> then use the provider key you
-                  supply — held on this device, forgettable in one click.
-                </p>
-              </li>
-              <li>
-                <span className="runs-dot" data-ink="yellow" aria-hidden="true" />
-                <p>
-                  <strong>Editors save to this browser only,</strong> with export and clear on every
-                  page.
-                </p>
-              </li>
-            </ul>
+            <ol className="process-list">
+              {steps.map((step) => (
+                <li key={step.figure}>
+                  <PlateNumeral figure={step.figure} />
+                  <div>
+                    <strong>{step.title}</strong>
+                    <p>{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </aside>
         </div>
       </section>
@@ -155,29 +143,6 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="process-section shell" id="how" aria-labelledby="how-title">
-        <div className="process-grid">
-          <div className="process-intro">
-            <p className="eyebrow">A short path to done</p>
-            <h2 id="how-title">Three steps, then it is yours</h2>
-            <p>
-              Every tool keeps the same rhythm and says where it runs before you begin. Refresh the
-              page and the file is gone from memory.
-            </p>
-          </div>
-          <ol className="process-list">
-            {steps.map((step) => (
-              <li className="g" key={step.figure}>
-                <PlateNumeral figure={step.figure} />
-                <div>
-                  <strong>{step.title}</strong>
-                  <p>{step.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
     </main>
   );
 }

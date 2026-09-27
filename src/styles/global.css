@@ -478,8 +478,10 @@ body::after {
 .eyebrow-2 { color: var(--color-accent-2-700); }
 .hero-copy .lede { margin-top: var(--space-6); }
 .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
-.privacy-card { padding: var(--space-6); border-radius: var(--radius-lg); }
-.privacy-card h2 { margin-bottom: var(--space-3); }
+.privacy-card,
+.process-card { padding: var(--space-6); border-radius: var(--radius-lg); }
+.privacy-card h2,
+.process-card h2 { margin-bottom: var(--space-4); }
 .runs-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-3); }
 .runs-list li { display: flex; gap: 12px; align-items: baseline; }
 .runs-list p { margin: 0; font-size: 15px; line-height: 1.45; }
@@ -487,6 +489,23 @@ body::after {
 .runs-dot[data-ink="cyan"] { background: var(--color-accent); }
 .runs-dot[data-ink="magenta"] { background: var(--color-accent-2); }
 .runs-dot[data-ink="yellow"] { background: var(--color-process-yellow); }
+
+.process-card .process-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-3); }
+.process-card .process-list li {
+  display: flex; gap: var(--space-3); align-items: flex-start;
+  padding: 0; border-radius: 0;
+}
+.process-card .step-numeral {
+  font-size: 32px; line-height: 1; flex: none;
+  transform: translateY(2px);
+  --cmyk-num-ground: transparent;
+}
+.process-card .process-list strong {
+  display: block; font-family: var(--font-heading); font-size: 17px; line-height: 1.25;
+}
+.process-card .process-list p {
+  margin: 2px 0 0; font-size: 14px; line-height: 1.4; color: var(--color-neutral-800);
+}
 
 .section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-4); align-items: baseline; margin-bottom: var(--space-6); }
 .section-heading h2 { margin: 0; max-width: 18ch; }
@@ -504,15 +523,6 @@ body::after {
 .tool-card strong { font-family: var(--font-heading); font-size: 20px; letter-spacing: -0.02em; }
 .tool-card > span:not(.tool-icon, .tool-card-arrow) { font-size: 15px; line-height: 1.4; color: var(--color-neutral-800); }
 .tool-card small { margin-top: auto; padding-top: 8px; font-size: 12.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-neutral-700); }
-
-.process-section { padding: clamp(40px, 5vw, 88px) clamp(16px, 4vw, 56px); }
-.process-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
-.process-intro > p:last-child { margin: 0; max-width: 44ch; color: var(--color-neutral-800); font-size: 17px; line-height: 1.5; }
-.process-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-3); }
-.process-list li { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-4); border-radius: var(--radius-lg); }
-.step-numeral { font-size: 44px; --cmyk-num-ground: transparent; }
-.process-list strong { display: block; font-family: var(--font-heading); font-size: 19px; }
-.process-list p { margin: 2px 0 0; color: var(--color-neutral-800); }
 
 /* ==========================================================================
    The app shell — glass rail, glass top bar, workspace
