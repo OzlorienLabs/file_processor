@@ -86,7 +86,7 @@ Hero (`padding: clamp(40px,7vw,104px) clamp(16px,4vw,56px) clamp(32px,5vw,72px)`
 - lede (max 52ch, `text-wrap: pretty`), then two CTAs: solid cyan "Start with a file" and a glass "See all 16 tools".
 - Right: glass card "Where the work runs" with three dotted rows (cyan / magenta / yellow dots): **13 tools never leave the tab**; **3 AI tools ask first** then use your provider key; **editors save to this browser only**. Keep these counts in sync with `tool-catalog.ts`.
 
-Two tool sections — "File operations / Pick the job, not the app" and "Creation & development / Editors that take the whole screen" — each a `repeat(auto-fill, minmax(268px,1fr))` grid of glass cards: 34px mark, 20px serif title, 15px description, uppercase footer line with the processing disclosure, and an arrow glyph top-right (cyan for file tools, magenta for editors). Card hover: `translateY(-3px)`, `--shadow-lg`, background to `rgba(255,255,255,.72)`, 320ms `cubic-bezier(.16,.84,.28,1)`. Cards come from `tool-catalog.ts` — never hand-listed.
+Two tool sections — "File operations / Pick the job, not the app" and "Creation & development / Editors with whole screen" — each a `repeat(auto-fill, minmax(268px,1fr))` grid of glass cards: 34px mark, 20px serif title, 15px description, uppercase footer line with the processing disclosure, and an arrow glyph top-right (cyan for file tools, magenta for editors). Card hover: `translateY(-3px)`, `--shadow-lg`, background to `rgba(255,255,255,.72)`, 320ms `cubic-bezier(.16,.84,.28,1)`. Cards come from `tool-catalog.ts` — never hand-listed.
 
 "A short path to done / Three steps, then it is yours": 3 glass rows, each numbered with the Broadsheet `.cmyk-num` plate numeral at 44px — Choose / Adjust / Download.
 

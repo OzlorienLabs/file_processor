@@ -509,6 +509,7 @@ body::after {
 
 .section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-4); align-items: baseline; margin-bottom: var(--space-6); }
 .section-heading h2 { margin: 0; max-width: 18ch; }
+#create-title { max-width: none; white-space: nowrap; font-size: clamp(26px, 3.4vw, 46px); }
 .section-heading > p { max-width: 40ch; margin: 0; color: var(--color-neutral-800); font-size: 16px; }
 .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: var(--space-4); }
 .tool-card {

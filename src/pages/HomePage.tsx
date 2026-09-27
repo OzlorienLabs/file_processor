@@ -129,7 +129,7 @@ export function HomePage() {
         <div className="section-heading">
           <div>
             <p className="eyebrow eyebrow-2">Creation &amp; development</p>
-            <h2 id="create-title">Editors that take the whole screen</h2>
+            <h2 id="create-title">Editors with whole screen</h2>
           </div>
           <p>
             {counts.editors} full-bleed workspaces. Editors keep your work in this browser; recordings
