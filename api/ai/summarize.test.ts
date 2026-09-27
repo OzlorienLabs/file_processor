@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fakeResponse } from '../_lib/test-helpers';
-import handler, { validateSummarizeBody } from './summarize';
+import { fakeResponse } from '../_lib/test-helpers.js';
+import handler, { validateSummarizeBody } from './summarize.js';
 
 const validBody = {
   provider: 'openai',

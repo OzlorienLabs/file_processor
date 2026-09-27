@@ -5,9 +5,9 @@ import {
   upstreamError,
   type ApiRequest,
   type ApiResponse,
-} from '../_lib/http';
-import { buildTextRequest, isValidModel, parseTextResponse, PROVIDERS, type Provider } from '../_lib/providers';
-import { buildSnippetPrompt, validateSnippetRequest, type SnippetRequest } from '../_lib/snippet-prompt';
+} from '../_lib/http.js';
+import { buildTextRequest, isValidModel, parseTextResponse, PROVIDERS, type Provider } from '../_lib/providers.js';
+import { buildSnippetPrompt, validateSnippetRequest, type SnippetRequest } from '../_lib/snippet-prompt.js';
 
 export const UPSTREAM_TIMEOUT_MS = 55_000;
 

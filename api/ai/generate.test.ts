@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fakeResponse } from '../_lib/test-helpers';
-import handler, { validateGenerateBody } from './generate';
+import { fakeResponse } from '../_lib/test-helpers.js';
+import handler, { validateGenerateBody } from './generate.js';
 
 const validBody = {
   provider: 'anthropic',

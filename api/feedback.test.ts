@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fakeResponse } from './_lib/test-helpers';
+import { fakeResponse } from './_lib/test-helpers.js';
 import handler, {
   buildResendPayload,
   DEFAULT_FROM,
@@ -8,7 +8,7 @@ import handler, {
   escapeHtml,
   RESEND_ENDPOINT,
   validateFeedbackBody,
-} from './feedback';
+} from './feedback.js';
 
 function request(body: unknown, method = 'POST') {
   return { method, headers: {}, body };

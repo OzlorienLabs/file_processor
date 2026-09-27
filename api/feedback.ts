@@ -1,4 +1,4 @@
-import { sendError, sendJson, type ApiRequest, type ApiResponse } from './_lib/http';
+import { sendError, sendJson, type ApiRequest, type ApiResponse } from './_lib/http.js';
 
 /**
  * Relays a note from the footer feedback modal to Ozlorien Labs through Resend.

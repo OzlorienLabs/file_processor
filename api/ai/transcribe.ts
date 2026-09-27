@@ -5,7 +5,7 @@ import {
   upstreamError,
   type ApiRequest,
   type ApiResponse,
-} from '../_lib/http';
+} from '../_lib/http.js';
 
 export const UPSTREAM_TIMEOUT_MS = 55_000;
 /** Decoded audio chunks stay below the Vercel request payload boundary. */

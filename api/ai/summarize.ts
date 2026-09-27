@@ -5,7 +5,7 @@ import {
   upstreamError,
   type ApiRequest,
   type ApiResponse,
-} from '../_lib/http';
+} from '../_lib/http.js';
 import {
   buildSummarizeRequest,
   buildSummaryPrompt,
@@ -16,7 +16,7 @@ import {
   PROVIDERS,
   type Detail,
   type Provider,
-} from '../_lib/providers';
+} from '../_lib/providers.js';
 
 export const UPSTREAM_TIMEOUT_MS = 55_000;
 

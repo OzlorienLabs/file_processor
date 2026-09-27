@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { headerValue, sendError, sendJson, upstreamError } from './http';
-import { fakeResponse } from './test-helpers';
+import { headerValue, sendError, sendJson, upstreamError } from './http.js';
+import { fakeResponse } from './test-helpers.js';
 
 describe('fakeResponse', () => {
   it('records an empty body when end is called without a chunk', () => {

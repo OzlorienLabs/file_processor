@@ -23,6 +23,7 @@ function onHost(hostname: string) {
 afterEach(() => {
   resetAnalyticsForTesting();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   gtagScripts().forEach((script) => script.remove());
   delete window.gtag;
   delete window.dataLayer;
@@ -33,11 +34,14 @@ describe('getMeasurementId', () => {
     expect(getMeasurementId(' g-kr73djjhx5 ')).toBe('G-KR73DJJHX5');
   });
 
-  it.each([undefined, '', 'undefined', 'UA-12345-1', 'G-'])('rejects %s', (raw) => {
+  it.each(['', 'undefined', 'UA-12345-1', 'G-'])('rejects %s', (raw) => {
     expect(getMeasurementId(raw)).toBeNull();
   });
 
-  it('is unset in the test environment', () => {
+  it('reads VITE_GA_MEASUREMENT_ID by default', () => {
+    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-ABC123');
+    expect(getMeasurementId()).toBe('G-ABC123');
+    vi.stubEnv('VITE_GA_MEASUREMENT_ID', undefined);
     expect(getMeasurementId()).toBeNull();
   });
 });
@@ -54,6 +58,7 @@ describe('isLocalHost', () => {
 
 describe('initAnalytics', () => {
   it('stays inert without an ID or on localhost', () => {
+    vi.stubEnv('VITE_GA_MEASUREMENT_ID', '');
     expect(initAnalytics()).toBe(false);
     expect(initAnalytics(null)).toBe(false);
     expect(initAnalytics('G-KR73DJJHX5')).toBe(false); // jsdom runs on localhost

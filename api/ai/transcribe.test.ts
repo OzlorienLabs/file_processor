@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fakeResponse } from '../_lib/test-helpers';
-import handler, { MAX_AUDIO_BYTES, validateTranscribeBody } from './transcribe';
+import { fakeResponse } from '../_lib/test-helpers.js';
+import handler, { MAX_AUDIO_BYTES, validateTranscribeBody } from './transcribe.js';
 
 const validAudio = Buffer.from('RIFF-wav-bytes').toString('base64');
 const validBody = { model: 'whisper-1', language: 'en', audio: validAudio };

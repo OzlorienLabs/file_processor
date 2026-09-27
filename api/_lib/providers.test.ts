@@ -5,7 +5,7 @@ import {
   buildSummaryPrompt,
   isValidModel,
   parseSummaryResponse,
-} from './providers';
+} from './providers.js';
 
 describe('buildSummaryPrompt', () => {
   it('frames the document as untrusted source material', () => {

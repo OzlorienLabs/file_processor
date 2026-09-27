@@ -1,4 +1,4 @@
-import type { ApiResponse } from './http';
+import type { ApiResponse } from './http.js';
 
 export interface RecordedResponse extends ApiResponse {
   body: string;

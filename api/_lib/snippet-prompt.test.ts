@@ -6,7 +6,7 @@ import {
   MAX_CONTEXT_CHARS,
   MAX_DESCRIPTION_CHARS,
   validateSnippetRequest,
-} from './snippet-prompt';
+} from './snippet-prompt.js';
 
 const valid = { description: 'debounce a function', language: 'typescript', context: 'uses lodash', explain: true };
 
